@@ -1,0 +1,6 @@
+services:
+  lmsystem.api:
+    image: ${DOCKER_REGISTRY-}lmsystemapi
+    build:
+      context: .
+      dockerfile: LMSystem.API/Dockerfile
