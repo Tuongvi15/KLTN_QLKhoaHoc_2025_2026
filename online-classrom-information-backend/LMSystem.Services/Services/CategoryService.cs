@@ -39,6 +39,10 @@ namespace LMSystem.Services.Services
         {
             return await _categoryRepository.UpdateCategory(model);
         }
+        public async Task<ResponeModel> GetFieldsWithCategories()
+        {
+            return await _categoryRepository.GetFieldsWithCategories();
+        }
 
         public async Task<ResponeModel> GetCategoriesByFieldIdAsync(int fieldId)
         {

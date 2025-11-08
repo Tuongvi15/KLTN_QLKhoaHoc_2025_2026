@@ -43,9 +43,6 @@ namespace LMSystem.Repository.Repositories
                     await _context.SaveChangesAsync();
                 }
 
-                _context.Categories.Add(category);
-                await _context.SaveChangesAsync();
-
                 return new ResponeModel { Status = "Success", Message = "Added category successfully", DataObject = category };
             }
             catch (Exception ex)
@@ -165,5 +162,31 @@ namespace LMSystem.Repository.Repositories
                 return new ResponeModel { Status = "Error", Message = "An error occurred while update the course" };
             }
         }
+
+        public async Task<ResponeModel> GetFieldsWithCategories()
+        {
+            var result = await _context.Fields
+                .Include(f => f.FieldCategories)
+                    .ThenInclude(fc => fc.Category)
+                .Select(f => new
+                {
+                    FieldId = f.FieldId,
+                    FieldName = f.Name,
+                    Categories = f.FieldCategories.Select(fc => new
+                    {
+                        fc.Category.CatgoryId,
+                        fc.Category.Name
+                    })
+                })
+                .ToListAsync();
+
+            return new ResponeModel
+            {
+                Status = "Success",
+                Message = "Fetched fields with categories successfully",
+                DataObject = result
+            };
+        }
+
     }
 }

@@ -171,8 +171,10 @@ export interface CourseCategory {
 
 export interface AddCategoryRequest {
     categoryName: string;
-    categoryDescription: string;
+    categoryDescription?: string;
+    fieldId?: number; // ✅ thêm dòng này
 }
+
 
 export interface UpdateCategoryRequest {
     categoryId: number;

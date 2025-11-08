@@ -20,7 +20,7 @@ import { Button as MuiButton, TextField, CircularProgress } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add';
 import { Question } from '../../../../../types/Question.type';
 import { useDeleteQuestionMutation } from '../../../../../services/question.services';
-import { Skeleton } from 'antd';
+import { Skeleton, message } from 'antd';
 
 export interface LectureQuizzContentProps {
     step: Step;
@@ -29,183 +29,233 @@ export interface LectureQuizzContentProps {
 const LectureQuizzContent = ({ step }: LectureQuizzContentProps) => {
     const { quizId, stepId } = step;
     const dispatch = useDispatch();
-    
-    // 🔥 FIX: Dùng state key để force re-render khi cần
-    const [componentKey, setComponentKey] = useState(0);
+
+    // UI & State
     const [isInCreateMode, setIsInCreateMode] = useState(quizId === 1);
-    const [questionDelete, setQuestionDelete] = useState(0);
     const [titleTemp, setTitleTemp] = useState('');
+    const [questionDelete, setQuestionDelete] = useState<number | null>(null);
     const isCreatingQuizRef = useRef(false);
 
-    const initialQuestionData = useMemo<Question>(() => ({
-        answerHistories: [],
-        anwser: '',
-        correctAnwser: 0,
-        questionId: -1,
-        questionTitle: '',
-        quiz: '',
-        quizId: quizId,
-    }), [quizId]);
-
-    const quizState = useSelector((state: RootState) => {
-        if (quizId === 1) {
-            return undefined;
-        }
-        return state.quiz.quizList.find((quiz) => quiz.quizId === quizId);
-    });
-
-    const {
-        isSuccess: isGetQuizSuccess,
-        data: getQuizData,
-        isLoading: isGetQuizLoading,
-    } = useGetQuizDetailQuery(quizId === 1 ? -1 : quizId, {
-        skip: quizId === 1,
-    });
-
-    const [updateStepMutation, { isSuccess: isUpdateSuccess, isLoading: isUpdateLoading, data: updateData }] =
-        useUpdateStepMutation();
-    const [addQuizzMutation, { isSuccess: isAddQuizzSuccess, data: addQuizzData, isLoading: isAddQuizzLoading }] =
+    // RTK mutations
+    const [addQuiz, { isLoading: isAddLoading, isSuccess: isAddSuccess, data: addQuizData }] =
         useAddQuizMutation();
-    const [updateQuizMutation, { isSuccess: isUpdateQuizSuccess, data: updateQuizData }] =
+    const [updateStep, { isLoading: isUpdateStepLoading }] = useUpdateStepMutation();
+    const [updateQuiz, { isLoading: isUpdateQuizLoading, isSuccess: isUpdateQuizSuccess, data: updateQuizData }] =
         useUpdateQuizMutation();
     const [deleteQuestionMutation, { isSuccess: isDeleteQuestionSuccess }] =
         useDeleteQuestionMutation();
 
-    const handleCreateQuiz = useCallback(() => {
-        if (titleTemp.trim() && !isCreatingQuizRef.current) {
-            isCreatingQuizRef.current = true;
-            addQuizzMutation({
-                title: titleTemp,
+    const { data: getQuizData, isSuccess: isGetSuccess, isLoading: isGetLoading } =
+        useGetQuizDetailQuery(quizId === 1 ? -1 : quizId, {
+            skip: quizId === 1,
+        });
+
+    const quizState = useSelector((state: RootState) =>
+        state.quiz.quizList.find((quiz) => quiz.quizId === quizId)
+    );
+
+    // Template for new question
+    const initialQuestion = useMemo<Question>(
+        () => ({
+            answerHistories: [],
+            anwser: '',
+            correctAnwser: 0,
+            questionId: -1,
+            questionTitle: '',
+            quiz: '',
+            quizId,
+        }),
+        [quizId]
+    );
+
+    // 🔹 Auto-create quiz (nếu chưa có) khi user muốn thêm câu hỏi
+    const ensureQuizExists = useCallback(async () => {
+        if (quizId > 1) return quizId;
+
+        if (isCreatingQuizRef.current) return null;
+        isCreatingQuizRef.current = true;
+
+        try {
+            const created = await addQuiz({
+                title: titleTemp.trim() || 'Quiz mới',
+                description: 'Auto-created quiz',
+            }).unwrap();
+
+            dispatch(upsertQuiz(created));
+            await updateStep({
+                ...step,
+                quizId: created.quizId,
+            }).unwrap();
+
+            dispatch(setStep({ ...step, quizId: created.quizId }));
+            message.success('Đã tự động tạo quiz mới!');
+            setIsInCreateMode(false);
+            return created.quizId;
+        } catch (err) {
+            console.error('❌ Tạo quiz thất bại:', err);
+            message.error('Không thể tạo quiz!');
+            return null;
+        } finally {
+            isCreatingQuizRef.current = false;
+        }
+    }, [quizId, addQuiz, dispatch, step, titleTemp, updateStep]);
+
+    // 🧠 Tạo quiz thủ công
+    const handleCreateQuiz = useCallback(async () => {
+        if (isCreatingQuizRef.current) return;
+        isCreatingQuizRef.current = true;
+
+        try {
+            const created = await addQuiz({
+                title: titleTemp.trim() || 'Quiz mới',
                 description: 'string',
-            });
+            }).unwrap();
+
+            dispatch(upsertQuiz(created));
+            await updateStep({
+                ...step,
+                quizId: created.quizId,
+            }).unwrap();
+
+            dispatch(setStep({ ...step, quizId: created.quizId }));
+            message.success('Quiz đã được tạo!');
+            setIsInCreateMode(false);
+        } catch (err) {
+            message.error('Không thể tạo quiz!');
+        } finally {
+            isCreatingQuizRef.current = false;
         }
-    }, [titleTemp, addQuizzMutation]);
+    }, [titleTemp, step, addQuiz, updateStep, dispatch]);
 
-    const handleOnClickDone = useCallback(() => {
-        if (quizState) {
-            updateQuizMutation({
-                ...quizState,
-            });
+    // 🧠 Validate câu hỏi trước khi lưu
+    const validateQuestions = useCallback((quiz: any) => {
+        const errors: string[] = [];
+
+        quiz.questions.forEach((q: Question, idx: number) => {
+            if (!q.questionTitle?.trim()) {
+                errors.push(`❌ Câu ${idx + 1}: Nội dung câu hỏi không được để trống.`);
+            }
+
+            if (!q.anwser?.trim()) {
+                errors.push(`❌ Câu ${idx + 1}: Danh sách đáp án không được để trống.`);
+            }
+        });
+
+        if (errors.length) {
+            message.error(errors.join('\n'));
+            return false;
         }
-    }, [quizState, updateQuizMutation]);
+        return true;
+    }, []);
 
-    const handleOnAddQuestion = useCallback(() => {
-        dispatch(upsertQuestion({ question: initialQuestionData, quizId: quizId }));
-    }, [dispatch, initialQuestionData, quizId]);
+    // 🧠 Lưu quiz & validate
+    const handleSaveQuiz = useCallback(() => {
+        if (!quizState) return;
 
-    const handleOnDeleteQuestion = useCallback((questionId: number) => {
-        setQuestionDelete(questionId);
-        deleteQuestionMutation(questionId);
-    }, [deleteQuestionMutation]);
+        let hasError = false;
+        quizState.questions.forEach((q, idx) => {
+            const answers = q.anwser.split('|').map(a => a.trim()).filter(a => a);
+            if (!q.questionTitle.trim()) {
+                message.warning(`❌ Câu ${idx + 1}: Câu hỏi không được để trống`);
+                hasError = true;
+            }
+            if (answers.length < 2) {
+                message.warning(`❌ Câu ${idx + 1}: Cần ít nhất 2 đáp án hợp lệ`);
+                hasError = true;
+            }
+            
+        });
 
-    const handleUpdateQuestions = useCallback(() => {
-        if (quizState) {
-            updateQuizMutation({
-                description: '',
-                quizId: quizId,
-                questions: quizState.questions,
-                title: quizState.title,
-            });
-        }
-    }, [quizState, quizId, updateQuizMutation]);
+        if (hasError) return;
+        updateQuiz({ ...quizState });
+        message.success('Lưu câu hỏi thành công!');
+    }, [quizState, updateQuiz]);
 
-    const handleTitleChange = useCallback((value: string | number) => {
-        if (typeof value === 'string') {
-            if (isInCreateMode) {
-                setTitleTemp(value);
-            } else {
-                dispatch(updateQuizTile({ quizId: quizId, title: value }));
+
+    // 🧠 Thêm câu hỏi mới (tự tạo quiz nếu chưa có)
+    const handleAddQuestion = useCallback(async () => {
+        let qid = quizId;
+
+        // ⚙️ Nếu quiz chưa có, tự tạo
+        if (quizId === 1) {
+            try {
+                const created = await addQuiz({
+                    title: titleTemp.trim() || 'Quiz tự động',
+                    description: 'Auto-created quiz',
+                }).unwrap();
+                dispatch(upsertQuiz(created));
+                await updateStep({ ...step, quizId: created.quizId }).unwrap();
+                dispatch(setStep({ ...step, quizId: created.quizId }));
+                message.success('Đã tự tạo quiz mới!');
+                qid = created.quizId;
+                setIsInCreateMode(false);
+            } catch {
+                message.error('Tạo quiz thất bại!');
+                return;
             }
         }
-    }, [isInCreateMode, dispatch, quizId]);
 
+        // ⚙️ Thêm câu hỏi trống
+        const newQuestion: Question = {
+            questionId: -1,
+            questionTitle: '',
+            anwser: '||', // 3 chỗ trống
+            correctAnwser: 0,
+            answerHistories: [],
+            quiz: '',
+            quizId: qid,
+        };
+        dispatch(upsertQuestion({ question: newQuestion, quizId: qid }));
+    }, [dispatch, addQuiz, quizId, titleTemp, step, updateStep]);
+
+
+    // 🧠 Xóa câu hỏi
+    const handleDeleteQuestion = useCallback(
+        (id: number) => {
+            setQuestionDelete(id);
+            deleteQuestionMutation(id);
+        },
+        [deleteQuestionMutation]
+    );
+
+    // 🧠 Sửa tiêu đề
+    const handleTitleChange = useCallback(
+        (value: string | number) => {
+            if (typeof value !== 'string') return;
+            if (isInCreateMode) setTitleTemp(value);
+            else dispatch(updateQuizTile({ quizId, title: value }));
+        },
+        [isInCreateMode, dispatch, quizId]
+    );
+
+    // 🧩 Đồng bộ load quiz
     useEffect(() => {
-        if (!quizState && quizId > 1 && !isGetQuizLoading) {
-            console.log('🔧 Creating temporary quiz in state for quizId:', quizId);
-            dispatch(upsertQuiz({
-                quizId: quizId,
-                title: '',
-                description: '',
-                questions: [],
-                steps: [],
-            }));
+        if (isGetSuccess && getQuizData) {
+            dispatch(upsertQuiz(getQuizData));
         }
-    }, [quizState, quizId, isGetQuizLoading, dispatch]);
+    }, [isGetSuccess, getQuizData, dispatch]);
 
+    // 🧩 Sau khi update quiz
     useEffect(() => {
         if (isUpdateQuizSuccess && updateQuizData) {
             dispatch(upsertQuiz(updateQuizData));
         }
     }, [isUpdateQuizSuccess, updateQuizData, dispatch]);
 
-    useEffect(() => {
-        if (isGetQuizSuccess && getQuizData) {
-            console.log('📥 Loaded quiz from API:', getQuizData);
-            dispatch(upsertQuiz(getQuizData));
-        }
-    }, [isGetQuizSuccess, getQuizData, dispatch]);
-
-    // 🔥 FIX: Xử lý toàn bộ flow tạo quiz trong 1 effect
-    useEffect(() => {
-        if (isAddQuizzSuccess && addQuizzData && isCreatingQuizRef.current) {
-            console.log('✅ Quiz created successfully:', addQuizzData);
-            dispatch(upsertQuiz(addQuizzData));
-            
-            // Update step với quizId mới
-            if (step.stepId > 0) {
-                console.log('🔄 Updating step with new quizId:', addQuizzData.quizId);
-                updateStepMutation({
-                    duration: step.duration,
-                    position: step.position,
-                    quizId: addQuizzData.quizId,
-                    stepDescription: step.stepDescription,
-                    stepId: step.stepId,
-                    title: step.title,
-                    videoUrl: step.videoUrl,
-                }).unwrap().then(() => {
-                    // ✅ Sau khi update step thành công, thoát create mode
-                    console.log('✅ Step updated, exiting create mode');
-                    setIsInCreateMode(false);
-                    isCreatingQuizRef.current = false;
-                }).catch((error) => {
-                    console.error('❌ Failed to update step:', error);
-                    isCreatingQuizRef.current = false;
-                });
-            } else {
-                // Nếu không có stepId, thoát create mode ngay
-                setIsInCreateMode(false);
-                isCreatingQuizRef.current = false;
-            }
-        }
-    }, [isAddQuizzSuccess, addQuizzData, dispatch, updateStepMutation, step]);
-
-    useEffect(() => {
-        if (isUpdateSuccess && updateData) {
-            dispatch(setStep(updateData));
-        }
-    }, [isUpdateSuccess, updateData, dispatch]);
-
+    // 🧩 Sau khi xóa câu hỏi
     useEffect(() => {
         if (isDeleteQuestionSuccess && questionDelete) {
-            dispatch(deleteQuestion({ quizId: quizId, questionId: questionDelete }));
+            dispatch(deleteQuestion({ quizId, questionId: questionDelete }));
+            setQuestionDelete(null);
+            message.success('Đã xóa câu hỏi!');
         }
     }, [isDeleteQuestionSuccess, questionDelete, dispatch, quizId]);
 
-    console.log('🔍 LectureQuizzContent Debug:', { 
-        stepId: step.stepId,
-        quizId, 
-        isInCreateMode,
-        isCreatingQuiz: isCreatingQuizRef.current,
-        hasQuizState: !!quizState,
-        questionsCount: quizState?.questions?.length || 0,
-        titleTemp,
-        componentKey
-    });
-
     return (
-        <div className="flex flex-col gap-4" key={componentKey}>
+        <div className="flex flex-col gap-4">
+            {/* 🧱 Tiêu đề quiz */}
             <div className="flex items-center gap-4">
-                <p className="w-fit font-medium text-[#1976d2]">Tiêu đề:</p>
+                <p className="font-medium text-[#1976d2]">Tiêu đề:</p>
                 <div className="flex-1">
                     {isInCreateMode ? (
                         <div className="flex items-center gap-2">
@@ -214,69 +264,67 @@ const LectureQuizzContent = ({ step }: LectureQuizzContentProps) => {
                                 size="small"
                                 value={titleTemp}
                                 onChange={(e) => setTitleTemp(e.target.value)}
-                                placeholder="Nhập tiêu đề quiz..."
-                                disabled={isAddQuizzLoading || isCreatingQuizRef.current}
+                                placeholder="(Tùy chọn) Nhập tiêu đề quiz..."
+                                disabled={isAddLoading || isCreatingQuizRef.current}
                                 inputProps={{ maxLength: 76 }}
                                 helperText={`${titleTemp.length}/76`}
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' && titleTemp.trim() && !isCreatingQuizRef.current) {
-                                        handleCreateQuiz();
-                                    }
-                                }}
                             />
                             <MuiButton
                                 variant="contained"
-                                onClick={handleCreateQuiz}
-                                disabled={!titleTemp.trim() || isAddQuizzLoading || isCreatingQuizRef.current}
                                 size="small"
-                                startIcon={isCreatingQuizRef.current ? <CircularProgress size={16} /> : null}
+                                disabled={isAddLoading}
+                                onClick={handleCreateQuiz}
+                                startIcon={
+                                    isCreatingQuizRef.current ? <CircularProgress size={16} /> : <AddIcon />
+                                }
                             >
-                                {isCreatingQuizRef.current ? 'Đang lưu...' : 'Lưu'}
+                                {isCreatingQuizRef.current ? 'Đang tạo...' : 'Tạo quiz'}
                             </MuiButton>
                         </div>
                     ) : (
                         <EditableText
-                            isLoading={isUpdateLoading}
+                            isLoading={isUpdateQuizLoading}
                             maxLength={76}
                             showCount
                             textCSS="font-medium text-base"
                             edit={false}
                             value={quizState?.title || ''}
-                            onDoneClick={handleOnClickDone}
+                            onDoneClick={handleSaveQuiz}
                             onChage={handleTitleChange}
                         />
                     )}
                 </div>
             </div>
 
-            {!isGetQuizLoading && quizState && !isInCreateMode && (
+            {/* 🧩 Danh sách câu hỏi */}
+            {!isGetLoading && quizState && !isInCreateMode && (
                 <div className="flex flex-col gap-6 px-6">
-                    {(quizState.questions && quizState.questions.length > 0) ? (
-                        quizState.questions.map((question) => (
+                    {quizState.questions?.length ? (
+                        quizState.questions.map((q) => (
                             <MultipleQuestionInput
-                                maxInputItem={10}
-                                onDataChange={(q) => {
-                                    dispatch(upsertQuestion({ quizId: quizId, question: q }));
-                                }}
+                                key={q.questionId}
+                                values={q}
+                                position={quizState.questions.indexOf(q) + 1}
+                                onDataChange={(question) =>
+                                    dispatch(upsertQuestion({ quizId, question }))
+                                }
+                                onDoneClick={handleSaveQuiz}
+                                onDeleteClick={() => handleDeleteQuestion(q.questionId)}
                                 seperator="|"
-                                values={question}
-                                key={question.questionId}
-                                position={quizState.questions.indexOf(question) + 1}
-                                onDoneClick={handleUpdateQuestions}
-                                onDeleteClick={() => handleOnDeleteQuestion(question.questionId)}
-                                isCreate={question.questionId === -1}
+                                maxInputItem={10}
+                                isCreate={q.questionId === -1}
                             />
                         ))
                     ) : (
-                        <p className="text-gray-400 text-sm">Chưa có câu hỏi nào. Nhấn "Thêm câu hỏi" để bắt đầu.</p>
+                        <p className="text-gray-400 text-sm">
+                            Chưa có câu hỏi nào. Nhấn “Thêm câu hỏi” để bắt đầu.
+                        </p>
                     )}
-
                     <MuiButton
-                        onClick={handleOnAddQuestion}
-                        className="!w-fit justify-start"
+                        onClick={handleAddQuestion}
+                        className="!w-fit"
                         variant="text"
                         size="small"
-                        style={{ fontSize: '12px' }}
                         startIcon={<AddIcon />}
                     >
                         Thêm câu hỏi
@@ -284,13 +332,13 @@ const LectureQuizzContent = ({ step }: LectureQuizzContentProps) => {
                 </div>
             )}
 
-            {!isGetQuizLoading && isInCreateMode && !isCreatingQuizRef.current && (
+            {!isGetLoading && isInCreateMode && !isCreatingQuizRef.current && (
                 <div className="text-gray-500 px-6 text-sm">
-                    📝 Nhập tiêu đề quiz và nhấn "Lưu" (hoặc Enter) để bắt đầu tạo câu hỏi.
+                    Bạn có thể tạo quiz trống hoặc thêm câu hỏi — hệ thống sẽ tự tạo quiz nếu cần.
                 </div>
             )}
 
-            {(isGetQuizLoading || isCreatingQuizRef.current) && (
+            {(isGetLoading || isCreatingQuizRef.current) && (
                 <div className="px-6">
                     <Skeleton active />
                 </div>

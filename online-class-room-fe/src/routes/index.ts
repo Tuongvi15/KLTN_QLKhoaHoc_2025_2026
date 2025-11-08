@@ -30,9 +30,10 @@ import CheckLearningProgress from '../pages/ParentPages/CheckLearningProgess/Che
 import ParentManageProfilePage from '../pages/ParentPages/ParentManageProfilePage';
 import PlacementTestListPage from '../pages/AdminPages/PlacementTest/PlacementTestListPage';
 import FieldManager from '../pages/AdminPages/PlacementTest/FieldManager';
+import PlacementQuestionPage from '../pages/AdminPages/PlacementTest/PlacementQuestionPage';
 
 interface LayoutProps {
-    children : React.ReactNode;
+    children: React.ReactNode;
     requireRole?: RoleType;
     whenRoleUnMatchNavTo?: string;
 }
@@ -40,7 +41,7 @@ interface LayoutProps {
 interface RouteProps {
     path: string;
     component: () => JSX.Element;
-    layout: ({ children , requireRole, whenRoleUnMatchNavTo }: LayoutProps) => JSX.Element;
+    layout: ({ children, requireRole, whenRoleUnMatchNavTo }: LayoutProps) => JSX.Element;
 }
 
 const publicRoutes: RouteProps[] = [
@@ -77,6 +78,13 @@ const adminRoutes: RouteProps[] = [
     { path: '/admin/createAccount', component: CreateAccountAdmin, layout: DefaultLayoutAdmin },
     { path: '/admin/placement-tests', component: PlacementTestListPage, layout: DefaultLayoutAdmin },
     { path: '/admin/fields', component: FieldManager, layout: DefaultLayoutAdmin },
+    {
+        path: '/admin/placement-test/:id/questions',
+        component: PlacementQuestionPage,
+        layout: DefaultLayoutAdmin
+    },
+
+
 ];
 
 const parentRoutes: RouteProps[] = [

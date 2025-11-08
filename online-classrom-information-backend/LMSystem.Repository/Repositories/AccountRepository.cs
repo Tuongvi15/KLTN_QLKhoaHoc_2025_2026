@@ -49,14 +49,14 @@ namespace LMSystem.Repository.Repositories
 
         public async Task<AccountModel> GetAccountByEmail(string email)
         {
-            var account = await userManager.FindByNameAsync(email);
+            var account = await _context.Account.Where(x => x.Email.ToLower() == email.ToLower()).FirstOrDefaultAsync();
             var result = _mapper.Map<AccountModel>(account);
             return result;
         }
 
         public async Task<Account> GetAccountById(string id)
         {
-            var account = await userManager.FindByIdAsync(id);
+            var account = await _context.Account.Where(x => x.Id.ToLower() == id.ToLower()).FirstOrDefaultAsync(); ;
             return account;
         }
 
@@ -215,11 +215,11 @@ namespace LMSystem.Repository.Repositories
         public async Task<AuthenticationResponseModel> SignInAccountAsync(SignInModel model)
         {
             var result = await signInManager.PasswordSignInAsync(model.AccountEmail, model.AccountPassword, false, false);
-            var account = await userManager.FindByNameAsync(model.AccountEmail);
+            var account = _context.Account.Where(x => x.Email.ToLower() == model.AccountEmail.ToLower()).FirstOrDefault();
 
             if (result.Succeeded)
             {
-                var user = await userManager.FindByNameAsync(model.AccountEmail);
+                var user = _context.Account.Where(x => x.Email.ToLower() == model.AccountEmail.ToLower()).FirstOrDefault();
                 //var validPass = await userManager.CheckPasswordAsync(user, model.AccountPassword);
                 if (user != null /*|| validPass*/)
                 {
@@ -288,7 +288,7 @@ namespace LMSystem.Repository.Repositories
         {
             try
             {
-                var exsistAccount = await userManager.FindByNameAsync(model.AccountEmail);
+                var exsistAccount = await _context.Account.Where(x => x.Email.ToLower() ==  model.AccountEmail.ToLower()).FirstOrDefaultAsync();
                 if (exsistAccount == null)
                 {
                     var user = new Account
@@ -345,7 +345,7 @@ namespace LMSystem.Repository.Repositories
         {
             try
             {
-                var exsistAccount = await userManager.FindByNameAsync(model.AccountEmail);
+                var exsistAccount = _context.Account.Where(x => x.Email.ToLower() == model.AccountEmail.ToLower());
                 if (exsistAccount == null)
                 {
                     var user = new Account
@@ -490,7 +490,7 @@ namespace LMSystem.Repository.Repositories
         }
         public async Task<ResponeModel> ChangePasswordAsync(ChangePasswordModel model)
         {
-            var account = await userManager.FindByEmailAsync(model.Email);
+            var account = await _context.Account.Where(x => x.Email.ToLower() == model.Email.ToLower()).FirstOrDefaultAsync();
             if (account == null)
             {
                 return new ResponeModel
@@ -664,7 +664,7 @@ namespace LMSystem.Repository.Repositories
 
         public async Task<ResponeModel> ConfirmEmail(string email, string token)
         {
-            var user = await userManager.FindByNameAsync(email);
+            var user = await _context.Account.Where(x => x.Email.ToLower() == email.ToLower()).FirstOrDefaultAsync();
             if (user.EmailConfirmed)
             {
                 return new ResponeModel

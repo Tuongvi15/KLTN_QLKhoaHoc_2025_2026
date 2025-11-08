@@ -10,6 +10,7 @@ import {
     setCourseCreatedData,
     setCourseMode,
 } from '../../../../slices/courseSlice';
+import { Select } from "antd";
 import { MultipleInput, RichTextEditor } from '../../../../components';
 import CourseContent from './CourseContent';
 import { useAddNewCourseMutation } from '../../../../services/course.services';
@@ -24,6 +25,10 @@ import {
     CourseCategory,
     UpdateCourseRequest,
 } from '../../../../types/Course.type'; import { Button as AntButton } from 'antd';
+import {
+    useGetAllFieldsQuery,
+    useGetCategoriesByFieldIdQuery,
+} from '../../../../services/placementtest.services';
 
 const totalSteps: StepProps[] = [
     { title: 'Tiêu đề' },
@@ -53,6 +58,11 @@ const AddCoursePage = () => {
     const addCourseStep = addCourseState.currentStep;
     const [currentStep, setCurrentStep] = useState(addCourseStep);
     const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
+    const [selectedFieldId, setSelectedFieldId] = useState<number | null>(null);
+    const { data: fieldsData, isLoading: isFieldsLoading } = useGetAllFieldsQuery();
+    const { data: categoriesData, isFetching: isFetchingCategories, refetch } =
+        useGetCategoriesByFieldIdQuery(selectedFieldId!, { skip: !selectedFieldId });
+    const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
     useEffect(() => {
         if (isSuccess && data) {
@@ -89,7 +99,6 @@ const AddCoursePage = () => {
     const next = () => {
         setCurrentStep(currentStep + 1);
     };
-    const selectedTags = addCourseData.categoryList;
     const handleTagChange = (tagid: number, checked: boolean) => {
         const nextSelectedTags = checked
             ? [...selectedTags, tagid]
@@ -113,24 +122,26 @@ const AddCoursePage = () => {
     };
 
     const handleAddCategory = async () => {
-        if (!newCategoryName.trim()) {
-            message.warning('Vui lòng nhập tên thể loại!');
+        if (!selectedFieldId) {
+            message.warning("Vui lòng chọn lĩnh vực trước khi thêm thể loại!");
             return;
         }
 
         try {
-            const res = await addCategory({
+            await addCategory({
                 categoryName: newCategoryName,
-                categoryDescription: newCategoryName,
+                categoryDescription: "",
+                fieldId: selectedFieldId, // ✅ gửi fieldId lên API
             }).unwrap();
-            message.success(`Đã thêm thể loại "${res.name}"`);
-            setTagsData((prev) => [...prev, res]); // cập nhật danh sách category local
-            setNewCategoryName('');
-        } catch (err) {
-            console.error(err);
-            message.error('Thêm thể loại thất bại!');
+
+            message.success("Thêm thể loại thành công!");
+            setNewCategoryName("");
+            refetch();
+        } catch {
+            message.error("Thêm thể loại thất bại!");
         }
     };
+
 
     return (
         <div>
@@ -189,74 +200,79 @@ const AddCoursePage = () => {
                         )}
                         {currentStep === 2 && (
                             <>
-                                {' '}
-                                <p className="text-2xl font-medium">Lĩnh vực liên quan</p>
+                                <p className="text-2xl font-medium">Lĩnh vực & Thể loại liên quan</p>
                                 <p className="mt-3 text-base">
-                                    Chọn những lĩnh vực mà khóa học của bạn có liên quan
+                                    Chọn lĩnh vực trước, sau đó chọn thể loại phù hợp để gán cho khóa học.
                                 </p>
-                                {!isGetCategoryLoading && (
-                                    <div className="m-auto mt-8 flex max-w-[700px] flex-wrap gap-3">
-                                        {tagsData.map(({ catgoryId, name }) => (
-                                            <CheckableTag
-                                                className="select-none p-1 text-sm flex items-center gap-1"
-                                                key={catgoryId}
-                                                checked={selectedTags.includes(catgoryId)}
-                                                onChange={(checked) => handleTagChange(catgoryId, checked)}
-                                            >
-                                                {name}
-                                                <AntButton
-                                                    size="small"
-                                                    type="text"
-                                                    danger
-                                                    style={{ padding: 0, marginLeft: 4 }}
-                                                    onClick={async (e) => {
-                                                        e.stopPropagation();
-                                                        try {
-                                                            await deleteCategory(catgoryId).unwrap();
-                                                            message.success(`Đã xóa thể loại "${name}"`);
-                                                            // Xóa khỏi danh sách hiển thị
-                                                            setTagsData(prev => prev.filter(c => c.catgoryId !== catgoryId));
-                                                            // Xóa khỏi danh sách đã chọn để gửi lên API
-                                                            const nextSelectedTags = addCourseData.categoryList.filter(id => id !== catgoryId);
-                                                            dispatch(
-                                                                setAddCourse({
-                                                                    currentStep: currentStep,
-                                                                    data: { ...addCourseData, categoryList: nextSelectedTags },
-                                                                })
-                                                            );
-                                                        } catch (err) {
-                                                            console.error(err);
-                                                            message.error('Xóa thể loại thất bại!');
-                                                        }
-                                                    }}
+
+                                {/* Select Field */}
+                                <div className="mt-6 flex flex-col items-center">
+                                    <Select
+                                        placeholder="Chọn lĩnh vực..."
+                                        loading={isFieldsLoading}
+                                        value={selectedFieldId ?? undefined}
+                                        onChange={(val) => {
+                                            setSelectedFieldId(val);
+                                            setSelectedTags([]); // ✅ Xóa các category đã chọn cũ
+                                            setNewCategoryName(""); // ✅ Clear input thêm category
+                                            dispatch(
+                                                setAddCourse({
+                                                    data: { ...addCourseData, categoryList: [] },
+                                                    currentStep,
+                                                })
+                                            );
+                                        }}
+                                        style={{ width: 400 }}
+                                        options={
+                                            fieldsData?.map((f: any) => ({
+                                                label: f.name,
+                                                value: f.fieldId,
+                                            })) || []
+                                        }
+                                    />
+                                </div>
+
+                                {/* Hiển thị categories thuộc field */}
+                                {selectedFieldId && (
+                                    <div className="m-auto mt-8 flex max-w-[700px] flex-wrap gap-3 justify-center">
+                                        {isFetchingCategories ? (
+                                            <Skeleton active />
+                                        ) : categoriesData?.dataObject?.length > 0 ? (
+                                            categoriesData.dataObject.map((cate: any) => (
+                                                <CheckableTag
+                                                    className="select-none p-1 text-sm flex items-center gap-1"
+                                                    key={cate.catgoryId}
+                                                    checked={selectedTags.includes(cate.catgoryId)}
+                                                    onChange={(checked) => handleTagChange(cate.catgoryId, checked)}
                                                 >
-                                                    ✕
-                                                </AntButton>
-
-
-
-                                            </CheckableTag>
-                                        ))}
+                                                    {cate.name}
+                                                </CheckableTag>
+                                            ))
+                                        ) : (
+                                            <p className="text-gray-500">Không có thể loại nào trong lĩnh vực này</p>
+                                        )}
                                     </div>
                                 )}
 
-                                <div className="flex items-center justify-center gap-2 mt-6">
-                                    <Input
-                                        value={newCategoryName}
-                                        onChange={(e) => setNewCategoryName(e.target.value)}
-                                        placeholder="Nhập thể loại mới..."
-                                        style={{ width: 300 }}
-                                    />
-                                    <Button
-                                        variant="outlined"
-                                        onClick={handleAddCategory}
-                                        disabled={isAddingCategory}
-                                        className="!normal-case"
-                                    >
-                                        {isAddingCategory ? 'Đang thêm...' : 'Thêm thể loại'}
-                                    </Button>
-                                </div>
-                                {isGetCategoryLoading && <Skeleton active />}
+                                {/* Thêm thể loại mới */}
+                                {selectedFieldId && (
+                                    <div className="flex items-center justify-center gap-2 mt-6">
+                                        <Input
+                                            value={newCategoryName}
+                                            onChange={(e) => setNewCategoryName(e.target.value)}
+                                            placeholder="Nhập thể loại mới..."
+                                            style={{ width: 300 }}
+                                        />
+                                        <Button
+                                            variant="outlined"
+                                            onClick={handleAddCategory}
+                                            disabled={isAddingCategory}
+                                            className="!normal-case"
+                                        >
+                                            {isAddingCategory ? 'Đang thêm...' : 'Thêm thể loại'}
+                                        </Button>
+                                    </div>
+                                )}
                             </>
                         )}
                         {currentStep === 3 && (

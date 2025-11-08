@@ -44,6 +44,14 @@ export const placementTestApi = createApi({
       }),
       invalidatesTags: ["Field"],
     }),
+    updateField: build.mutation({
+      query: (body) => ({
+        url: 'api/PlacementTest/UpdateField',
+        method: 'PUT',
+        body,
+      }),
+    }),
+
 
     // ---------- PLACEMENT TEST ----------
     getAllPlacementTests: build.query<PlacementTest[], void>({
@@ -72,6 +80,12 @@ export const placementTestApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["PlacementTest"],
+    }),
+    getCategoriesByFieldId: build.query({
+      query: (fieldId: number) => ({
+        url: `api/Category/by-field/${fieldId}`,
+        method: "GET",
+      }),
     }),
 
     // ---------- QUESTIONS ----------
@@ -120,4 +134,6 @@ export const {
   useAddPlacementQuestionMutation,
   useUpdatePlacementQuestionMutation,
   useDeletePlacementQuestionMutation,
+  useUpdateFieldMutation,
+  useGetCategoriesByFieldIdQuery ,
 } = placementTestApi;

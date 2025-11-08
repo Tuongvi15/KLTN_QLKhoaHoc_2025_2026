@@ -97,11 +97,18 @@ export const coursesApi = createApi({
             CourselistPaginationRespone,
             CourselistPaginationRequest
         >({
-            query: (input: CourselistPaginationRequest) => {
-                let categorys = '';
-                input.categoryIds?.forEach((id) => (categorys += '&CategoryIds=' + id));
+            query: (input) => {
+                const params = new URLSearchParams();
+
+                if (input.minPrice) params.append('MinPrice', input.minPrice.toString());
+                if (input.maxPrice) params.append('MaxPrice', input.maxPrice.toString());
+                if (input.pageNumber) params.append('PageNumber', input.pageNumber.toString());
+                if (input.pageSize) params.append('PageSize', input.pageSize.toString());
+
+                input.categoryIds?.forEach((id) => params.append('CategoryIds', id.toString()));
+
                 return {
-                    url: `api/Course/CourselistPagination?MinPrice=${input.minPrice ? input.minPrice : ''}&MaxPrice=${input.maxPrice ? input.maxPrice : ''}${input.pageNumber ? '&PageNumber=' + input.pageNumber : ''}${input.pageSize ? '&PageSize=' + input.pageSize : ''}&${categorys}`,
+                    url: `api/Course/CourselistPagination?${params.toString()}`,
                     method: 'get',
                 };
             },

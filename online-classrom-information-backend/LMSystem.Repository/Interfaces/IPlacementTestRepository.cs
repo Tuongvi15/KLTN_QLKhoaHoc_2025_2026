@@ -15,6 +15,7 @@ namespace LMSystem.Repository.Interfaces
         Task<ResponeModel> AddField(string name, string? description);
         Task<IEnumerable<Field>> GetAllFields();
         Task<ResponeModel> DeleteField(int fieldId);
+        Task<ResponeModel> UpdateField(int fieldId, string name, string? description);
 
         // ===== PLACEMENT TEST =====
         Task<ResponeModel> AddPlacementTest(AddPlacementTestModel model);

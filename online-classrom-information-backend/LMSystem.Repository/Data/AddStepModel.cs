@@ -20,11 +20,9 @@ namespace LMSystem.Repository.Data
 
         [Required(ErrorMessage = "Title is required!")]
         public string Title { get; set; }
-        [Required(ErrorMessage = "VideoUrl is required!")]
-        public string VideoUrl { get; set; }
+        public string? VideoUrl { get; set; }
 
-        [Required(ErrorMessage = "StepDescription is required!")]
-        public string StepDescription { get; set; }
+        public string? StepDescription { get; set; }
         
         public int QuizId { get; set; }
     }

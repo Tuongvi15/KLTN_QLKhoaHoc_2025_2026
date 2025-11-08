@@ -43,10 +43,13 @@ const ViewCourseListPage = () => {
     };
 
     const onFilterClick = () => {
-        setCourselistPaginationRequest({ categoryIds: category.length > 0 ? category : undefined });
-        setCurrentPage(1);
-        refetch();
+        setCourselistPaginationRequest({
+            categoryIds: category.length > 0 ? category : undefined,
+            pageNumber: 1,
+            pageSize: 10, // thêm để backend phân trang
+        });
     };
+
 
     // Helper function để tính giá sale
     const calculateSalePrice = (price: number, salesCampaign?: number) => {
@@ -259,7 +262,7 @@ const ViewCourseListPage = () => {
                                                                                 <span className="text-sm text-gray-400 line-through">
                                                                                     {formatNumberWithCommas(course.price)} ₫
                                                                                 </span>
-                                                                                <Badge 
+                                                                                <Badge
                                                                                     count={`-${discountPercent}%`}
                                                                                     className="[&_.ant-badge-count]:!bg-red-500 [&_.ant-badge-count]:!text-xs [&_.ant-badge-count]:!font-bold [&_.ant-badge-count]:!px-2"
                                                                                 />

@@ -283,7 +283,7 @@ namespace LMSystem.API.Controllers
                         Message = "Cảm ơn bạn đã chọn eStudyHub để học tập. Hãy cùng nhau trải nghiệm các khóa học nhé!"
                     };
                     await _notificationService.AddNotificationByAccountId(account.Id, notification);
-                    return Redirect("https://online-class-room-fe.vercel.app/login");
+                    return Redirect("http://localhost:5173/login");
                 }
                 return Ok(result);
             }

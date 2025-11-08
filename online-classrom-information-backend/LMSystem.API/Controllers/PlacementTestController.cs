@@ -34,6 +34,15 @@ namespace LMSystem.API.Controllers
             var result = await _placementRepo.AddField(model.Name, model.Description);
             return Ok(result);
         }
+        [HttpPut("UpdateField")]
+        public async Task<IActionResult> UpdateField([FromBody] UpdateFieldRequest model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.Name))
+                return BadRequest("Invalid input");
+
+            var result = await _placementRepo.UpdateField(model.FieldId, model.Name, model.Description);
+            return Ok(result);
+        }
 
         [HttpDelete("fields/{id}")]
         public async Task<IActionResult> DeleteField(int id)

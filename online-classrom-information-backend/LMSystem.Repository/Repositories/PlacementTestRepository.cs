@@ -36,6 +36,47 @@ namespace LMSystem.Repository.Repositories
             }
         }
 
+        public async Task<ResponeModel> UpdateField(int fieldId, string name, string? description)
+        {
+            try
+            {
+                var existingField = await _context.Fields.FindAsync(fieldId);
+                if (existingField == null)
+                {
+                    return new ResponeModel
+                    {
+                        Status = "Error",
+                        Message = "Field not found"
+                    };
+                }
+
+                // ✅ Cập nhật giá trị mới (nếu có)
+                if (!string.IsNullOrWhiteSpace(name))
+                    existingField.Name = name;
+
+                if (description != null)
+                    existingField.Description = description;
+
+                await _context.SaveChangesAsync();
+
+                return new ResponeModel
+                {
+                    Status = "Success",
+                    Message = "Updated field successfully",
+                    DataObject = existingField
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponeModel
+                {
+                    Status = "Error",
+                    Message = $"Update failed: {ex.Message}"
+                };
+            }
+        }
+
+
         public async Task<IEnumerable<Field>> GetAllFields()
         {
             return await _context.Fields
@@ -331,4 +372,12 @@ namespace LMSystem.Repository.Repositories
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
     }
+
+    public class UpdateFieldRequest
+    {
+        public int FieldId { get; set; }
+        public string Name { get; set; } = null!;
+        public string? Description { get; set; }
+    }
+
 }

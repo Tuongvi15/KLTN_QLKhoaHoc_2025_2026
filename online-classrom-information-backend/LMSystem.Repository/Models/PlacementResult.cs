@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ namespace LMSystem.Repository.Models
     public class PlacementResult
     {
         public int ResultId { get; set; }
+        [ForeignKey(nameof(Account))]
         public string AccountId { get; set; }
         public int PlacementTestId { get; set; }
         public double Score { get; set; }

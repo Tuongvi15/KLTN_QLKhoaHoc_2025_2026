@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 export enum LectureType {
-    VIDEO,
-    QUIZZ,
+    VIDEO = "VIDEO",
+    QUIZZ = "QUIZZ",
+    COMBINED = "COMBINED" // 👈 thêm mới
 }
+
 
 interface LectureContentTypeProps {
     icon: React.ReactNode;

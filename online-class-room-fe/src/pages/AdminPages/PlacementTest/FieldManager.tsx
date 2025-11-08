@@ -3,6 +3,7 @@ import {
   useGetAllFieldsQuery,
   useAddFieldMutation,
   useDeleteFieldMutation,
+  useUpdateFieldMutation,
 } from "../../../services/placementtest.services";
 import {
   Button,
@@ -13,27 +14,53 @@ import {
   Popconfirm,
   message,
   Tag,
+  Space,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { Field } from "../../../types/PlacementTest.type";
 
 const FieldManager = () => {
-  const { data: fields, refetch, isLoading } = useGetAllFieldsQuery(undefined);
+  const { data: fields, refetch, isLoading } = useGetAllFieldsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+
   const [addField, { isLoading: isAdding }] = useAddFieldMutation();
+  const [updateField, { isLoading: isUpdating }] = useUpdateFieldMutation();
   const [deleteField] = useDeleteFieldMutation();
+
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingField, setEditingField] = useState<Field | null>(null);
   const [form] = Form.useForm();
 
-  const handleAddField = async () => {
+  /** ✅ Mở modal thêm hoặc sửa */
+  const openModal = (field?: Field) => {
+    if (field) {
+      setEditingField(field);
+      form.setFieldsValue(field); // điền dữ liệu cũ
+    } else {
+      setEditingField(null);
+      form.resetFields();
+    }
+    setIsModalVisible(true);
+  };
+
+  /** ✅ Thêm hoặc cập nhật */
+  const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      await addField(values).unwrap();
-      message.success("Thêm lĩnh vực thành công!");
+      if (editingField) {
+        await updateField({ ...editingField, ...values }).unwrap();
+        message.success("Cập nhật lĩnh vực thành công!");
+      } else {
+        await addField(values).unwrap();
+        message.success("Thêm lĩnh vực thành công!");
+      }
+
       form.resetFields();
       setIsModalVisible(false);
       refetch();
-    } catch {
-      message.error("Thêm thất bại!");
+    } catch (error) {
+      message.error("Thao tác thất bại!");
     }
   };
 
@@ -72,16 +99,26 @@ const FieldManager = () => {
     {
       title: "Thao tác",
       render: (_: unknown, record: Field) => (
-        <Popconfirm
-          title="Xác nhận xóa?"
-          description="Bạn có chắc muốn xóa lĩnh vực này?"
-          okButtonProps={{ style: { backgroundColor: "#d32f2f" } }}
-          onConfirm={() => handleDelete(record.fieldId)}
-        >
-          <Button danger size="small">
-            Xóa
+        <Space>
+          <Button
+            size="small"
+            type="default"
+            onClick={() => openModal(record)}
+          >
+            Sửa
           </Button>
-        </Popconfirm>
+
+          <Popconfirm
+            title="Xác nhận xóa?"
+            description="Bạn có chắc muốn xóa lĩnh vực này?"
+            okButtonProps={{ style: { backgroundColor: "#d32f2f" } }}
+            onConfirm={() => handleDelete(record.fieldId)}
+          >
+            <Button danger size="small">
+              Xóa
+            </Button>
+          </Popconfirm>
+        </Space>
       ),
     },
   ];
@@ -96,11 +133,11 @@ const FieldManager = () => {
           type="primary"
           icon={<PlusOutlined />}
           style={{
-                        backgroundColor: '#1677FF',
-                        borderColor: '#1677FF',
-                        color: '#FFFFFF',
-                    }}
-          onClick={() => setIsModalVisible(true)}
+            backgroundColor: "#1677FF",
+            borderColor: "#1677FF",
+            color: "#FFFFFF",
+          }}
+          onClick={() => openModal()}
         >
           Thêm lĩnh vực
         </Button>
@@ -116,20 +153,19 @@ const FieldManager = () => {
 
       <Modal
         open={isModalVisible}
-        title="Thêm lĩnh vực mới"
+        title={editingField ? "Cập nhật lĩnh vực" : "Thêm lĩnh vực mới"}
         onCancel={() => setIsModalVisible(false)}
-        onOk={handleAddField}
-        confirmLoading={isAdding}
-        okText="Thêm mới"
+        onOk={handleSubmit}
+        confirmLoading={isAdding || isUpdating}
+        okText={editingField ? "Lưu thay đổi" : "Thêm mới"}
         cancelText="Hủy"
         okButtonProps={{
-    // Nếu nó đã là type="primary" mà vẫn chìm, thêm style để ghi đè màu
-    style: {
-      backgroundColor: '#1890ff', // Ví dụ: Màu xanh dương mặc định của antd
-      borderColor: '#1890ff',
-      color: '#fff',
-    },
-  }}
+          style: {
+            backgroundColor: "#1890ff",
+            borderColor: "#1890ff",
+            color: "#fff",
+          },
+        }}
       >
         <Form form={form} layout="vertical">
           <Form.Item
