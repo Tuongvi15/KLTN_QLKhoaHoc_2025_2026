@@ -13,6 +13,7 @@ import { jwtDecode } from 'jwt-decode';
 import { RoleType, loadUser, setLoginRole } from './slices/authSlice';
 import { useGetUserInfoQuery } from './services/auth.services';
 import { setUserInfo } from './slices/userSlice';
+import { ChatBox } from './components';
 
 function App() {
     //const [show] = useState(false);
@@ -123,6 +124,7 @@ function App() {
 
     return (
         <>
+            <ChatBox />
             <Routes>
                 {(role === RoleType.GUESS || role === RoleType.STUDENT || role == RoleType.ADMIN) &&
                     publicRoutes.map(({ layout, component, path }, index) => {
