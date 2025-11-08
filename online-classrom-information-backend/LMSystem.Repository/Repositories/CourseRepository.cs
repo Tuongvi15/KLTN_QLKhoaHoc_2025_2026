@@ -86,16 +86,30 @@ namespace LMSystem.Repository.Repositories
         public async Task<Course> GetCourseDetailByIdAsync(int courseId)
         {
             var course = await _context.Courses
-                .Include(c => c.Sections.OrderBy(section => section.Position))
-                    .ThenInclude(s => s.Steps.OrderBy(step => step.Position))
+                .Include(c => c.Sections)
+                    .ThenInclude(s => s.Steps)
                 .Include(c => c.CourseCategories)
                     .ThenInclude(cc => cc.Category)
-                        .ThenInclude(cat => cat.FieldCategories) // ✅ thêm dòng này
+                        .ThenInclude(cat => cat.FieldCategories)
                             .ThenInclude(fc => fc.Field)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId);
 
+            if (course == null)
+                return null;
+
+            // ✅ Sắp xếp lại thứ tự sau khi load dữ liệu (EF không order trong Include)
+            course.Sections = course.Sections
+                .OrderBy(s => s.Position)
+                .Select(s =>
+                {
+                    s.Steps = s.Steps.OrderBy(st => st.Position).ToList();
+                    return s;
+                })
+                .ToList();
+
             return course;
         }
+
 
 
         public async Task<CourseListModel> GetCourseDetailByCourseIdAsync(int courseId)
