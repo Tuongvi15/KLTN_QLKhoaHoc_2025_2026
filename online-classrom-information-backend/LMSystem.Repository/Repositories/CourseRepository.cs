@@ -87,13 +87,16 @@ namespace LMSystem.Repository.Repositories
         {
             var course = await _context.Courses
                 .Include(c => c.Sections.OrderBy(section => section.Position))
-                .ThenInclude(s => s.Steps.OrderBy(step => step.Position))
+                    .ThenInclude(s => s.Steps.OrderBy(step => step.Position))
                 .Include(c => c.CourseCategories)
-                .ThenInclude(cc => cc.Category)
+                    .ThenInclude(cc => cc.Category)
+                        .ThenInclude(cat => cat.FieldCategories) // ✅ thêm dòng này
+                            .ThenInclude(fc => fc.Field)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId);
 
             return course;
         }
+
 
         public async Task<CourseListModel> GetCourseDetailByCourseIdAsync(int courseId)
         {
