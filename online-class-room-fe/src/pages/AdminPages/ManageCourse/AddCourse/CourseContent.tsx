@@ -13,7 +13,6 @@ import { RootState } from '../../../../store';
 import Curriculum from './Curriculum/Curriculum';
 import { motion } from 'framer-motion';
 import CreateIcon from '@mui/icons-material/Create';
-
 import {
     CouseMode,
     setCourseContentCurrent,
@@ -26,7 +25,10 @@ import {
     updateCourseImageUrl,
     updateCoursePreviewUrl,
 } from '../../../../slices/courseSlice';
-import { useUpdateCourseMutation } from '../../../../services/course.services';
+import {
+    useUpdateCourseMutation,
+    useGetCourseIDQuery,
+} from '../../../../services/course.services';
 import {
     CategoryRespone,
     CourseCategory,
@@ -34,8 +36,8 @@ import {
 } from '../../../../types/Course.type';
 import {
     useAddCategoryMutation,
-    useGetCategoryQuery,
-    useDeleteCategoryMutation
+    useDeleteCategoryMutation,
+    useGetCategoriesByFieldQuery,
 } from '../../../../services/categoryService';
 import { useEffect, useState } from 'react';
 import { LoadingButton } from '@mui/lab';
@@ -54,37 +56,62 @@ const CourseContent = () => {
     const quizzList = useSelector((state: RootState) => state.quiz.quizList);
     const [addCategoryMutation] = useAddCategoryMutation();
     const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
-
-    const {
-        isLoading: isGetCategoryLoading,
-        isSuccess: isGetCategorySuccess,
-        data: getCategoryData,
-        refetch
-    } = useGetCategoryQuery(undefined, {
-        refetchOnMountOrArgChange: true,
-        refetchOnFocus: true,
-        refetchOnReconnect: true,
-    });
-
     const [tagsData, setTagsData] = useState<CategoryRespone[]>([]);
     const [newCategoryName, setNewCategoryName] = useState('');
+
     const courseCategories = addCourseState.courseCreatedData.courseCategories;
+    const courseId = addCourseState.courseCreatedData.courseId;
+    const [currentFieldId, setCurrentFieldId] = useState<number | null>(null);
+
+    // ✅ Lấy chi tiết khóa học để xác định fieldId
+    const { data: courseDetail, isSuccess: isCourseDetailSuccess } = useGetCourseIDQuery(
+        String(courseId),
+        { skip: !courseId }
+    );
+
+    useEffect(() => {
+        if (isCourseDetailSuccess && courseDetail) {
+            const categories = courseDetail.courseCategories || [];
+            for (const cc of categories) {
+                if (cc.category?.fieldCategories?.length > 0) {
+                    setCurrentFieldId(cc.category.fieldCategories[0].fieldId);
+                    break;
+                }
+            }
+        }
+    }, [isCourseDetailSuccess, courseDetail]);
+
+    // ✅ Lấy danh sách category theo fieldId
+    const {
+        data: fieldCategories,
+        isSuccess: isFieldCateSuccess,
+        refetch: refetchByField,
+    } = useGetCategoriesByFieldQuery(currentFieldId!, {
+        skip: !currentFieldId,
+        refetchOnMountOrArgChange: true,
+    });
+
+    useEffect(() => {
+        if (isFieldCateSuccess && fieldCategories?.dataObject) {
+            setTagsData(fieldCategories.dataObject);
+        }
+    }, [isFieldCateSuccess, fieldCategories]);
 
     // --- Thêm category ---
     const handleAddNewCategory = async () => {
         if (!newCategoryName.trim()) return message.error('Vui lòng nhập tên thể loại!');
+        if (!currentFieldId) return message.error('Không xác định được lĩnh vực của khóa học!');
         try {
             const newCategory = await addCategoryMutation({
                 categoryName: newCategoryName,
-                categoryDescription: newCategoryName
+                categoryDescription: newCategoryName,
+                fieldId: currentFieldId,
             }).unwrap();
 
-            // Cập nhật local state để hiển thị ngay
             setTagsData(prev => [...prev, newCategory]);
-
             message.success('Thêm loại thành công!');
             setNewCategoryName('');
-            refetch();
+            refetchByField();
         } catch (err) {
             console.error(err);
             message.error('Thêm loại thất bại!');
@@ -130,7 +157,7 @@ const CourseContent = () => {
 
     const currentMode = useSelector((state: RootState) => state.course.currentMode);
     const courseCreatedData = addCourseState.courseCreatedData;
-    
+
     const current = addCourseState.navStatus.findIndex((value) => value.status === 'process');
     const totalSteps = addCourseState.navStatus;
     const onStepChange = (value: number) => {
@@ -215,18 +242,6 @@ const CourseContent = () => {
         }
     }, [isUpdateSuccess]);
 
-    useEffect(() => {
-        if (addCourseState.courseCreatedData.courseId) {
-            refetch(); // 🔥 refetch mỗi khi đổi sang course khác
-        }
-    }, [addCourseState.courseCreatedData.courseId]);
-    // --- Đồng bộ tagsData với query từ server ---
-    useEffect(() => {
-        if (isGetCategorySuccess && getCategoryData) {
-            setTagsData([...getCategoryData]);
-        }
-    }, [isGetCategorySuccess]);
-
     return (
         <div className="flex">
             <div className="h-full w-fit">
@@ -251,12 +266,10 @@ const CourseContent = () => {
             </div>
             <div className="p-x-4 p-y-2 ml-4 flex-1">
                 <Paper elevation={1} className="h-full p-6">
-                    {/* Thông tin cơ bản */}
                     {currentMode === CouseMode.UPDATE && current === 0 && (
                         <div className="text-[#333]">
                             <p className="text-xl font-bold text-[#1677ff]">Thông Tin cơ bản</p>
                             <div className="mt-8 flex flex-col gap-8 bg-[#f7f9fa] px-4 py-2">
-                                {/* Tiêu đề */}
                                 <div className="flex items-center">
                                     <p className="text-base font-medium text-[#1677ff]">
                                         Tiêu đề khóa học:
@@ -278,6 +291,7 @@ const CourseContent = () => {
                                         />
                                     </div>
                                 </div>
+
                                 {/* Thể loại */}
                                 <div className="mt-8 flex flex-col gap-2 bg-[#f7f9fa] px-4 py-2">
                                     <p className="text-base font-medium text-[#1677ff]">Thể loại:</p>
@@ -296,7 +310,11 @@ const CourseContent = () => {
                                             >
                                                 {category.name}
                                                 <span
-                                                    style={{ marginLeft: 4, cursor: 'pointer', color: 'red' }}
+                                                    style={{
+                                                        marginLeft: 4,
+                                                        cursor: 'pointer',
+                                                        color: 'red',
+                                                    }}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleDeleteCategory(category.catgoryId);
@@ -323,6 +341,7 @@ const CourseContent = () => {
                                         </Button>
                                     </div>
                                 </div>
+
                                 {/* Mô tả & mục tiêu */}
                                 <div
                                     className={isEditDescription ? '' : 'flex flex-wrap items-center'}
@@ -345,15 +364,25 @@ const CourseContent = () => {
                                             />
                                         ) : (
                                             <div className="flex items-center gap-4">
-                                                <RenderRichText jsonData={courseCreatedData.description} />
+                                                <RenderRichText
+                                                    jsonData={courseCreatedData.description}
+                                                />
                                                 <motion.div
                                                     initial={{ opacity: 0, scale: 0.5 }}
-                                                    animate={{ opacity: isHovered ? 1 : 0, scale: isHovered ? 1 : 0.5 }}
-                                                    transition={{ duration: 0.3, type: 'spring' }}
+                                                    animate={{
+                                                        opacity: isHovered ? 1 : 0,
+                                                        scale: isHovered ? 1 : 0.5,
+                                                    }}
+                                                    transition={{
+                                                        duration: 0.3,
+                                                        type: 'spring',
+                                                    }}
                                                 >
                                                     <IconButton
                                                         disabled={!isHovered}
-                                                        onClick={() => setEditDescription(true)}
+                                                        onClick={() =>
+                                                            setEditDescription(true)
+                                                        }
                                                         size="small"
                                                     >
                                                         <CreateIcon />
@@ -363,6 +392,7 @@ const CourseContent = () => {
                                         )}
                                     </div>
                                 </div>
+
                                 <div>
                                     <p className="text-base font-medium text-[#1677ff]">
                                         Mục tiêu khóa học:
@@ -376,7 +406,9 @@ const CourseContent = () => {
                                             'vd: Kiến thức về giải mã hóa',
                                             'vd: Kiến thức CSDL cơ bản',
                                         ]}
-                                        onDataChange={(data) => dispatch(setCourseKnowledge(data))}
+                                        onDataChange={(data) =>
+                                            dispatch(setCourseKnowledge(data))
+                                        }
                                         values={courseCreatedData.knowdledgeDescription}
                                         size="middle"
                                     />
@@ -385,7 +417,7 @@ const CourseContent = () => {
                         </div>
                     )}
 
-                    {/* Upload thumbnail & video */}
+                    {/* Upload & Curriculum & Publication */}
                     {((currentMode === CouseMode.CREATE && current === 0) ||
                         (currentMode === CouseMode.UPDATE && current === 1)) && (
                             <div>
@@ -395,23 +427,8 @@ const CourseContent = () => {
                                         Thêm Thumbnail cho khóa học
                                     </p>
                                     <UploadFileCustom
-                                        onUploadFileSuccess={handleOnUploadThumbnailSuccess}
-                                        onUploadFileError={(e) => console.log(e)}
-                                        fileName={`course${courseCreatedData.courseId}`}
-                                        fileType={UploadFileType.IMAGE}
-                                        showPreview
-                                        imgLink={courseCreatedData.imageUrl}
-                                        storePath="images/courseThumbnail/"
-                                        buttonText="Lưu"
-                                    />
-                                </div>
-                                <div className="mt-8 flex flex-col gap-4 bg-[#f7f9fa] px-4 py-2">
-                                    <p className="text-base font-medium text-[#1677ff]">
-                                        Thêm video giới thiệu ngắn
-                                    </p>
-                                    <UploadFileCustom
                                         onUploadFileSuccess={handleOnUploadVideoPreviewSuccess}
-                                        onUploadFileError={(e) => console.log(e)}
+                                        onUploadFileError={(e) => console.error('Upload video lỗi:', e)} // ✅ thêm dòng này
                                         fileName={`course${courseCreatedData.courseId}`}
                                         fileType={UploadFileType.VIDEO}
                                         showPreview
@@ -420,13 +437,31 @@ const CourseContent = () => {
                                         buttonText="Lưu"
                                         isLoading={isUpdateLoading}
                                     />
+
+                                </div>
+                                <div className="mt-8 flex flex-col gap-4 bg-[#f7f9fa] px-4 py-2">
+                                    <p className="text-base font-medium text-[#1677ff]">
+                                        Thêm video giới thiệu ngắn
+                                    </p>
+                                    <UploadFileCustom
+                                        onUploadFileSuccess={handleOnUploadVideoPreviewSuccess}
+                                        onUploadFileError={(e) => console.error('Upload video lỗi:', e)} // ✅ thêm dòng này
+                                        fileName={`course${courseCreatedData.courseId}`}
+                                        fileType={UploadFileType.VIDEO}
+                                        showPreview
+                                        imgLink={courseCreatedData.videoPreviewUrl}
+                                        storePath="videos/coursesPreview/"
+                                        buttonText="Lưu"
+                                        isLoading={isUpdateLoading}
+                                    />
+
                                 </div>
                             </div>
                         )}
 
-                    {/* Curriculum & Publication */}
                     {((currentMode === CouseMode.CREATE && current === 1) ||
                         (currentMode === CouseMode.UPDATE && current === 2)) && <Curriculum />}
+
                     {((currentMode === CouseMode.CREATE && current === 2) ||
                         (currentMode === CouseMode.UPDATE && current === 3)) && <Publication />}
                 </Paper>

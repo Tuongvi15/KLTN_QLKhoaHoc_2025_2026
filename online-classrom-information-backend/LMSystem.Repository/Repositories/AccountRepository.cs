@@ -490,31 +490,34 @@ namespace LMSystem.Repository.Repositories
         }
         public async Task<ResponeModel> ChangePasswordAsync(ChangePasswordModel model)
         {
-            var account = await _context.Account.Where(x => x.Email.ToLower() == model.Email.ToLower()).FirstOrDefaultAsync();
+            var account = await userManager.FindByEmailAsync(model.Email);
             if (account == null)
             {
                 return new ResponeModel
                 {
                     Status = "Error",
-                    Message = "Can not find your account!"
+                    Message = "Cannot find your account!"
                 };
             }
+
             var result = await userManager.ChangePasswordAsync(account, model.CurrentPassword, model.NewPassword);
             if (!result.Succeeded)
             {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 return new ResponeModel
                 {
                     Status = "Error",
-                    Message = "Cannot change pass"
+                    Message = $"Cannot change password: {errors}"
                 };
             }
 
             return new ResponeModel
             {
                 Status = "Success",
-                Message = "Change password successfully!"
+                Message = "Password changed successfully!"
             };
         }
+
 
         public async Task<ResponeModel> SignUpAdminStaffAsync(SignUpModel model, RoleModel role)
         {

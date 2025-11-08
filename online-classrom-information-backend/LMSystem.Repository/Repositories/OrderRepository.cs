@@ -509,7 +509,10 @@ namespace LMSystem.Repository.Repositories
             {
                 var order = await _context.Orders
                     .FirstOrDefaultAsync(o => o.OrderCode.ToString() == orderCode);
-
+                if(order != null && order.Status == OrderStatusEnum.Completed.ToString())
+                {
+                    return true;
+                }
                 if (order == null)
                 {
                     Console.WriteLine($"❌ Không tìm thấy đơn hàng với mã {orderCode}");

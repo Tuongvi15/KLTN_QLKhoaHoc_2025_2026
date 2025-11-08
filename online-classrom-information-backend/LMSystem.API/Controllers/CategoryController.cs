@@ -19,7 +19,7 @@ namespace LMSystem.API.Controllers
         }
 
         [HttpPost("AddCategory")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> AddCategory(AddCategoryModel model)
         {
             var response = await _categoryService.AddCategory(model);
@@ -32,7 +32,7 @@ namespace LMSystem.API.Controllers
             return Ok(response);
         }
         [HttpDelete("DeleteCategory")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> DeleteCategory(int categoryId)
         {
             var response = await _categoryService.DeleteCategory(categoryId);
@@ -73,7 +73,7 @@ namespace LMSystem.API.Controllers
         }
 
         [HttpPut("UpdateCategory")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> UpdateCategory(UpdateCategoryModel model)
         {
             var response = await _categoryService.UpdateCategory(model);

@@ -387,7 +387,7 @@ namespace LMSystem.Repository.Repositories
                         Notification notification = new Notification
                         {
                             AccountId = accountId,
-                            SendDate = ConvertToLocalTime(DateTime.UtcNow),
+                            SendDate = DateTime.SpecifyKind(ConvertToLocalTime(DateTime.UtcNow), DateTimeKind.Utc),
                             Type = NotificationType.Course.ToString(),
                             Title = $"Hệ thống đã thêm khóa học mới: {existingCourse.Title}",
                             Message = "Hãy trải nghiệm thêm các khóa học mới để có kiến thức bổ ích!",

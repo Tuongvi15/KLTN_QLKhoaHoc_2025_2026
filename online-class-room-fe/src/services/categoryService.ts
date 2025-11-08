@@ -57,6 +57,10 @@ export const categoryApi = createApi({
                 method: 'delete',
             }),
         }),
+        getCategoriesByField: build.query({
+            query: (fieldId: number) => `Category/by-field/${fieldId}`,
+        }),
+
     }),
 });
 
@@ -65,4 +69,5 @@ export const {
     useGetCategoryQuery,
     useUpdateCategoryMutation,
     useDeleteCategoryMutation,
+    useGetCategoriesByFieldQuery,
 } = categoryApi;
