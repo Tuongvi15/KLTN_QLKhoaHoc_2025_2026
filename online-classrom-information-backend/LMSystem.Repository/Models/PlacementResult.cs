@@ -15,12 +15,11 @@ namespace LMSystem.Repository.Models
 
         public int PlacementTestId { get; set; }
         public double Score { get; set; }
-        public string? Level { get; set; } = null!;
+        public string? Level { get; set; }
         public DateTime CompletedAt { get; set; } = DateTime.UtcNow;
 
         public Account Account { get; set; } = null!;
         public PlacementTest PlacementTest { get; set; } = null!;
         public ICollection<PlacementAnswer>? PlacementAnswers { get; set; }
     }
-
 }

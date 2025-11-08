@@ -323,7 +323,7 @@ namespace LMSystem.Repository.Repositories
                         CourseId = addOrderPaymentModel.CourseId,
                         TotalPrice = (course.Price - course.Price*course.SalesCampaign),
                         CurrencyCode = "VND",
-                        PaymentDate = DateTime.Now,
+                        PaymentDate = DateTime.UtcNow,
                         Status = status.Status,
                     };
                     _context.Add(Order);
@@ -534,7 +534,7 @@ namespace LMSystem.Repository.Repositories
                         break;
                 }
 
-                order.PaymentDate = DateTime.Now;
+                order.PaymentDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
                 Console.WriteLine($"✅ Đơn hàng {order.OrderId} cập nhật sang: {order.Status}");
@@ -554,7 +554,7 @@ namespace LMSystem.Repository.Repositories
                     {
                         AccountId = order.AccountId,
                         CourseId = order.CourseId,
-                        EnrollmentDate = DateTime.Now,
+                        EnrollmentDate = DateTime.UtcNow,
                         IsCompleted = false,
                         LearningProgress = 0
                     };
@@ -564,7 +564,7 @@ namespace LMSystem.Repository.Repositories
                     var notiSuccess = new Notification
                     {
                         AccountId = order.AccountId,
-                        SendDate = DateTime.Now,
+                        SendDate = DateTime.UtcNow,
                         Type = "Order",
                         Title = $"🎉 Thanh toán thành công khóa học {course.Title}",
                         Message = "Cảm ơn bạn đã tin tưởng eStudyHub. Hãy bắt đầu học ngay nhé!",
@@ -578,7 +578,7 @@ namespace LMSystem.Repository.Repositories
                     var notiFail = new Notification
                     {
                         AccountId = order.AccountId,
-                        SendDate = DateTime.Now,
+                        SendDate = DateTime.UtcNow,
                         Type = "Order",
                         Title = $"⚠️ Thanh toán thất bại cho khóa học {course.Title}",
                         Message = "Giao dịch của bạn chưa được hoàn tất. Vui lòng thử lại hoặc liên hệ hỗ trợ.",

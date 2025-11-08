@@ -77,6 +77,7 @@ export type CourselistPaginationRequest = PagingParam & {
     categoryIds?: number[];
     minPrice?: number;
     maxPrice?: number;
+    sort?: string;
 };
 
 export interface CourseBase {
@@ -92,6 +93,11 @@ export interface CourseBase {
     salesCampaign?: number;
     accountId?: string;
     accountName?: string;
+    field?: {
+        fieldId: number;
+        name: string;
+        description?: string;
+    };
 }
 
 export interface CourselistPaginationRespone {

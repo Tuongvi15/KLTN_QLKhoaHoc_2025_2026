@@ -277,7 +277,7 @@ namespace LMSystem.API.Controllers
                     Notification notification = new Notification
                     {
                         AccountId = account.Id,
-                        SendDate = DateTime.Now,
+                        SendDate = DateTime.UtcNow,
                         Type = NotificationType.System.ToString(),
                         Title = "Chào mừng bạn đến với eStudyHub",
                         Message = "Cảm ơn bạn đã chọn eStudyHub để học tập. Hãy cùng nhau trải nghiệm các khóa học nhé!"
@@ -310,7 +310,7 @@ namespace LMSystem.API.Controllers
                     Notification notification = new Notification
                     {
                         AccountId = account.Id,
-                        SendDate = DateTime.Now,
+                        SendDate = DateTime.UtcNow,
                         Type = NotificationType.System.ToString(),
                         Title = "Chào mừng phụ huynh đến với eStudyHub",
                         Message = "Cảm ơn bạn đã tin tưởng lựa chọn eStudyHub để cho con mình học tập. Hãy cùng nhau trải nghiệm các khóa học bổ ích!"

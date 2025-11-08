@@ -188,6 +188,15 @@ const Header: React.FC = () => {
                                     <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-full transition-all duration-300" />
                                 </div>
                             </Popover>
+                            <Link to={'/placement-test'} className="group relative">
+                                <div className="flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50">
+                                    <ExploreIcon className="text-gray-600 group-hover:text-green-600 transition-colors duration-300" />
+                                    <span className="text-lg font-semibold text-gray-700 group-hover:text-green-600 transition-colors duration-300">
+                                        Bài test đầu vào
+                                    </span>
+                                </div>
+                                <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-green-500 to-emerald-500 group-hover:w-full transition-all duration-300" />
+                            </Link>
                         </div>
 
                         {/* Search Bar */}

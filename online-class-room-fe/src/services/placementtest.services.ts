@@ -88,6 +88,24 @@ export const placementTestApi = createApi({
       }),
     }),
 
+    getTestsByField: build.query<any[], { fieldId: number; accountId: string }>({
+      query: ({ fieldId, accountId }) =>
+        `api/PlacementTest/tests/field/${fieldId}?accountId=${accountId}`,
+    }),
+
+    savePlacementResult: build.mutation<any, any>({
+      query: (body) => ({
+        url: `api/PlacementTest/results`,
+        method: "POST",
+        body,
+      }),
+    }),
+
+    getAllResultsByAccount: build.query<any[], string>({
+      query: (accountId) => `api/PlacementTest/results/history/${accountId}`,
+    }),
+
+
     // ---------- QUESTIONS ----------
     getQuestionsByTestId: build.query<PlacementQuestion[], number>({
       query: (id) => `api/PlacementTest/questions/${id}`,
@@ -135,5 +153,8 @@ export const {
   useUpdatePlacementQuestionMutation,
   useDeletePlacementQuestionMutation,
   useUpdateFieldMutation,
-  useGetCategoriesByFieldIdQuery ,
+  useGetCategoriesByFieldIdQuery,
+  useGetTestsByFieldQuery,
+  useSavePlacementResultMutation,
+  useGetAllResultsByAccountQuery ,
 } = placementTestApi;

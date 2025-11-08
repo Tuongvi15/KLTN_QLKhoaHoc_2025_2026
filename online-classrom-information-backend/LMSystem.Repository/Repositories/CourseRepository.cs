@@ -121,69 +121,70 @@ namespace LMSystem.Repository.Repositories
         }
 
         public async Task<(IEnumerable<CourseListModel> Courses, int CurrentPage, int PageSize, int TotalCourses, int TotalPages)>
-     GetCoursesWithFilters(CourseFilterParameters filterParams)
+    GetCoursesWithFilters(CourseFilterParameters filterParams)
         {
-            var query = _context.Courses
-            .Include(c => c.Account)
-            .Include(c => c.CourseCategories)
-                .ThenInclude(cc => cc.Category).AsQueryable();
+            // Gán giá trị mặc định để tránh lỗi null hoặc chia 0
+            int pageNumber = filterParams.PageNumber > 0 ? filterParams.PageNumber : 1;
+            int pageSize = filterParams.PageSize > 0 ? filterParams.PageSize : 10;
 
-            // Filter theo category
-            if (filterParams.CategoryIds != null && filterParams.CategoryIds.Any())
+            var query = _context.Courses
+                .AsNoTracking()
+                .Include(c => c.Account)
+                .Include(c => c.CourseCategories)
+                    .ThenInclude(cc => cc.Category)
+                        .ThenInclude(cat => cat.FieldCategories)
+                            .ThenInclude(fc => fc.Field)
+                .AsQueryable();
+
+            // 🔍 Filter theo category
+            if (filterParams.CategoryIds is { Count: > 0 })
             {
-                query = query.Where(c => c.CourseCategories.Any(cc => filterParams.CategoryIds.Contains(cc.CategoryId)));
+                query = query.Where(c =>
+                    c.CourseCategories.Any(cc => filterParams.CategoryIds.Contains(cc.CategoryId)));
             }
 
-            // Filter theo giá
-            if (filterParams.MinPrice.HasValue)
+            // 💰 Filter theo giá
+            if (filterParams.MinPrice is not null)
             {
                 query = query.Where(c => c.Price >= filterParams.MinPrice.Value);
             }
 
-            if (filterParams.MaxPrice.HasValue)
+            if (filterParams.MaxPrice is not null)
             {
                 query = query.Where(c => c.Price <= filterParams.MaxPrice.Value);
             }
 
-            // Tìm kiếm theo title
-            if (!string.IsNullOrEmpty(filterParams.Search))
+            // 🔎 Tìm kiếm theo title (case-insensitive)
+            if (!string.IsNullOrWhiteSpace(filterParams.Search))
             {
-                query = query.Where(c => c.Title.Contains(filterParams.Search));
+                string search = filterParams.Search.Trim().ToLower();
+                query = query.Where(c => c.Title.ToLower().Contains(search));
             }
 
-            // Filter theo AccountId
-            if (!string.IsNullOrEmpty(filterParams.AccountId))
+            // 👤 Filter theo AccountId
+            if (!string.IsNullOrWhiteSpace(filterParams.AccountId))
             {
-                query = query.Where(c => c.AccountId.Contains(filterParams.AccountId));
+                query = query.Where(c => c.AccountId == filterParams.AccountId);
             }
 
-            // Sắp xếp
-            switch (filterParams.Sort)
+            // ⚙️ Sắp xếp
+            query = filterParams.Sort switch
             {
-                case "title_asc":
-                    query = query.OrderBy(p => p.Title);
-                    break;
-                case "title_desc":
-                    query = query.OrderByDescending(p => p.Title);
-                    break;
-                case "price_asc":
-                    query = query.OrderBy(p => p.Price);
-                    break;
-                case "price_desc":
-                    query = query.OrderByDescending(p => p.Price);
-                    break;
-                default:
-                    query = query.OrderByDescending(p => p.UpdateAt); // sort mặc định
-                    break;
-            }
+                "title_asc" => query.OrderBy(c => c.Title),
+                "title_desc" => query.OrderByDescending(c => c.Title),
+                "price_asc" => query.OrderBy(c => c.Price),
+                "price_desc" => query.OrderByDescending(c => c.Price),
+                _ => query.OrderByDescending(c => c.UpdateAt) // Mặc định sort theo thời gian cập nhật mới nhất
+            };
 
+            // 📊 Tính toán phân trang
             int totalCourses = await query.CountAsync();
-            int totalPages = (int)Math.Ceiling(totalCourses / (double)filterParams.PageSize);
+            int totalPages = (int)Math.Ceiling(totalCourses / (double)pageSize);
 
-            // Load data và join luôn Account để tránh query lồng
+            // 📦 Lấy danh sách khóa học (Select có thêm Field)
             var courses = await query
-                .Skip((filterParams.PageNumber - 1) * filterParams.PageSize)
-                .Take(filterParams.PageSize)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Select(c => new CourseListModel
                 {
                     CourseId = c.CourseId,
@@ -197,16 +198,32 @@ namespace LMSystem.Repository.Repositories
                     CourseIsActive = c.CourseIsActive,
                     SalesCampaign = c.SalesCampaign,
                     AccountId = c.AccountId,
-                    AccountName = c.Account.FirstName + " " + c.Account.LastName
+                    AccountName = c.Account.FirstName + " " + c.Account.LastName,
+
+                    // ✅ Thêm thông tin Field
+                    Field = c.CourseCategories
+                        .SelectMany(cc => cc.Category.FieldCategories)
+                        .Select(fc => new FieldModel
+                        {
+                            FieldId = fc.Field.FieldId,
+                            Name = fc.Field.Name,
+                            Description = fc.Field.Description
+                        })
+                        .FirstOrDefault()
                 })
                 .ToListAsync();
 
-            return (Courses: courses,
-                    CurrentPage: filterParams.PageNumber,
-                    PageSize: filterParams.PageSize,
-                    TotalCourses: totalCourses,
-                    TotalPages: totalPages);
+            // ✅ Trả kết quả
+            return (
+                Courses: courses,
+                CurrentPage: pageNumber,
+                PageSize: pageSize,
+                TotalCourses: totalCourses,
+                TotalPages: totalPages
+            );
         }
+
+
 
 
         //public async Task<PagedList<CourseListModel>> GetAllCourse(PaginationParameter paginationParameter)
@@ -810,5 +827,11 @@ namespace LMSystem.Repository.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+    }
+    public class FieldModel
+    {
+        public int FieldId { get; set; }
+        public string Name { get; set; } = null!;
+        public string? Description { get; set; }
     }
 }

@@ -147,16 +147,20 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
             entity.Property(e => e.Level).HasMaxLength(50);
             entity.Property(e => e.CompletedAt).HasColumnType("timestamp with time zone");
 
+            // FK -> Account
             entity.HasOne(e => e.Account)
-                .WithMany()
+                .WithMany(a => a.PlacementResults)
                 .HasForeignKey(e => e.AccountId)
+                .HasPrincipalKey(a => a.Id)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // FK -> PlacementTest
             entity.HasOne(e => e.PlacementTest)
                 .WithMany(t => t.PlacementResults)
                 .HasForeignKey(e => e.PlacementTestId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+
 
         modelBuilder.Entity<PlacementAnswer>(entity =>
         {

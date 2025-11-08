@@ -18,6 +18,9 @@ const options: DefaultOptionType[] = [
     { label: 'Phổ biến', value: 'Phổ biến' },
     { label: 'Đánh giá cao', value: 'Đánh giá cao' },
 ];
+// useEffect(() => {
+//   window.scrollTo(0, 0); // đảm bảo cuộn về đầu trang
+// }, []);
 
 const ViewCourseListPage = () => {
     const [courselistPaginationRequest, setCourselistPaginationRequest] =
@@ -26,6 +29,31 @@ const ViewCourseListPage = () => {
     const [category, setCategory] = useState<number[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [sortBy, setSortBy] = useState('Mới nhất');
+    useEffect(() => {
+        let sortParam: string | undefined;
+
+        switch (sortBy) {
+            case 'Mới nhất':
+                sortParam = undefined; // backend mặc định sort theo UpdateAt desc
+                break;
+            case 'Phổ biến':
+                sortParam = 'title_asc'; // ví dụ sắp xếp theo tên tăng dần
+                break;
+            case 'Đánh giá cao':
+                sortParam = 'price_desc'; // tạm dùng giá để mô phỏng "đánh giá cao"
+                break;
+            default:
+                sortParam = undefined;
+                break;
+        }
+
+        setCourselistPaginationRequest((prev) => ({
+            ...prev,
+            sort: sortParam,
+            pageNumber: 1,
+            pageSize: 10,
+        }));
+    }, [sortBy]);
 
     const { data, isSuccess, isLoading, refetch } = useGetCourselistPaginationQuery(
         courselistPaginationRequest,
@@ -71,14 +99,7 @@ const ViewCourseListPage = () => {
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             <div className="container mx-auto px-4 py-8">
                 {/* Header Section */}
-                <div className="mb-8">
-                    <Typography.Title level={2} className="!mb-2 !text-gray-800">
-                        Tất cả khóa học
-                    </Typography.Title>
-                    <p className="text-gray-600">
-                        Khám phá {filteredCourses.length} khóa học chất lượng cao
-                    </p>
-                </div>
+
 
                 {/* Sort Bar */}
                 <div className="mb-6 flex items-center justify-between rounded-xl bg-white p-4 shadow-sm">
@@ -208,6 +229,15 @@ const ViewCourseListPage = () => {
                                                                     <p className="mb-3 flex items-center gap-1.5 text-sm text-gray-600">
                                                                         <span className="text-xs font-semibold uppercase tracking-wide">GIẢNG DẠY BỞI:</span>
                                                                         <span className="font-bold text-gray-800">{course.accountName}</span>
+                                                                    </p>
+                                                                )}
+                                                                {course.field && (
+                                                                    <p className="mb-3 flex items-center gap-2 text-sm text-gray-600">
+                                                                        <span className="font-semibold text-gray-700 flex items-center gap-1">
+                                                                            <CategoryIcon className="text-green-500" fontSize="small" />
+                                                                            Lĩnh vực:
+                                                                        </span>
+                                                                        <span className="font-medium text-gray-800">{course.field.name}</span>
                                                                     </p>
                                                                 )}
 

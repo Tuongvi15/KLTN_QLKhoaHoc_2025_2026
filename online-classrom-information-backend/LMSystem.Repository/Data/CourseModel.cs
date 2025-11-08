@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LMSystem.Repository.Repositories;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -68,5 +69,6 @@ namespace LMSystem.Repository.Data
         public double? SalesCampaign { get; set; }
         public string? AccountId { get; set; }
         public string? AccountName { get; set; }
+        public FieldModel? Field { get; set; }
     }
 }

@@ -77,12 +77,32 @@ namespace LMSystem.Repository.Repositories
         }
 
 
-        public async Task<IEnumerable<Field>> GetAllFields()
+        public async Task<IEnumerable<object>> GetAllFields()
         {
             return await _context.Fields
-                .Include(f => f.PlacementTests)
+                .Select(f => new
+                {
+                    f.FieldId,
+                    f.Name,
+                    f.Description,
+                    PlacementTests = f.PlacementTests.Select(t => new
+                    {
+                        t.PlacementTestId,
+                        t.Title,
+                        t.Description,
+                        PlacementQuestions = t.PlacementQuestions.Select(q => new
+                        {
+                            q.QuestionId,
+                            q.QuestionText,
+                            q.CorrectAnswer,
+                            q.DifficultyLevel
+                        }).ToList()
+                    }).ToList()
+                })
                 .ToListAsync();
         }
+
+
 
         public async Task<ResponeModel> DeleteField(int fieldId)
         {
@@ -133,6 +153,8 @@ namespace LMSystem.Repository.Repositories
                     existingTest.Description = model.Description;
                 if (model.IsActive.HasValue)
                     existingTest.IsActive = model.IsActive.Value;
+                if (model.FieldId.HasValue)
+                    existingTest.FieldId = model.FieldId.Value;
 
                 await _context.SaveChangesAsync();
                 return new ResponeModel { Status = "Success", Message = "Updated placement test successfully", DataObject = existingTest };
@@ -179,13 +201,35 @@ namespace LMSystem.Repository.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<PlacementTest>> GetPlacementTestsByField(int fieldId)
+        public async Task<IEnumerable<object>> GetPlacementTestsByField(int fieldId, string accountId)
         {
             return await _context.PlacementTests
-                .Include(t => t.PlacementQuestions)
-                .Where(t => t.FieldId == fieldId)
+                .Where(t => t.FieldId == fieldId && t.IsActive == true)
+                .Select(t => new
+                {
+                    t.PlacementTestId,
+                    t.Title,
+                    t.Description,
+                    t.IsActive,
+                    t.CreatedAt,
+                    QuestionCount = t.PlacementQuestions.Count,
+
+                    // ✅ Lấy kết quả gần nhất của người dùng này
+                    LatestResult = t.PlacementResults
+                        .Where(r => r.AccountId == accountId)
+                        .OrderByDescending(r => r.CompletedAt)
+                        .Select(r => new
+                        {
+                            r.Score,
+                            r.Level,
+                            r.CompletedAt
+                        })
+                        .FirstOrDefault()
+                })
+                .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
         }
+
 
         public async Task<PlacementTest?> GetPlacementTestById(int placementTestId)
         {
@@ -416,6 +460,30 @@ namespace LMSystem.Repository.Repositories
                 RecommendedCourses = filteredCourses
             };
         }
+
+        public async Task<IEnumerable<PlacementResultViewModel>> GetAllResultsByAccount(string accountId)
+        {
+            return await _context.PlacementResults
+                .Include(r => r.PlacementTest)
+                .ThenInclude(t => t.Field)
+                .Where(r => r.AccountId == accountId)
+                .OrderByDescending(r => r.CompletedAt)
+                .Select(r => new PlacementResultViewModel
+                {
+                    ResultId = r.ResultId,
+                    Score = r.Score,
+                    Level = r.Level,
+                    CompletedAt = r.CompletedAt,
+                    PlacementTestId = r.PlacementTestId,
+                    Title = r.PlacementTest.Title,
+                    Description = r.PlacementTest.Description,
+                    FieldId = r.PlacementTest.Field.FieldId,
+                    FieldName = r.PlacementTest.Field.Name
+                })
+                .ToListAsync();
+        }
+
+
     }
     public class PlacementResultWithCoursesViewModel
     {
@@ -468,6 +536,7 @@ namespace LMSystem.Repository.Repositories
     public class UpdatePlacementTestModel
     {
         public int PlacementTestId { get; set; }
+        public int? FieldId { get; set; }
         public string? Title { get; set; }
         public string? Description { get; set; }
         public bool? IsActive { get; set; }

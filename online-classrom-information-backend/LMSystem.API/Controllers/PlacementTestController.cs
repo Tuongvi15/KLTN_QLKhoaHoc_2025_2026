@@ -61,11 +61,12 @@ namespace LMSystem.API.Controllers
         }
 
         [HttpGet("tests/field/{fieldId}")]
-        public async Task<IActionResult> GetTestsByField(int fieldId)
+        public async Task<IActionResult> GetTestsByField(int fieldId, [FromQuery] string accountId)
         {
-            var result = await _placementRepo.GetPlacementTestsByField(fieldId);
+            var result = await _placementRepo.GetPlacementTestsByField(fieldId, accountId);
             return Ok(result);
         }
+
 
         [HttpGet("tests/{testId}")]
         public async Task<IActionResult> GetTestById(int testId)
@@ -165,5 +166,16 @@ namespace LMSystem.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("results/history/{accountId}")]
+        public async Task<IActionResult> GetAllResultsByAccount(string accountId)
+        {
+            var results = await _placementRepo.GetAllResultsByAccount(accountId);
+            if (results == null || !results.Any())
+                return NotFound(new { message = "No history found" });
+
+            return Ok(results);
+        }
+
     }
 }

@@ -80,16 +80,37 @@ const ViewCourseDetails = () => {
                             </div>
                             <div>
                                 <Text strong>Mô tả khóa học: </Text>
-                                <Text>{truncateText(course?.description || '', 150)}</Text>
+                                <Text>
+                                    {(() => {
+                                        try {
+                                            const descObj = JSON.parse(course?.description || '{}');
+                                            // Lấy toàn bộ text từ các block
+                                            const text = descObj.blocks?.map((b: any) => b.text).join(' ') || '';
+                                            return truncateText(text, 150);
+                                        } catch {
+                                            return truncateText(course?.description || '', 150);
+                                        }
+                                    })()}
+                                </Text>
+
                             </div>
                             <div>
-                                <Text strong>Kiến thức đạt được sau khóa học: </Text>
-                                {course?.knowdledgeDescription
-                                    .split('|')
-                                    .map((text, index) => (
-                                        <Text key={index}>{truncateText(text, 150)}</Text>
-                                    ))}
+                                <Text strong>Kiến thức đạt được sau khóa học:</Text>
+                                <ul className="list-disc ml-6 mt-1 text-gray-700">
+                                    {course?.knowdledgeDescription
+                                        ?.split('|')
+                                        .map((item, index) => {
+                                            const clean = item.trim();
+                                            if (!clean) return null; // bỏ phần rỗng nếu có
+                                            return (
+                                                <li key={index} className="text-sm mb-1">
+                                                    {truncateText(clean, 150)}
+                                                </li>
+                                            );
+                                        })}
+                                </ul>
                             </div>
+
                             <div>
                                 <Text strong>Tổng thời gian khóa học: </Text>
                                 <Text>

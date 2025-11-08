@@ -54,13 +54,17 @@ const PaymentPage = () => {
 
     return (
         <div className="min-h-screen flex flex-col">
-            <Button
-                className="!mb-2 !ml-20"
-                onClick={() => navigate("/courses/" + CourseData.courseId)}
-                startIcon={<KeyboardArrowLeftOutlinedIcon />}
-            >
-                Quay lại
-            </Button>
+            <div className="w-full flex justify-start px-10 mt-4">
+                <Button
+                    variant="text"
+                    startIcon={<KeyboardArrowLeftOutlinedIcon />}
+                    onClick={() => navigate("/courses/" + CourseData.courseId)}
+                    className="!text-[#007fff] !font-medium hover:!bg-blue-50"
+                >
+                    Quay lại
+                </Button>
+            </div>
+
 
             <div className="min-w-screen flex grow justify-center pb-20">
                 <div className="w-[50%] bg-[#f8fafb] px-10 py-10">

@@ -13,7 +13,7 @@ namespace LMSystem.Repository.Interfaces
     {
         // ===== FIELD =====
         Task<ResponeModel> AddField(string name, string? description);
-        Task<IEnumerable<Field>> GetAllFields();
+        Task<IEnumerable<object>> GetAllFields();
         Task<ResponeModel> DeleteField(int fieldId);
         Task<ResponeModel> UpdateField(int fieldId, string name, string? description);
 
@@ -22,7 +22,7 @@ namespace LMSystem.Repository.Interfaces
         Task<ResponeModel> UpdatePlacementTest(UpdatePlacementTestModel model);
         Task<ResponeModel> DeletePlacementTest(int placementTestId);
         Task<IEnumerable<PlacementTestListModel>> GetAllPlacementTests();
-        Task<IEnumerable<PlacementTest>> GetPlacementTestsByField(int fieldId);
+        Task<IEnumerable<object>> GetPlacementTestsByField(int fieldId, string accountId);
         Task<PlacementTest?> GetPlacementTestById(int placementTestId);
 
         // ===== QUESTION =====
@@ -35,5 +35,7 @@ namespace LMSystem.Repository.Interfaces
         Task<ResponeModel> SavePlacementResult(SavePlacementResultModel model);
         Task<PlacementResult?> GetLatestResult(string accountId, int fieldId);
         Task<PlacementResultWithCoursesViewModel?> GetLatestResultByAccount(string accountId);
+
+        Task<IEnumerable<PlacementResultViewModel>> GetAllResultsByAccount(string accountId);
     }
 }

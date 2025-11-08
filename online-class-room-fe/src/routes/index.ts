@@ -31,6 +31,10 @@ import ParentManageProfilePage from '../pages/ParentPages/ParentManageProfilePag
 import PlacementTestListPage from '../pages/AdminPages/PlacementTest/PlacementTestListPage';
 import FieldManager from '../pages/AdminPages/PlacementTest/FieldManager';
 import PlacementQuestionPage from '../pages/AdminPages/PlacementTest/PlacementQuestionPage';
+import PlacementTestPage from '../pages/ClientPages/PlacementTestPage/PlacementTestPage';
+import PlacementTestStartPage from '../pages/ClientPages/PlacementTestPage/PlacementTestStartPag';
+import PlacementHistoryPage from '../pages/ClientPages/PlacementTestPage/PlacementHistoryPage';
+
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -51,6 +55,9 @@ const publicRoutes: RouteProps[] = [
     { path: '/register', component: RegisterPage, layout: LoginLayout },
     { path: '/register/teacher', component: RegisterTeacherPage, layout: LoginLayout },
     { path: '/search/:id', component: SearchPage, layout: DefaultLayout },
+    { path: '/placement-test', component: PlacementTestPage, layout: DefaultLayout },
+    { path: '/placement-test/start/:id', component: PlacementTestStartPage, layout: DefaultLayout },
+    { path: '/placement-test/history', component: PlacementHistoryPage, layout: DefaultLayout },
     { path: '*', component: NotFoundPage, layout: DefaultLayout },
     { path: '/courses/', component: ViewCourseListPage, layout: DefaultLayout },
 ];

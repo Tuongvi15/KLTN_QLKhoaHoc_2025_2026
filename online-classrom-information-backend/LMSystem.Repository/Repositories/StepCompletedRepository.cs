@@ -64,7 +64,7 @@ namespace LMSystem.Repository.Repositories
                     {
                         RegistrationId = registrationId,
                         StepId = stepId,
-                        DateCompleted = DateTime.Now
+                        DateCompleted = DateTime.UtcNow
                     };
                     _context.StepCompleteds.Add(newStepCompleted);
                     await _context.SaveChangesAsync();                                     
@@ -98,7 +98,7 @@ namespace LMSystem.Repository.Repositories
 
                 //update the stepCompleted table
                 stepCompleted.StepId = stepId;
-                stepCompleted.DateCompleted = DateTime.Now;
+                stepCompleted.DateCompleted = DateTime.UtcNow;
                 _context.Update(stepCompleted);
                 await _context.SaveChangesAsync();
                 //update the learning progress and isCompleted in the registrationCourse table
