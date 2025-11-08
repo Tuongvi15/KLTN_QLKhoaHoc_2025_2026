@@ -34,10 +34,10 @@ public partial class Course
 
     public string? KnowdledgeDescription { get; set; }
 
+    public string? CourseLevel { get; set; }
+
     public string? LinkCertificated {  get; set; }
     public virtual Account? Account { get; set; }
-
-    public virtual ICollection<CourseLevel> CourseLevels { get; set; } = new List<CourseLevel>();
 
     public virtual ICollection<CourseCategory> CourseCategories { get; set; } = new List<CourseCategory>();
 

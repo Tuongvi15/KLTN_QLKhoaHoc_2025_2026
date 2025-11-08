@@ -50,23 +50,12 @@ namespace LMSystem.Repository.Repositories
                     AccountId = addCourseModel.AccountId,
                     CourseIsActive = addCourseModel.CourseIsActive,
                     KnowdledgeDescription = addCourseModel.KnowdledgeDescription,
-                    LinkCertificated = addCourseModel.LinkCertificated
+                    LinkCertificated = addCourseModel.LinkCertificated,
+                    CourseLevel = addCourseModel.SuitableLevels
                 };
 
                 _context.Courses.Add(course);
                 await _context.SaveChangesAsync();
-                if (addCourseModel.SuitableLevels != null)
-                {
-                    foreach (var level in addCourseModel.SuitableLevels)
-                    {
-                        _context.Add(new CourseLevel
-                        {
-                            CourseId = course.CourseId,
-                            Level = level
-                        });
-                    }
-                    await _context.SaveChangesAsync();
-                }
 
                 foreach (var categoryId in addCourseModel.CategoryList)
                 {
@@ -105,7 +94,7 @@ namespace LMSystem.Repository.Repositories
 
             return course;
         }
-        
+
         public async Task<CourseListModel> GetCourseDetailByCourseIdAsync(int courseId)
         {
             var course = await _context.Courses
@@ -116,7 +105,8 @@ namespace LMSystem.Repository.Repositories
                 .Include(c => c.Account)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId);
 
-            return new CourseListModel {
+            return new CourseListModel
+            {
                 CourseId = course.CourseId,
                 ImageUrl = course.ImageUrl,
                 Title = course.Title,
@@ -282,7 +272,7 @@ namespace LMSystem.Repository.Repositories
                 .ToListAsync();
 
             var courses = await _context.Courses
-                .Where(c => topCourses.Contains(c.CourseId) && c.IsPublic==true && c.CourseIsActive==true)
+                .Where(c => topCourses.Contains(c.CourseId) && c.IsPublic == true && c.CourseIsActive == true)
                 .ToListAsync();
 
             if (courses.Count < numberOfCourses)
@@ -430,7 +420,7 @@ namespace LMSystem.Repository.Repositories
                         }).ToList()
                     })
                     .FirstOrDefaultAsync();
-    
+
 
                 return new ResponeModel
                 {
@@ -512,20 +502,7 @@ namespace LMSystem.Repository.Repositories
             }
             if (updateCourseModel.SuitableLevels != null && updateCourseModel.SuitableLevels.Any())
             {
-                // Xóa các level cũ không còn
-                var levelsToRemove = course.CourseLevels
-                    .Where(l => !updateCourseModel.SuitableLevels.Contains(l.Level))
-                    .ToList();
-                foreach (var level in levelsToRemove)
-                    course.CourseLevels.Remove(level);
-
-                // Thêm mới các level chưa có
-                var levelsToAdd = updateCourseModel.SuitableLevels
-                    .Where(l => !course.CourseLevels.Any(x => x.Level == l))
-                    .Select(l => new CourseLevel { Level = l })
-                    .ToList();
-                foreach (var level in levelsToAdd)
-                    course.CourseLevels.Add(level);
+                course.CourseLevel = updateCourseModel.SuitableLevels;
             }
 
             course.UpdateAt = DateTime.UtcNow;
@@ -551,6 +528,101 @@ namespace LMSystem.Repository.Repositories
 
             return course;
         }
+        public async Task<ResponeModel> GetFullCourseDetail()
+        {
+            try
+            {
+                var courses = await _context.Courses
+                    .Where(x => x.IsPublic == true && x.CourseIsActive == true)
+                    .Include(c => c.Account)
+                    .Include(c => c.Sections)
+                        .ThenInclude(s => s.Steps)
+                    .Include(c => c.CourseCategories)
+                        .ThenInclude(cc => cc.Category)
+                            .ThenInclude(cat => cat.FieldCategories)
+                                .ThenInclude(fc => fc.Field)
+                    .ToListAsync();
+
+                if (courses == null || !courses.Any())
+                    return new ResponeModel { Status = "Error", Message = "No courses found" };
+
+                var data = courses.Select(course =>
+                {
+                    // Ánh xạ CourseLevel (1,2,3 → Fresher, Junior, Master)
+                    string courseLevelDisplay = "";
+                    if (!string.IsNullOrEmpty(course.CourseLevel))
+                    {
+                        var levels = course.CourseLevel.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(l => l.Trim())
+                            .Select(l =>
+                            {
+                                return l switch
+                                {
+                                    "1" => "Fresher",
+                                    "2" => "Junior",
+                                    "3" => "Master",
+                                    _ => "Unknown"
+                                };
+                            });
+                        courseLevelDisplay = string.Join(", ", levels);
+                    }
+
+                    // Lấy field đầu tiên (nếu có)
+                    var field = course.CourseCategories
+                        .SelectMany(cc => cc.Category.FieldCategories)
+                        .Select(fc => fc.Field)
+                        .FirstOrDefault();
+
+                    return new
+                    {
+                        course.CourseId,
+                        course.Title,
+                        course.Description,
+                        course.ImageUrl,
+                        course.VideoPreviewUrl,
+                        course.Price,
+                        course.SalesCampaign,
+                        course.TotalDuration,
+                        CourseLevel = courseLevelDisplay,
+                        course.KnowdledgeDescription,
+                        Field = field != null ? new
+                        {
+                            field.FieldId,
+                            field.Name,
+                            field.Description
+                        } : null,
+                        Account = new
+                        {
+                            course.Account?.Id,
+                            FullName = course.Account != null ? $"{course.Account.FirstName} {course.Account.LastName}" : "N/A"
+                        },
+                        Categories = course.CourseCategories.Select(cc => new
+                        {
+                            cc.CategoryId,
+                            cc.Category.Name,
+                            cc.Category.Description
+                        }),
+                    };
+                });
+
+                return new ResponeModel
+                {
+                    Status = "Success",
+                    Message = "Retrieved all course details successfully",
+                    DataObject = data
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponeModel
+                {
+                    Status = "Error",
+                    Message = "Error while retrieving all course details: " + ex.Message
+                };
+            }
+        }
+
+
 
         public async Task<ResponeModel> DeleteCourse(int courseId)
         {

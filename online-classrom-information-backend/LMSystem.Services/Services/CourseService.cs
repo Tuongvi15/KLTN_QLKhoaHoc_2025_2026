@@ -59,6 +59,11 @@ namespace LMSystem.Services.Services
         {
             return await _courseRepository.AddCourse(addCourseModel);
         }
+
+        public async Task<ResponeModel> GetFullCourseDetail()
+        {
+            return await _courseRepository.GetFullCourseDetail();
+        }
         public async Task<ResponeModel> DeleteCourse(int courseId)
         {
             return await _courseRepository.DeleteCourse(courseId);

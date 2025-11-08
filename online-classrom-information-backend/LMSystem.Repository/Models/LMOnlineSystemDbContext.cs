@@ -176,18 +176,6 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
                 .OnDelete(DeleteBehavior.NoAction);
         });
 
-        modelBuilder.Entity<CourseLevel>(entity =>
-        {
-            entity.HasKey(e => e.CourseLevelId);
-            entity.ToTable("CourseLevel");
-            entity.Property(e => e.Level).HasMaxLength(150);
-
-            entity.HasOne(e => e.Course)
-                  .WithMany(c => c.CourseLevels)
-                  .HasForeignKey(e => e.CourseId)
-                  .OnDelete(DeleteBehavior.Cascade);
-        });
-
         modelBuilder.Entity<Category>(entity =>
         {
             entity.HasKey(e => e.CatgoryId);

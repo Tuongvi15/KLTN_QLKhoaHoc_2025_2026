@@ -31,7 +31,7 @@ namespace LMSystem.Repository.Data
 
         [Required(ErrorMessage = "Total duration is required!")]
         public int TotalDuration { get; set; }
-        public List<string>? SuitableLevels { get; set; }
+        public string? SuitableLevels { get; set; }
 
         [Required(ErrorMessage = "CourseIsActive is required!")]
         public bool CourseIsActive { get; set; }

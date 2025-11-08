@@ -32,6 +32,17 @@ namespace LMSystem.API.Controllers
             return Ok(response);
         }
 
+        [HttpGet("GetFullCourseDetail")]
+        public async Task<IActionResult> GetFullCourseDetail()
+        {
+            var courses = await _courseService.GetFullCourseDetail();
+            if (courses == null)
+            {
+                return NotFound();
+            }
+            return Ok(courses);
+        }
+
         //[HttpGet("GetAllCourse")]
         //public async Task<IActionResult> GetAllCourse([FromQuery] PaginationParameter paginationParameter)
         //{

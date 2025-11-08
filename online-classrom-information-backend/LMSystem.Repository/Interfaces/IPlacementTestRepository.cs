@@ -34,5 +34,6 @@ namespace LMSystem.Repository.Interfaces
         // ===== RESULT =====
         Task<ResponeModel> SavePlacementResult(SavePlacementResultModel model);
         Task<PlacementResult?> GetLatestResult(string accountId, int fieldId);
+        Task<PlacementResultWithCoursesViewModel?> GetLatestResultByAccount(string accountId);
     }
 }

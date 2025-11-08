@@ -22,6 +22,7 @@ namespace LMSystem.Services.Interfaces
         public Task<Course> GetCourseDetailByIdAsync(int courseId);
         public Task<CourseListModel> GetCourseDetailByCourseIdAsync(int courseId);
         public Task<ResponeModel> AddCourse(AddCourseModel addCourseModel);
+        public Task<ResponeModel> GetFullCourseDetail();
         public Task<ResponeModel> UpdateCourse(UpdateCourseModel updateCourseModel);
         public Task<ResponeModel> DeleteCourse(int courseId);
         public Task<ResponeModel> CountTotalCourse();

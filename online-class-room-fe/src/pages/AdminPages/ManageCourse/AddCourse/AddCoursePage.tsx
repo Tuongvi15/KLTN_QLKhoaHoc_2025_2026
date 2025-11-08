@@ -99,17 +99,23 @@ const AddCoursePage = () => {
     const next = () => {
         setCurrentStep(currentStep + 1);
     };
-    const handleTagChange = (tagid: number, checked: boolean) => {
+    const handleTagChange = (tagId: number, checked: boolean) => {
         const nextSelectedTags = checked
-            ? [...selectedTags, tagid]
-            : selectedTags.filter((t) => t !== tagid);
+            ? [...selectedTags, tagId]
+            : selectedTags.filter((t) => t !== tagId);
+
+        // ✅ Cập nhật state local để phản ánh chọn/bỏ chọn
+        setSelectedTags(nextSelectedTags);
+
+        // ✅ Đồng thời cập nhật Redux
         dispatch(
             setAddCourse({
                 data: { ...addCourseData, categoryList: nextSelectedTags },
-                currentStep: currentStep,
-            }),
+                currentStep,
+            })
         );
     };
+
     const prev = () => {
         setCurrentStep(currentStep - 1);
     };

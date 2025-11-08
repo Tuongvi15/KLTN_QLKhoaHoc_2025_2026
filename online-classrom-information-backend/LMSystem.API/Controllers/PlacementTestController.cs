@@ -155,5 +155,15 @@ namespace LMSystem.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("results/latest/{accountId}")]
+        public async Task<IActionResult> GetLatestResultByAccountId(string accountId)
+        {
+            var result = await _placementRepo.GetLatestResultByAccount(accountId);
+            if (result == null)
+                return NotFound(new { message = "No result found" });
+
+            return Ok(result);
+        }
     }
 }

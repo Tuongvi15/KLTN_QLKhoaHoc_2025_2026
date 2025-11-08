@@ -71,7 +71,7 @@ const columns = ({
             width: '10%',
         },
         {
-            title: 'Email học sinh',
+            title: 'Email người dùng',
             dataIndex: 'email',
             render: (email) => (
                 <div style={{ display: 'flex', alignItems: 'center' }}>

@@ -21,7 +21,7 @@ namespace LMSystem.Repository.Data
         //[Required(ErrorMessage = "Price is required!")]
         public double? Price { get; set; }
         //[Required(ErrorMessage = "SalesCampaign is required!")]
-        public List<string>? SuitableLevels { get; set; }
+        public string? SuitableLevels { get; set; }
 
         public double? SalesCampaign { get; set; }
         public bool? IsPublic { get; set; }
