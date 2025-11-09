@@ -5,11 +5,15 @@ import { useGetCourseIDQuery } from '../../../../services';
 import { Course, Section } from '../../../../types/Course.type';
 import { FormatType, secondsToTimeString } from '../../../../utils/TimeFormater';
 import { formatNumberWithCommas } from '../../../../utils/NumberFormater';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../store';
+import { RoleType } from '../../../../slices/authSlice';
 
 const ViewCourseDetails = () => {
     const { Title, Text } = Typography;
     const [courseId, setCourseId] = useState('');
     const location = useLocation();
+    const role = useSelector((state: RootState) => state.auth.currentRole);
     const [course, setCourse] = useState<Course | null>(null);
     useEffect(() => {
         const getCourseId = location.pathname.split('/').pop();
@@ -132,18 +136,31 @@ const ViewCourseDetails = () => {
                                 </Tag>
                             </div>
                             <div className="mt-6 flex justify-end">
-                                <Link to={'/admin/getAllCourse/'}>
+                                <Link to={role === RoleType.TEACHER ? '/teacher/getAllCourse' : '/admin/getAllCourse'}>
                                     <Button danger>Quay lại</Button>
                                 </Link>
-                                <Link to={`/admin/updateCourse/${courseId}`}>
-                                    <Button
-                                        className="ml-3 bg-[#1677ff] text-white hover:bg-[#a4ccf4ee]"
-                                        type="primary"
-                                    >
-                                        Thay đổi thông tin khóa học
-                                    </Button>
-                                </Link>
+                                {role === RoleType.TEACHER ? (
+                                    <Link to={`/teacher/updateCourse/${courseId}`}>
+                                        <Button
+                                            className="ml-3 bg-[#1677ff] text-white hover:bg-[#a4ccf4ee]"
+                                            type="primary"
+                                        >
+                                            Thay đổi thông tin khóa học
+                                        </Button>
+                                    </Link>
+                                ) : (
+                                    <Link to={`/admin/updateCourse/${courseId}`}>
+                                        <Button
+                                            className="ml-3 bg-[#52c41a] text-white hover:bg-[#95de64]"
+                                            type="primary"
+                                        >
+                                            Xem thông tin khóa học
+                                        </Button>
+                                    </Link>
+                                )}
+
                             </div>
+
                         </div>
                     </Col>
                 </Row>

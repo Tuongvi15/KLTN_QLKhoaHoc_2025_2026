@@ -110,6 +110,33 @@ namespace LMSystem.Repository.Repositories
             return course;
         }
 
+        public async Task<IEnumerable<Course>> GetCoursesByTeacherIdAsync(string teacherId)
+        {
+            return await _context.Courses
+                .Where(c => c.AccountId == teacherId)
+                .Include(c => c.RegistrationCourses)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<object>> GetStudentsInCourseAsync(int courseId, string teacherId)
+        {
+            var course = await _context.Courses
+                .Include(c => c.RegistrationCourses)
+                .ThenInclude(r => r.Account)
+                .FirstOrDefaultAsync(c => c.CourseId == courseId && c.AccountId == teacherId);
+
+            if (course == null)
+                return null!;
+
+            return course.RegistrationCourses.Select(r => new
+            {
+                r.AccountId,
+                r.Account.FirstName,
+                r.Account.LastName,
+                r.Account.Email,
+                r.EnrollmentDate
+            });
+        }
 
 
         public async Task<CourseListModel> GetCourseDetailByCourseIdAsync(int courseId)

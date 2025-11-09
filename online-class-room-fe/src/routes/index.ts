@@ -1,4 +1,6 @@
 import DefaultLayoutAdmin from '../layouts/adminLayouts/DefaultLayoutAdmin';
+import TeacherLayout from '../layouts/teacherLayouts/TeacherLayout';
+import AddCourseTeacher from '../pages/TeacherPages/AddCourseTeacher';
 import { DefaultLayout } from '../layouts/clientLayouts';
 import LoginLayout from '../layouts/clientLayouts/LoginLayout';
 import { AddCoursePage, DashboardPage, UpdateCoursePage } from '../pages/AdminPages';
@@ -17,7 +19,6 @@ import GetAllCourse from '../pages/AdminPages/ManageCourse/GetAllCourse/GetAllCo
 import ViewCourseDetails from '../pages/AdminPages/ManageCourse/ViewCourseDetails/ViewCourseDetails';
 import GetAllAccount from '../pages/AdminPages/ManageUser/GetAllAccount/GetAllAccount';
 import LearningLayout from '../layouts/clientLayouts/LearningLayout/LearningLayout';
-import { SearchPage } from '../pages/ClientPages/SearchPage';
 import CreateAccountAdmin from '../pages/AdminPages/ManageUser/CreateAccountForStaffAndAdmin/CreateAccountAdmin';
 import { RoleType } from '../slices/authSlice';
 import ParentMainPage from '../pages/ParentPages/ParentMainPage/ParentMainPage';
@@ -34,7 +35,8 @@ import PlacementQuestionPage from '../pages/AdminPages/PlacementTest/PlacementQu
 import PlacementTestPage from '../pages/ClientPages/PlacementTestPage/PlacementTestPage';
 import PlacementTestStartPage from '../pages/ClientPages/PlacementTestPage/PlacementTestStartPag';
 import PlacementHistoryPage from '../pages/ClientPages/PlacementTestPage/PlacementHistoryPage';
-
+import GetAllCourseTeacher from '../pages/TeacherPages/GetAllCourseTeacher';
+import { SearchPage } from '../pages/ClientPages/SearchPage';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -108,6 +110,29 @@ const parentRoutes: RouteProps[] = [
     },
 ];
 
+const teacherRoutes: RouteProps[] = [
+  { path: '/teacher', component: DashboardPage, layout: TeacherLayout },
+  { path: '/teacher/dashboard', component: DashboardPage, layout: TeacherLayout },
+  { path: '/teacher/getAllCourse', component: GetAllCourseTeacher, layout: TeacherLayout }, // ✅ trang mới
+  {
+    path: '/teacher/viewCourseDetails/:id',
+    component: ViewCourseDetails,
+    layout: TeacherLayout,
+  },
+  { path: '/teacher/addCourse', component: AddCourseTeacher, layout: TeacherLayout },
+  {
+    path: '/teacher/updateCourse/:id',
+    component: UpdateCoursePage,
+    layout: TeacherLayout,
+  },
+  {
+    path: '/teacher/profile',
+    component: ManageProfilePage,
+    layout: TeacherLayout,
+  },
+];
+
+
 const staffRoutes: RouteProps[] = [];
 
-export { publicRoutes, privateRoutes, adminRoutes, staffRoutes, parentRoutes };
+export { publicRoutes, privateRoutes, adminRoutes, staffRoutes, parentRoutes, teacherRoutes };

@@ -6,6 +6,7 @@ using LMSystem.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Security.Claims;
 
 namespace LMSystem.API.Controllers
 {
@@ -115,7 +116,7 @@ namespace LMSystem.API.Controllers
         }
 
         [HttpPost("AddCourse")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> AddCourse(AddCourseModel addCourseModel)
         {
             var response = await _courseService.AddCourse(addCourseModel);
@@ -127,7 +128,7 @@ namespace LMSystem.API.Controllers
         }
 
         [HttpPut("UpdateCourse")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> UpdateCourse(UpdateCourseModel updateCourseModel)
         {
             var response = await _courseService.UpdateCourse(updateCourseModel);
@@ -139,7 +140,7 @@ namespace LMSystem.API.Controllers
         }
 
         [HttpDelete("DeleteCourse")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> DeleteCourse(int courseId)
         {
             var response = await _courseService.DeleteCourse(courseId);
@@ -199,5 +200,31 @@ namespace LMSystem.API.Controllers
             }
             return Ok(response);
         }
+
+        [HttpGet("GetCoursesByTeacher")]
+        [Authorize]
+        public async Task<IActionResult> GetCoursesByTeacher(string teacherId)
+        {
+            var courses = await _courseService.GetCoursesByTeacherIdAsync(teacherId);
+
+            if (courses == null || !courses.Any())
+                return NotFound(new { message = "You have no courses." });
+
+            return Ok(courses);
+        }
+
+        [HttpGet("GetStudentsInMyCourse/{courseId}")]
+        [Authorize]
+        public async Task<IActionResult> GetStudentsInMyCourse(int courseId)
+        {
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var students = await _courseService.GetStudentsInCourseAsync(courseId, teacherId);
+
+            if (students == null)
+                return NotFound(new { message = "Course not found or not yours." });
+
+            return Ok(students);
+        }
+
     }
 }

@@ -93,6 +93,14 @@ export const coursesApi = createApi({
                 return [...data];
             },
         }),
+        getCoursesByTeacher: build.query<Course[], string>({
+            query: (teacherId) => `api/Course/GetCoursesByTeacher?teacherId=${teacherId}`,
+        }),
+
+        getStudentsInMyCourse: build.query<any[], number>({
+            query: (courseId: number) => `api/Course/GetStudentsInMyCourse/${courseId}`,
+        }),
+
         getCourselistPagination: build.query<
             CourselistPaginationRespone,
             CourselistPaginationRequest
@@ -128,4 +136,6 @@ export const {
     useCountTotalCoursesQuery,
     useCountStudentPerCourseQuery,
     useGetCourselistPaginationQuery,
+    useGetCoursesByTeacherQuery,
+    useGetStudentsInMyCourseQuery,
 } = coursesApi;

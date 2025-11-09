@@ -1,11 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 
+// ✅ Thêm role TEACHER, bỏ PARENT nếu không dùng nữa
 export enum RoleType {
     STUDENT = 'Student',
     ADMIN = 'Admin',
     STAFF = 'Staff',
-    PARENT = 'Parent',
+    TEACHER = 'Teacher', // 👈 Thêm dòng này
     GUESS = 'Guess',
 }
 
@@ -39,13 +40,14 @@ export const authSlice = createSlice({
                 email: string | null;
                 expired: string | null;
                 isLogin: boolean;
-            }>,
+            }>
         ) => {
             state.accessToken = action.payload.accessToken;
             state.refreshToken = action.payload.refreshToken;
             state.email = action.payload.email;
             state.isLogin = action.payload.isLogin;
             state.expired = action.payload.expired;
+
             localStorage.setItem(
                 'user',
                 JSON.stringify({
@@ -53,7 +55,7 @@ export const authSlice = createSlice({
                     refreshToken: action.payload.refreshToken,
                     email: action.payload.email,
                     expired: action.payload.expired,
-                }),
+                })
             );
         },
         logoutUser: (state) => {
@@ -62,6 +64,7 @@ export const authSlice = createSlice({
             state.email = null;
             state.refreshToken = null;
             state.isLogin = false;
+            state.currentRole = RoleType.GUESS;
         },
         loadUser: (state) => {
             const user = localStorage.getItem('user');

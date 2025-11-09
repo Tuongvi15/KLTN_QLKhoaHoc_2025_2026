@@ -1,6 +1,6 @@
 import './App.css';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { adminRoutes, privateRoutes, publicRoutes, parentRoutes } from './routes';
+import { adminRoutes, privateRoutes, publicRoutes, teacherRoutes } from './routes';
 import { getMessagingToken, onMessageListener } from './firebase/firebase';
 import { useState, useEffect } from 'react';
 import { message } from 'antd';
@@ -16,8 +16,6 @@ import { setUserInfo } from './slices/userSlice';
 import { ChatBox } from './components';
 
 function App() {
-    //const [show] = useState(false);
-    //const [notification] = useState({ title: '', body: '' });
     const [isDeviceTokenFound, setDeviceTokenFound] = useState(false);
 
     useEffect(() => {
@@ -29,31 +27,21 @@ function App() {
                 console.log('failed: ', err);
             }
         };
-
         handleMessage();
-    }, []); // Chạy một lần khi component được render lần đầu tiên
-
-    // console.log(show, notification);
+    }, []);
 
     const accountId = useSelector((state: RootState) => (state.user.id ? state.user.id : ''));
     const [updateDeviceToken, { isSuccess: successUpdate }] = useUpdateDeviceTokenMutation();
 
     useEffect(() => {
-        if (successUpdate) {
-            console.log('hihiii ');
-        }
+        if (successUpdate) console.log('Device token updated');
     }, [successUpdate]);
 
     useEffect(() => {
         const deviceToken = localStorage.getItem('deviceToken');
-
-        if (deviceToken) {
-            updateDeviceToken({ accountId: accountId, deviceToken });
-        }
+        if (deviceToken) updateDeviceToken({ accountId: accountId, deviceToken });
         getMessagingToken(setDeviceTokenFound);
-        if (isDeviceTokenFound) {
-            console.log('found device token');
-        }
+        if (isDeviceTokenFound) console.log('found device token');
     }, [accountId]);
 
     const user = localStorage.getItem('user');
@@ -71,46 +59,36 @@ function App() {
             const decodedToken: DecodedToken = jwtDecode(userData.accessToken);
             const roleLoaded: any =
                 decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+
             if (typeof roleLoaded === 'string') {
                 switch (roleLoaded) {
-                    case RoleType.ADMIN: {
+                    case RoleType.ADMIN:
                         dispatch(setLoginRole(RoleType.ADMIN));
-                        if (!location.pathname.includes('admin/')) {
-                            navigate('/admin/');
-                        }
-
+                        if (!location.pathname.includes('admin/')) navigate('/admin/');
                         break;
-                    }
-                    case RoleType.PARENT: {
-                        dispatch(setLoginRole(RoleType.PARENT));
-                        if (!location.pathname.includes('parent/')) {
-                            navigate('/parent/');
-                        }
+                    case RoleType.TEACHER: // 👈 Teacher role
+                        dispatch(setLoginRole(RoleType.TEACHER));
+                        if (!location.pathname.includes('teacher/')) navigate('/teacher/');
                         break;
-                    }
-                    case RoleType.STAFF: {
+                    case RoleType.STAFF:
                         dispatch(setLoginRole(RoleType.STAFF));
                         break;
-                    }
-                    case RoleType.STUDENT: {
+                    case RoleType.STUDENT:
                         dispatch(setLoginRole(RoleType.STUDENT));
                         break;
-                    }
-                    default: {
+                    default:
                         dispatch(setLoginRole(RoleType.GUESS));
                         break;
-                    }
                 }
             }
             setUserLocalData(userData);
         }
     }, [user]);
 
-    const {
-        data,
-        isSuccess: isSuccessUserInfo,
-        refetch,
-    } = useGetUserInfoQuery(userEmailState ? userEmailState : userEmailLocal);
+    const { data, isSuccess: isSuccessUserInfo, refetch } = useGetUserInfoQuery(
+        userEmailState ? userEmailState : userEmailLocal
+    );
+
     useEffect(() => {
         if (isSuccessUserInfo && data) {
             dispatch(loadUser());
@@ -122,71 +100,49 @@ function App() {
         refetch();
     }, [userLocalData]);
 
+    // ✅ Fix lỗi TypeScript bằng cách khai báo rõ kiểu
+    const renderRoutes = (
+        routes: {
+            layout: React.ComponentType<any>;
+            component: React.ComponentType<any>;
+            path: string;
+        }[]
+    ) =>
+        routes.map(({ layout: Layout, component: Component, path }) => (
+            <Route key={path} path={path} element={<Layout children={<Component />} />} />
+        ));
+
     return (
         <>
-            <ChatBox />
-            <Routes>
-                {(role === RoleType.GUESS || role === RoleType.STUDENT || role == RoleType.ADMIN) &&
-                    publicRoutes.map(({ layout, component, path }, index) => {
-                        const Layout = layout;
-                        const Component = component;
-                        return (
-                            <Route
-                                key={index}
-                                path={path}
-                                element={<Layout children ={<Component />} />}
-                            />
-                        );
-                    })}
+            {/* ✅ Chỉ hiển thị ChatBox ở giao diện client */}
+            {(role === RoleType.GUESS || role === RoleType.STUDENT) && <ChatBox />}
 
-                {role === RoleType.PARENT &&
-                    parentRoutes.map(({ layout, component, path }, index) => {
-                        const Layout = layout;
-                        const Component = component;
-                        return (
-                            <Route
-                                key={index}
-                                path={path}
-                                element={<Layout children ={<Component />} />}
-                            />
-                        );
-                    })}
+            <Routes>
+                {(role === RoleType.GUESS || role === RoleType.STUDENT || role === RoleType.ADMIN) &&
+                    renderRoutes(publicRoutes)}
+
+                {role === RoleType.TEACHER && renderRoutes(teacherRoutes)}
 
                 {(role === RoleType.GUESS || role === RoleType.STUDENT) &&
-                    privateRoutes.map(({ layout, component, path }, index) => {
-                        const Layout = layout;
-                        const Component = component;
-                        return (
-                            <Route
-                                key={index}
-                                path={path}
-                                element={
-                                    <Layout
-                                        requireRole={RoleType.STUDENT}
-                                        whenRoleUnMatchNavTo="/login"
-                                        children ={<Component />}
-                                    />
-                                }
-                            />
-                        );
-                    })}
+                    privateRoutes.map(({ layout: Layout, component: Component, path }) => (
+                        <Route
+                            key={path}
+                            path={path}
+                            element={
+                                <Layout
+                                    requireRole={RoleType.STUDENT}
+                                    whenRoleUnMatchNavTo="/login"
+                                    children={<Component />}
+                                />
+                            }
+                        />
+                    ))}
 
-                {role === RoleType.ADMIN &&
-                    adminRoutes.map(({ layout, component, path }, index) => {
-                        const Layout = layout;
-                        const Component = component;
-
-                        return (
-                            <Route
-                                key={index}
-                                path={path}
-                                element={<Layout children ={<Component />} />}
-                            />
-                        );
-                    })}
+                {role === RoleType.ADMIN && renderRoutes(adminRoutes)}
             </Routes>
         </>
     );
+
 }
 
 export default App;

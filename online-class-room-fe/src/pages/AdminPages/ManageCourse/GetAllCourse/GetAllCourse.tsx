@@ -171,11 +171,11 @@ const columns = ({
                                 </Button>
                             </Tooltip>
                         </Link>
-                        <Tooltip title="Xóa khóa học" color="red">
+                        {/* <Tooltip title="Xóa khóa học" color="red">
                             <Button danger type="link" onClick={() => handleDelete(id)}>
                                 <DeleteOutlined style={{ fontSize: '20px' }} />
                             </Button>
-                        </Tooltip>
+                        </Tooltip> */}
                     </div>
                 );
             },

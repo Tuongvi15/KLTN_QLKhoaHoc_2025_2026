@@ -117,7 +117,7 @@ namespace LMSystem.API.Controllers
         }
 
         [HttpPut("ConfirmTeacher")]
-        public async Task<IActionResult> ConfirmCreateSchoolManagerAccount(int accountId, AccountStatusEnum accountStatus)
+        public async Task<IActionResult> ConfirmCreateSchoolManagerAccount(string accountId, AccountStatusEnum accountStatus)
         {
             try
             {

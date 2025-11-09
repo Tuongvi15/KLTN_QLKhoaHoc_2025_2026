@@ -345,7 +345,7 @@ namespace LMSystem.Repository.Repositories
         {
             try
             {
-                var exsistAccount = _context.Account.Where(x => x.Email.ToLower() == model.AccountEmail.ToLower());
+                var exsistAccount = _context.Account.Where(x => x.Email.ToLower() == model.AccountEmail.ToLower()).FirstOrDefault();
                 if (exsistAccount == null)
                 {
                     var user = new Account
@@ -353,10 +353,11 @@ namespace LMSystem.Repository.Repositories
                         FirstName = model.FirstName,
                         LastName = model.LastName,
                         BirthDate = model.BirthDate,
-                        Status = AccountStatusEnum.Pending.ToString(),
+                        Status = AccountStatusEnum.Active.ToString(),
                         UserName = model.AccountEmail,
                         Email = model.AccountEmail,
-                        PhoneNumber = model.AccountPhone
+                        PhoneNumber = model.AccountPhone,
+                        EmailConfirmed = true,
                     };
                     var result = await userManager.CreateAsync(user, model.AccountPassword);
                     string errorMessage = null;
@@ -377,7 +378,7 @@ namespace LMSystem.Repository.Repositories
                         return new ResponeModel
                         {
                             Status = "Success",
-                            Message = "Đăng ký tài khoản thành công. Vui lòng chờ sự kiểm duyệt của hệ thống"
+                            Message = "Đăng ký tài khoản thành công."
                             //ConfirmEmailToken = token
                         };
                     }
@@ -445,19 +446,12 @@ namespace LMSystem.Repository.Repositories
             }
         }
 
-        public async Task<ResponeModel> ConfirmCreateSchoolManagerAccount(int accountId, AccountStatusEnum accountStatus)
+        public async Task<ResponeModel> ConfirmCreateSchoolManagerAccount(string accountId, AccountStatusEnum accountStatus)
         {
 
             {
                 var account = _context.Account.FirstOrDefault(x => x.Id == accountId.ToString());
-                if (accountStatus == AccountStatusEnum.Pending || accountStatus == 0)
-                {
-                    return new ResponeModel
-                    {
-                        Status = "Error",
-                        Message = "Update thì trạng thái phải khác chờ duyệt",
-                    };
-                }
+                
 
                 account.Status = accountStatus.ToString();
 

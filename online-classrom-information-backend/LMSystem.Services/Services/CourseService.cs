@@ -30,6 +30,16 @@ namespace LMSystem.Services.Services
         //{
         //    return await _courseRepository.GetAllCourse(paginationParameter);
         //}
+        public async Task<IEnumerable<object>> GetStudentsInCourseAsync(int courseId, string teacherId)
+        {
+            return await _courseRepository.GetStudentsInCourseAsync(courseId, teacherId);
+        }
+
+        public async Task<IEnumerable<Course>> GetCoursesByTeacherIdAsync(string teacherId)
+        {
+            return await _courseRepository.GetCoursesByTeacherIdAsync(teacherId);
+        }
+
 
         public async Task<IEnumerable<Course>> GetTopCoursesByStudentJoined(int numberOfCourses)
         {

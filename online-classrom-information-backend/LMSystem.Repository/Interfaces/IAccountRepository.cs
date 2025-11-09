@@ -30,7 +30,7 @@ namespace LMSystem.Repository.Interfaces
         public Task<bool> UpdateDeviceToken(string accountId, string deviceToken);
         public Task<ResponeModel> CountTotalStudent();
         public Task<ResponeModel> SignUpAccountTeacherAsync(SignUpModel model);
-        public Task<ResponeModel> ConfirmCreateSchoolManagerAccount(int accountId, AccountStatusEnum accountStatus);
+        public Task<ResponeModel> ConfirmCreateSchoolManagerAccount(string accountId, AccountStatusEnum accountStatus);
         public Task<ResponeModel> CountTotalAccount();
     }
 }

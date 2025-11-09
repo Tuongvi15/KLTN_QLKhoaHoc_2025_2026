@@ -28,6 +28,6 @@ namespace LMSystem.Services.Interfaces
         public Task<ResponeModel> CountTotalStudent();
         public Task<ResponeModel> CountTotalAccount();
         public Task<ResponeModel> SignUpAccountTeacherAsync(SignUpModel model);
-        public Task<ResponeModel> ConfirmCreateSchoolManagerAccount(int accountId, AccountStatusEnum accountStatus);
+        public Task<ResponeModel> ConfirmCreateSchoolManagerAccount(string accountId, AccountStatusEnum accountStatus);
     }
 }

@@ -18,7 +18,7 @@ namespace LMSystem.API.Controllers
         }
 
         [HttpPost("AddStep")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> AddStep(AddStepModel addStepModel)
         {
             var response = await _stepService.AddStep(addStepModel);
@@ -31,7 +31,7 @@ namespace LMSystem.API.Controllers
         }
 
         [HttpPut("UpdateStep")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> UpdateStep(UpdateStepModel updateStepModel)
         {
             var response = await _stepService.UpdateStep(updateStepModel);
@@ -68,7 +68,7 @@ namespace LMSystem.API.Controllers
         }
 
         [HttpDelete("DeleteStep")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> DeleteStep(int stepId)
         {
             var response = await _stepService.DeleteStep(stepId);

@@ -96,7 +96,7 @@ namespace LMSystem.Services.Services
             return result;
         }
 
-        public async Task<ResponeModel> ConfirmCreateSchoolManagerAccount(int accountId, AccountStatusEnum accountStatus)
+        public async Task<ResponeModel> ConfirmCreateSchoolManagerAccount(string accountId, AccountStatusEnum accountStatus)
         {
             var result = await _repo.ConfirmCreateSchoolManagerAccount(accountId, accountStatus);
             return result;

@@ -20,7 +20,7 @@ namespace LMSystem.API.Controllers
         }
 
         [HttpPost("AddQuiz")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> AddQuiz([FromQuery] AddQuizModel model)
         {
             var response = await _quizService.AddQuiz(model);
@@ -33,7 +33,7 @@ namespace LMSystem.API.Controllers
             return Ok(response);
         }
         [HttpDelete("DeleteQuiz")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> DeleteQuiz([FromQuery] int quizId)
         {
             var response = await _quizService.DeleteQuiz(quizId);
@@ -85,7 +85,7 @@ namespace LMSystem.API.Controllers
         }
 
         [HttpPut("UpdateQuiz")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> UpdateQuiz(UpdateQuizModel quizModel)
         {
             var response = await _quizService.UpdateQuiz(quizModel);

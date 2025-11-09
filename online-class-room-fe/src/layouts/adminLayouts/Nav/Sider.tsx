@@ -51,7 +51,7 @@ export default function MySider() {
       getItem('Dashboard', '1', <AnalyticsOutlinedIcon />),
       getItem('Quản lý khóa học', 'sub1', <AppsOutlinedIcon />, [
         getItem('Tất cả khóa học', '3', <PieChartOutlined />),
-        getItem('Thêm khóa học mới', '4', <DesktopOutlined />),
+        //getItem('Thêm khóa học mới', '4', <DesktopOutlined />),
       ]),
       getItem('Quản lý tài khoản', 'sub2', <ManageAccountsOutlinedIcon />, [
         getItem('Xem tất cả tài khoản', 'accountAll', <StreetviewOutlinedIcon />),
