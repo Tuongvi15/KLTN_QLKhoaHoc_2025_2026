@@ -17,6 +17,7 @@ namespace LMSystem.Repository.Data
         [Required(ErrorMessage = "ImageUrl is required!")]
         public string? ImageUrl { get; set; }
         public string? AccountId { get; set; }
+        public string? SuitableLevels { get; set; }
 
         public string? VideoPreviewUrl { get; set; }
 
@@ -31,7 +32,7 @@ namespace LMSystem.Repository.Data
 
         [Required(ErrorMessage = "Total duration is required!")]
         public int TotalDuration { get; set; }
-        public string? SuitableLevels { get; set; }
+        public string? CourseLevel { get; set; }
 
         [Required(ErrorMessage = "CourseIsActive is required!")]
         public bool CourseIsActive { get; set; }

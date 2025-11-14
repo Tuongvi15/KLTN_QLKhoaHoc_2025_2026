@@ -107,10 +107,11 @@ export const store = configureStore({
 });
 
 // get roostate and appdispatch from store handle for typescript
-export type RootState = ReturnType<typeof store.getState>;
-
+// get root state and app dispatch for typescript
+export type RootState = ReturnType<typeof rootReducer>; // ✅ sửa dòng này
 export type AppDispatch = typeof store.dispatch;
 
 export const persistor = persistStore(store);
+
 //
 //setupListeners(store.dispatch);

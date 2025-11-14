@@ -15,7 +15,8 @@ namespace LMSystem.Services.Interfaces
         //public Task<PagedList<CourseListModel>> GetAllCourse(PaginationParameter paginationParameter);
         Task<IEnumerable<Course>> GetCoursesByTeacherIdAsync(string teacherId);
         Task<IEnumerable<object>> GetStudentsInCourseAsync(int courseId, string teacherId);
-
+        Task<ResponeModel> PublishCourse(int courseId, bool isActive);
+        Task<IEnumerable<object>> GetStudentsInCoursesAsync(List<int> courseIds, string teacherId);
         public Task<IEnumerable<Course>> GetTopCoursesByStudentJoined(int numberOfCourses);
         public Task<IEnumerable<Course>> GetTopCoursesBySales(int numberOfCourses);
 

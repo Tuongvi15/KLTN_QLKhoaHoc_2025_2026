@@ -20,7 +20,10 @@ namespace LMSystem.Repository.Interfaces
         public Task<CourseListModel> GetCourseDetailByCourseIdAsync(int courseId);
         public Task<ResponeModel> AddCourse(AddCourseModel addCourseModel);
         public Task<ResponeModel> GetFullCourseDetail();
+        Task<IEnumerable<object>> GetStudentsInCoursesAsync(List<int> courseIds, string teacherId);
         Task<IEnumerable<object>> GetStudentsInCourseAsync(int courseId, string teacherId);
+
+        Task<ResponeModel> PublishCourse(int courseId, bool isActive);
         Task<IEnumerable<Course>> GetCoursesByTeacherIdAsync(string teacherId);
         public Task<ResponeModel> UpdateCourse(UpdateCourseModel updateCourseModel);
         public Task<ResponeModel> DeleteCourse(int courseId);

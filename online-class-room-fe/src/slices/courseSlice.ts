@@ -24,43 +24,47 @@ interface courseState {
 }
 
 const intitalAddCourseRequest: AddCourseRequest = {
-    categoryList: [],
-    courseIsActive: false,
-    description: '',
-    imageUrl: 'string',
-    isPublic: false,
-    knowdledgeDescription: '',
-    linkCertificated: 'string',
+    title: "",
+    description: "",
+    imageUrl: "",
+    videoPreviewUrl: "",
     price: 0,
     salesCampaign: 0,
-    title: '',
+    isPublic: false,
     totalDuration: 0,
-    videoPreviewUrl: 'string',
+    courseIsActive: false,
+    knowdledgeDescription: "",
+    linkCertificated: "",
+    categoryList: [],
+    suitableLevels: "",
 };
 
 const initialCourse: Course = {
-    courseIsActive: false,
-    description: '',
-    imageUrl: 'string',
-    isPublic: false,
-    knowdledgeDescription: '',
-    linkCertificated: 'string',
+    courseId: 0,
+    accountId: "",
+    description: "",
+    imageUrl: "",
+    videoPreviewUrl: "",
     price: 0,
     salesCampaign: 0,
-    title: '',
+    title: "",
+    isPublic: false,
+    createAt: "",
+    publicAt: "",
+    updateAt: "",
     totalDuration: 0,
-    videoPreviewUrl: 'string',
+    courseIsActive: false,
+    knowdledgeDescription: "",
+    linkCertificated: "",
     courseCategories: [],
-    courseId: 0,
-    createAt: '',
-    linkCertificateAccounts: [],
     orders: [],
-    publicAt: '',
     registrationCourses: [],
     sections: [],
-    updateAt: '',
     wishLists: [],
-    accountId: '', 
+    linkCertificateAccounts: [],
+
+    suitableLevels: "",
+    courseLevel: "",
 };
 
 const initialCreateNavStatus: StepProps[] = [
@@ -136,7 +140,15 @@ export const courseSlice = createSlice({
             state.addCourse.navStatus[action.payload].status = 'finish';
         },
         setCourseCreatedData: (state, action: PayloadAction<Course>) => {
-            state.addCourse.courseCreatedData = action.payload;
+            const course = action.payload;
+
+            state.addCourse.courseCreatedData = {
+                ...course,
+                suitableLevels:
+                    course.suitableLevels ??
+                    course.courseLevel ??
+                    "",                    // ⭐ FE đọc suitableLevels
+            };
         },
         addCourseSection: (state, action: PayloadAction<Section>) => {
             state.addCourse.courseCreatedData.sections.push(action.payload);
@@ -278,8 +290,10 @@ export const courseSlice = createSlice({
             }
         },
         setCourseUpdate: (state, action: PayloadAction<Course>) => {
-            state.tempData.tempCourse = action.payload;
+            state.addCourse.courseCreatedData = action.payload; // ✅ lưu trực tiếp vào phần render
+            state.tempData.tempCourse = action.payload;          // vẫn giữ temp để chuyển mode
         },
+
         updateCourseCategory: (state, action: PayloadAction<CourseCategory[]>) => {
             state.addCourse.courseCreatedData.courseCategories = action.payload;
         },

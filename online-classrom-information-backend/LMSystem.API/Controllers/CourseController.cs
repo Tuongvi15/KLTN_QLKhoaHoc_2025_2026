@@ -1,5 +1,6 @@
 ﻿using LMSystem.Repository.Data;
 using LMSystem.Repository.Helpers;
+using LMSystem.Repository.Interfaces;
 using LMSystem.Repository.Repositories;
 using LMSystem.Services.Interfaces;
 using LMSystem.Services.Services;
@@ -42,6 +43,23 @@ namespace LMSystem.API.Controllers
                 return NotFound();
             }
             return Ok(courses);
+        }
+        // CourseController.cs (thêm trong controller)
+        public class PublishRequestModel
+        {
+            public bool IsActive { get; set; }
+        }
+
+        [HttpPut("publish/{courseId}")]
+        public async Task<IActionResult> PublishCourse(int courseId, [FromBody] PublishRequestModel model)
+        {
+            // Optional: validate caller is owner or admin
+            // var userId = User.FindFirst(...);
+
+            var res = await _courseService.PublishCourse(courseId, model?.IsActive ?? false);
+            if (res == null) return NotFound();
+            if (res.Status == "Success") return Ok(res);
+            return BadRequest(res);
         }
 
         //[HttpGet("GetAllCourse")]
@@ -222,6 +240,18 @@ namespace LMSystem.API.Controllers
 
             if (students == null)
                 return NotFound(new { message = "Course not found or not yours." });
+
+            return Ok(students);
+        }
+
+
+        [HttpPost("GetStudentsInMyCourses")]
+        public async Task<IActionResult> GetStudentsInMyCourses([FromBody] List<int> courseIds, [FromQuery] string teacherId)
+        {
+            var students = await _courseService.GetStudentsInCoursesAsync(courseIds, teacherId);
+
+            if (students == null || !students.Any())
+                return NotFound(new { message = "No students found or courses not belong to you." });
 
             return Ok(students);
         }

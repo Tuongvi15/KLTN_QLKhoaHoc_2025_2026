@@ -33,7 +33,13 @@ export const coursesApi = createApi({
         }),
         getCourseID: build.query<Course, string>({
             query: (id) => `api/Course/GetCourseDetailById/${id}`,
+            transformResponse: (response: any) => {
+                // ✅ bóc đúng dữ liệu ra
+                if (response?.dataObject) return response.dataObject; // admin case
+                return response; // teacher case (trả thẳng object)
+            },
         }),
+
         getCoursesBaseRating: build.query<Course[], number>({
             query: (number: number) =>
                 `api/Course/TopFavoritesCourseBaseRating?numberOfCourses=${number}`,
@@ -69,6 +75,16 @@ export const coursesApi = createApi({
                 };
             },
         }),
+
+        // course.services.ts (thêm endpoint vào builder)
+        publishCourse: build.mutation({
+            query: ({ courseId, isActive }: { courseId: number; isActive: boolean }) => ({
+                url: `api/Course/publish/${courseId}`,    // hoặc `/courses/publish/${courseId}` tùy base route
+                method: "PUT",
+                body: { isActive },
+            }),
+        }),
+
         getAllCourses: build.query<GetAllCourse, PagingParam>({
             query: (input: PagingParam) =>
                 `api/Course/CourselistPagination?pageNumber=${input.pageNumber}&pageSize=${input.pageSize}&search=${input.search}`,
@@ -100,6 +116,14 @@ export const coursesApi = createApi({
         getStudentsInMyCourse: build.query<any[], number>({
             query: (courseId: number) => `api/Course/GetStudentsInMyCourse/${courseId}`,
         }),
+        getStudentsInMyCourses: build.query<any[], { courseIds: number[]; teacherId: string }>({
+            query: ({ courseIds, teacherId }) => ({
+                url: `api/Course/GetStudentsInMyCourses?teacherId=${teacherId}`,
+                method: 'POST',
+                body: courseIds,
+            }),
+        }),
+
 
         getCourselistPagination: build.query<
             CourselistPaginationRespone,
@@ -138,4 +162,6 @@ export const {
     useGetCourselistPaginationQuery,
     useGetCoursesByTeacherQuery,
     useGetStudentsInMyCourseQuery,
+    useGetStudentsInMyCoursesQuery,
+    usePublishCourseMutation,
 } = coursesApi;

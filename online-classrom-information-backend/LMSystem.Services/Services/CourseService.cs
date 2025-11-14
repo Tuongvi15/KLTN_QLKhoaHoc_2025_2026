@@ -35,6 +35,16 @@ namespace LMSystem.Services.Services
             return await _courseRepository.GetStudentsInCourseAsync(courseId, teacherId);
         }
 
+        public async Task<ResponeModel> PublishCourse(int courseId, bool isActive)
+        {
+            return await _courseRepository.PublishCourse(courseId, isActive);
+        }
+
+        public async Task<IEnumerable<object>> GetStudentsInCoursesAsync(List<int> courseIds, string teacherId)
+        {
+            return await _courseRepository.GetStudentsInCoursesAsync(courseIds, teacherId);
+        }
+
         public async Task<IEnumerable<Course>> GetCoursesByTeacherIdAsync(string teacherId)
         {
             return await _courseRepository.GetCoursesByTeacherIdAsync(teacherId);

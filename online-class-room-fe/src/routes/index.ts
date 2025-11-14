@@ -1,3 +1,4 @@
+
 import DefaultLayoutAdmin from '../layouts/adminLayouts/DefaultLayoutAdmin';
 import TeacherLayout from '../layouts/teacherLayouts/TeacherLayout';
 import AddCourseTeacher from '../pages/TeacherPages/AddCourseTeacher';
@@ -36,7 +37,10 @@ import PlacementTestPage from '../pages/ClientPages/PlacementTestPage/PlacementT
 import PlacementTestStartPage from '../pages/ClientPages/PlacementTestPage/PlacementTestStartPag';
 import PlacementHistoryPage from '../pages/ClientPages/PlacementTestPage/PlacementHistoryPage';
 import GetAllCourseTeacher from '../pages/TeacherPages/GetAllCourseTeacher';
+import UpdateCourseTeacher from '../pages/TeacherPages/UpdateCourseTeacher';
 import { SearchPage } from '../pages/ClientPages/SearchPage';
+import TeacherDashboard from '../pages/TeacherPages/index';
+import ReviewCourseTeacher from '../pages/TeacherPages/ReviewCourseTeacher';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -46,9 +50,10 @@ interface LayoutProps {
 
 interface RouteProps {
     path: string;
-    component: () => JSX.Element;
+    component: React.ComponentType<any>;
     layout: ({ children, requireRole, whenRoleUnMatchNavTo }: LayoutProps) => JSX.Element;
 }
+console.log("🔍 UpdateCourseTeacher mounted!");
 
 const publicRoutes: RouteProps[] = [
     { path: '/', component: HomePage, layout: DefaultLayout },
@@ -111,25 +116,33 @@ const parentRoutes: RouteProps[] = [
 ];
 
 const teacherRoutes: RouteProps[] = [
-  { path: '/teacher', component: DashboardPage, layout: TeacherLayout },
-  { path: '/teacher/dashboard', component: DashboardPage, layout: TeacherLayout },
-  { path: '/teacher/getAllCourse', component: GetAllCourseTeacher, layout: TeacherLayout }, // ✅ trang mới
-  {
-    path: '/teacher/viewCourseDetails/:id',
-    component: ViewCourseDetails,
-    layout: TeacherLayout,
-  },
-  { path: '/teacher/addCourse', component: AddCourseTeacher, layout: TeacherLayout },
-  {
-    path: '/teacher/updateCourse/:id',
-    component: UpdateCoursePage,
-    layout: TeacherLayout,
-  },
-  {
-    path: '/teacher/profile',
-    component: ManageProfilePage,
-    layout: TeacherLayout,
-  },
+    { path: '/teacher', component: TeacherDashboard, layout: TeacherLayout },
+    { path: '/teacher/dashboard', component: TeacherDashboard, layout: TeacherLayout },
+    { path: '/teacher/getAllCourse', component: GetAllCourseTeacher, layout: TeacherLayout }, // ✅ trang mới
+    {
+        path: '/teacher/viewCourseDetails/:id',
+        component: ViewCourseDetails,
+        layout: TeacherLayout,
+    },
+    {
+        path: '/teacher/reviewCourse/:id',
+        component: ReviewCourseTeacher,
+        layout: TeacherLayout,
+    },
+
+    { path: '/teacher/addCourse', component: AddCourseTeacher, layout: TeacherLayout },
+
+    {
+        path: '/teacher/updateCourse/:id',
+        component: UpdateCourseTeacher,
+        layout: TeacherLayout,
+    },
+
+    {
+        path: '/teacher/profile',
+        component: ManageProfilePage,
+        layout: TeacherLayout,
+    },
 ];
 
 

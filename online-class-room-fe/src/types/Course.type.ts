@@ -24,6 +24,10 @@ export interface Course {
     wishLists: any[];
     linkCertificateAccounts: any[];
     accountId: string;
+
+    // ⭐ THÊM để FE có thể đọc / hiển thị
+    suitableLevels?: string;      // "1|2|3" từ BE.map courseLevel
+    courseLevel?: string;         // BE trả về (giữ lại để tương thích)
 }
 
 export interface AddCourseRequest {
@@ -40,7 +44,9 @@ export interface AddCourseRequest {
     linkCertificated: string;
     categoryList: number[];
     accountId?: string;
-    accountName?: string;
+
+    // ⭐ FE gửi suitableLevels → BE map sang CourseLevel
+    suitableLevels: string;    // format: "1|2|3"
 }
 
 export interface UpdateCourseRequest {
@@ -57,6 +63,9 @@ export interface UpdateCourseRequest {
     knowdledgeDescription: string;
     linkCertificated: string;
     categoryList: number[];
+
+    // ⭐ FE update suitableLevels cũng dạng "1|2|3"
+    suitableLevels: string;
 }
 
 export interface GetAllCourse {

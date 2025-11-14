@@ -30,6 +30,42 @@ namespace LMSystem.Repository.Repositories
             _accountRepository = accountRepository;
             _firebaseRepository = firebaseRepository;
         }
+        // CourseRepository.cs (thêm method trong class)
+        public async Task<ResponeModel> PublishCourse(int courseId, bool isActive)
+        {
+            try
+            {
+                var existingCourse = await _context.Courses
+                    .Include(c => c.CourseCategories)
+                    .FirstOrDefaultAsync(c => c.CourseId == courseId);
+
+                if (existingCourse == null)
+                {
+                    return new ResponeModel { Status = "Error", Message = "Course not found" };
+                }
+
+                existingCourse.CourseIsActive = isActive;
+
+                // Nếu muốn khi active = true đồng thời public thì uncomment:
+                // if (isActive) existingCourse.IsPublic = true;
+
+                existingCourse.UpdateAt = DateTime.UtcNow;
+                //if (isActive)
+                //{
+                //    existingCourse.PublicAt = DateTime.UtcNow;
+                //}
+
+                await _context.SaveChangesAsync();
+
+                return new ResponeModel { Status = "Success", Message = "Course status updated", DataObject = existingCourse };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"PublishCourse Exception: {ex.Message}");
+                return new ResponeModel { Status = "Error", Message = "An error occurred while updating course status" };
+            }
+        }
+
 
         public async Task<ResponeModel> AddCourse(AddCourseModel addCourseModel)
         {
@@ -51,7 +87,7 @@ namespace LMSystem.Repository.Repositories
                     CourseIsActive = addCourseModel.CourseIsActive,
                     KnowdledgeDescription = addCourseModel.KnowdledgeDescription,
                     LinkCertificated = addCourseModel.LinkCertificated,
-                    CourseLevel = addCourseModel.SuitableLevels
+                    CourseLevel = addCourseModel.CourseLevel
                 };
 
                 _context.Courses.Add(course);
@@ -136,6 +172,36 @@ namespace LMSystem.Repository.Repositories
                 r.Account.Email,
                 r.EnrollmentDate
             });
+        }
+        public async Task<IEnumerable<object>> GetStudentsInCoursesAsync(List<int> courseIds, string teacherId)
+        {
+            if (courseIds == null || !courseIds.Any())
+                return Enumerable.Empty<object>();
+
+            var courses = await _context.Courses
+                .Include(c => c.RegistrationCourses)
+                    .ThenInclude(r => r.Account)
+                .Where(c => courseIds.Contains(c.CourseId) && c.AccountId == teacherId)
+                .ToListAsync();
+
+            if (!courses.Any())
+                return Enumerable.Empty<object>();
+
+            // Gom toàn bộ học viên từ tất cả khóa học
+            var students = courses
+                .SelectMany(c => c.RegistrationCourses.Select(r => new
+                {
+                    r.AccountId,
+                    r.Account.FirstName,
+                    r.Account.LastName,
+                    r.Account.Email,
+                    r.EnrollmentDate,
+                    CourseId = c.CourseId,
+                    CourseTitle = c.Title
+                }))
+                .ToList();
+
+            return students;
         }
 
 
