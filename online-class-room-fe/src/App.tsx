@@ -128,8 +128,8 @@ function App() {
             {(role === RoleType.GUESS || role === RoleType.STUDENT) && <ChatBox />}
 
             <Routes>
-                {(role === RoleType.GUESS || role === RoleType.STUDENT || role === RoleType.ADMIN) &&
-                    renderRoutes(publicRoutes)}
+                {renderRoutes(publicRoutes)}
+
 
                 {role === RoleType.TEACHER && renderRoutes(teacherRoutes)}
 

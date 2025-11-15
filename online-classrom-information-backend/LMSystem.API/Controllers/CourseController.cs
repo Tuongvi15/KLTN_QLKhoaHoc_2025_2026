@@ -225,10 +225,19 @@ namespace LMSystem.API.Controllers
         {
             var courses = await _courseService.GetCoursesByTeacherIdAsync(teacherId);
 
-            if (courses == null || !courses.Any())
-                return NotFound(new { message = "You have no courses." });
-
-            return Ok(courses);
+            return Ok(courses.Select(c => new {
+                c.CourseId,
+                c.Title,
+                c.ImageUrl,
+                c.VideoPreviewUrl,
+                c.Price,
+                c.CourseIsActive,
+                c.IsPublic,
+                Categories = c.CourseCategories.Select(cc => new {
+                    cc.CategoryId,
+                    cc.Category.Name
+                })
+            }));
         }
 
         [HttpGet("GetStudentsInMyCourse/{courseId}")]
