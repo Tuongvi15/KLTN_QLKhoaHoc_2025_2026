@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { MultipleInputItem } from '..';
-import { Button } from '@mui/material';
+import { Button, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { SizeType } from 'antd/es/config-provider/SizeContext';
 
 interface MultipleInputProps {
@@ -27,6 +28,7 @@ const MultipleInput = ({
         values.split(seperator).filter((value) => value !== ''),
     );
     const [currentNum, setCurrentNum] = useState(arr.length);
+
     useEffect(() => {
         let dataString = '';
         arr.forEach((data) => {
@@ -36,25 +38,45 @@ const MultipleInput = ({
         });
         onDataChange(dataString);
     }, [arr]);
+
     const handleOnAddClick = () => {
         if (currentNum < maxInputItem) {
             setCurrentNum(currentNum + 1);
         }
     };
+
+    // ✅ Hàm xoá 1 mục
+    const handleRemove = (indexToRemove: number) => {
+        const next = arr.filter((_, i) => i !== indexToRemove);
+        setArr(next);
+        setCurrentNum(next.length);
+    };
+
     return (
         <div>
             <div className="flex flex-col gap-4">
                 {Array.from({ length: currentNum }, (_, index) => (
-                    <MultipleInputItem
-                        maxLength={maxLengthInput}
-                        value={arr[index] ? arr[index] : ''}
-                        key={index}
-                        setStore={setArr}
-                        index={index}
-                        placeholder={placeholders?.[index]}
-                        size={size}
-                    />
-                ))}{' '}
+                    <div key={index} className="flex items-start gap-2">
+                        <MultipleInputItem
+                            maxLength={maxLengthInput}
+                            value={arr[index] ? arr[index] : ''}
+                            setStore={setArr}
+                            index={index}
+                            placeholder={placeholders?.[index]}
+                            size={size}
+                        />
+
+                        {/* 🔥 Nút xoá */}
+                        <IconButton
+                            onClick={() => handleRemove(index)}
+                            size="small"
+                            color="error"
+                        >
+                            <DeleteIcon fontSize="small" />
+                        </IconButton>
+                    </div>
+                ))}
+
                 {currentNum < maxInputItem && (
                     <Button
                         onClick={handleOnAddClick}

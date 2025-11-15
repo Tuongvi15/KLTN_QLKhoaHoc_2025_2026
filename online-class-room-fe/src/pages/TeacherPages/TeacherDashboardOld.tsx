@@ -1011,7 +1011,7 @@ const TeacherDashboard: React.FC = () => {
                         }
                         description={
                           <Text style={{ fontSize: '13px', color: '#64748b' }}>
-                            Đăng ký khóa học #{item.courseId}
+                            Đăng ký khóa học #{item.name}
                           </Text>
                         }
                       />

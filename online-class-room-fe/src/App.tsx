@@ -101,6 +101,7 @@ function App() {
     }, [userLocalData]);
 
     // ✅ Fix lỗi TypeScript bằng cách khai báo rõ kiểu
+    // sửa thành
     const renderRoutes = (
         routes: {
             layout: React.ComponentType<any>;
@@ -109,8 +110,17 @@ function App() {
         }[]
     ) =>
         routes.map(({ layout: Layout, component: Component, path }) => (
-            <Route key={path} path={path} element={<Layout children={<Component />} />} />
+            <Route
+                key={path}
+                path={path}
+                element={
+                    <Layout>
+                        <Component />
+                    </Layout>
+                }
+            />
         ));
+
 
     return (
         <>
@@ -123,20 +133,18 @@ function App() {
 
                 {role === RoleType.TEACHER && renderRoutes(teacherRoutes)}
 
-                {(role === RoleType.GUESS || role === RoleType.STUDENT) &&
-                    privateRoutes.map(({ layout: Layout, component: Component, path }) => (
-                        <Route
-                            key={path}
-                            path={path}
-                            element={
-                                <Layout
-                                    requireRole={RoleType.STUDENT}
-                                    whenRoleUnMatchNavTo="/login"
-                                    children={<Component />}
-                                />
-                            }
-                        />
-                    ))}
+                {privateRoutes.map(({ layout: Layout, component: Component, path }) => (
+                    <Route
+                        key={path}
+                        path={path}
+                        element={
+                            <Layout>
+                                <Component />
+                            </Layout>
+                        }
+                    />
+                ))}
+
 
                 {role === RoleType.ADMIN && renderRoutes(adminRoutes)}
             </Routes>

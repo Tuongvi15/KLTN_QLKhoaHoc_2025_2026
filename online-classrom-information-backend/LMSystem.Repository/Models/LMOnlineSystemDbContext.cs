@@ -56,6 +56,7 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
     public virtual DbSet<PlacementQuestion> PlacementQuestions { get; set; }
     public virtual DbSet<PlacementResult> PlacementResults { get; set; }
     public virtual DbSet<PlacementAnswer> PlacementAnswers { get; set; }
+    public virtual DbSet<BankAccount> BankAccounts { get; set; }
 
 
 
@@ -82,6 +83,17 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
             entity.Property(e => e.Status)
                 .HasMaxLength(40)
                 .IsFixedLength();
+        });
+        modelBuilder.Entity<BankAccount>(entity =>
+        {
+            entity.HasKey(e => e.BankAccountId);
+            entity.Property(e => e.BankName).HasMaxLength(200);
+            entity.Property(e => e.AccountNumber).HasMaxLength(128);
+            entity.Property(e => e.AccountHolderName).HasMaxLength(200);
+            entity.HasOne(e => e.Account)
+                  .WithMany(a => a.BankAccounts)
+                  .HasForeignKey(e => e.AccountId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Field>(entity =>

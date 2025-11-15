@@ -1,6 +1,7 @@
 ﻿using FirebaseAdmin.Messaging;
 using LMSystem.Repository.Interfaces;
 using LMSystem.Repository.Library;
+using LMSystem.Repository.Models;
 using LMSystem.Repository.Repositories;
 using LMSystem.Services.Interfaces;
 using LMSystem.Services.Services;
@@ -61,6 +62,7 @@ namespace LMSystem.API
             services.AddScoped<IStepCompletedRepository, StepCompletedRepository>();
             services.AddScoped<IStepCompletedService, StepCompletedService>();
             services.AddScoped<IPlacementTestRepository, PlacementTestRepository>();
+            services.AddScoped<IBankAccountRepository, BankAccountRepository>();
 
             return services;
         }

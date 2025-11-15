@@ -150,9 +150,14 @@ namespace LMSystem.Repository.Repositories
         {
             return await _context.Courses
                 .Where(c => c.AccountId == teacherId)
+                .Include(c => c.CourseCategories)
+                    .ThenInclude(cc => cc.Category)
+                        .ThenInclude(cat => cat.FieldCategories)
+                            .ThenInclude(fc => fc.Field)
                 .Include(c => c.RegistrationCourses)
                 .ToListAsync();
         }
+
 
         public async Task<IEnumerable<object>> GetStudentsInCourseAsync(int courseId, string teacherId)
         {

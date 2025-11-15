@@ -103,6 +103,17 @@ export const courseSlice = createSlice({
         setWishListCount: (state, action: PayloadAction<number>) => {
             state.wishListCount = action.payload;
         },
+        resetCourse: (state) => {
+            state.addCourse.courseCreatedData = initialCourse;
+            state.addCourse.data = intitalAddCourseRequest;
+            state.addCourse.currentStep = 0;
+            state.addCourse.navStatus = initialCreateNavStatus;
+            state.currentMode = CouseMode.CREATE;
+
+            // reset temp
+            state.tempData.tempCourse = initialCourse;
+            state.tempData.tempNavStatus = [];
+        },
         addWishList: (state, action: PayloadAction<number>) => {
             state.wishListCount = state.wishList.length + 1;
             state.wishList = [...state.wishList, action.payload];
@@ -404,6 +415,7 @@ export const {
     addStepDuration,
     subtractStepDuration,
     setWishListCount,
+    resetCourse,
 } = courseSlice.actions;
 
 export default courseSlice.reducer;

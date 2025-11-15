@@ -41,6 +41,7 @@ import UpdateCourseTeacher from '../pages/TeacherPages/UpdateCourseTeacher';
 import { SearchPage } from '../pages/ClientPages/SearchPage';
 import TeacherDashboard from '../pages/TeacherPages/index';
 import ReviewCourseTeacher from '../pages/TeacherPages/ReviewCourseTeacher';
+import TeacherBankAccounts from '../pages/TeacherPages/TeacherBankAccounts';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -142,6 +143,11 @@ const teacherRoutes: RouteProps[] = [
         path: '/teacher/profile',
         component: ManageProfilePage,
         layout: TeacherLayout,
+    },
+    {
+        path: '/teacher/bank-accounts',
+        component: TeacherBankAccounts,
+        layout: TeacherLayout
     },
 ];
 

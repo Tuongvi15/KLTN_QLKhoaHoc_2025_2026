@@ -1,10 +1,19 @@
-import { Input, Button, Tag, Select, message } from "antd";
+import { Input, Button, Tag, Select, message, Card, Space, Typography } from "antd";
+import {
+    BookOutlined,
+    TagsOutlined,
+    TrophyOutlined,
+    BulbOutlined,
+    PlusOutlined
+} from '@ant-design/icons';
+
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import {
     setCourseCreatedData,
     setCourseKnowledge,
-    updateCourseCategory
+    updateCourseCategory,
+    CouseMode
 } from "../../../slices/courseSlice";
 
 import { useAddCategoryMutation } from "../../../services/categoryService";
@@ -12,19 +21,21 @@ import { MultipleInput, RichTextEditor } from "../../../components";
 import { useEffect, useState } from "react";
 
 const { CheckableTag } = Tag;
+const { Text } = Typography;
 
 interface Step1Props {
+    mode: CouseMode;
     fieldList: any[];
     selectedFieldId: number | null;
     setSelectedFieldId: (id: number | null) => void;
     categories: any[];
     refetchCategories: () => void;
-
     selectedLevels: string[];
     setSelectedLevels: (levels: string[]) => void;
 }
 
 export default function Step1_BasicInfo({
+    mode,
     fieldList,
     selectedFieldId,
     setSelectedFieldId,
@@ -39,6 +50,16 @@ export default function Step1_BasicInfo({
 
     const [newCategoryName, setNewCategoryName] = useState("");
     const [addCategory] = useAddCategoryMutation();
+
+    /** ---------------------------------------------
+     * FIX QUAN TRỌNG
+     * Không xoá category khi đang UPDATE!
+     * --------------------------------------------- */
+    useEffect(() => {
+        if (mode === CouseMode.CREATE) {
+            dispatch(updateCourseCategory([]));
+        }
+    }, [selectedFieldId, mode]);
 
     const handleAddCategory = async () => {
         if (!selectedFieldId) return message.warning("Vui lòng chọn lĩnh vực!");
@@ -59,138 +80,189 @@ export default function Step1_BasicInfo({
         }
     };
 
-    // Reset category khi đổi field
-    useEffect(() => {
-        dispatch(updateCourseCategory([]));
-    }, [selectedFieldId]);
-
     return (
-        <div className="flex flex-col gap-10">
+        <Space direction="vertical" size="large" style={{ width: "100%" }}>
 
             {/* TITLE */}
-            <div>
-                <p className="font-semibold mb-2 text-blue-600">Tiêu đề khóa học</p>
-                <Input
-                    placeholder="VD: Lập trình ReactJS từ A-Z"
-                    value={course.title}
-                    maxLength={80}
-                    showCount
-                    onChange={(e) =>
-                        dispatch(setCourseCreatedData({ ...course, title: e.target.value }))
-                    }
-                />
-            </div>
+            <Card bordered={false} style={{ borderRadius: 12 }}>
+                <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                    <Space>
+                        <BookOutlined style={{ fontSize: 18, color: "#1677ff" }} />
+                        <Text strong style={{ fontSize: 15 }}>Tiêu đề khóa học</Text>
+                    </Space>
+                    <Input
+                        placeholder="VD: Lập trình ReactJS từ A-Z"
+                        value={course.title}
+                        maxLength={80}
+                        showCount
+                        size="large"
+                        onChange={(e) =>
+                            dispatch(setCourseCreatedData({ ...course, title: e.target.value }))
+                        }
+                    />
+                </Space>
+            </Card>
 
             {/* DESCRIPTION */}
-            <div>
-                <p className="font-semibold mb-2 text-blue-600">Mô tả khóa học</p>
-                <RichTextEditor
-                    initialValue={course.description}
-                    onSave={(val) =>
-                        dispatch(setCourseCreatedData({ ...course, description: val }))
-                    }
-                />
-            </div>
+            <Card bordered={false} style={{ borderRadius: 12 }}>
+                <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                    <Space>
+                        <BookOutlined style={{ fontSize: 18, color: "#1677ff" }} />
+                        <Text strong style={{ fontSize: 15 }}>Mô tả khóa học</Text>
+                    </Space>
+                    <RichTextEditor
+                        initialValue={course.description}
+                        onChange={(val) =>
+                            dispatch(setCourseCreatedData({ ...course, description: val }))
+                        }
+                    />
+                </Space>
+            </Card>
 
-            {/* FIELD */}
-            <div>
-                <p className="font-semibold mb-2 text-blue-600">Lĩnh vực</p>
-                <Select
-                    placeholder="Chọn lĩnh vực..."
-                    style={{ width: 400 }}
-                    value={selectedFieldId || undefined}
-                    onChange={(v) => setSelectedFieldId(v)}
-                    options={fieldList.map((f: any) => ({
-                        label: f.name,
-                        value: f.fieldId
-                    }))}
-                />
-            </div>
+            {/* FIELD & CATEGORY */}
+            <Card bordered={false} style={{ borderRadius: 12 }}>
+                <Space direction="vertical" size={20} style={{ width: "100%" }}>
 
-            {/* CATEGORY */}
-            {selectedFieldId && (
-                <div>
-                    <p className="font-semibold mb-2 text-blue-600">Thể loại theo lĩnh vực</p>
+                    {/* FIELD */}
+                    <div>
+                        <Space style={{ marginBottom: 12 }}>
+                            <TagsOutlined style={{ fontSize: 18, color: "#1677ff" }} />
+                            <Text strong style={{ fontSize: 15 }}>Lĩnh vực</Text>
+                        </Space>
 
-                    <div className="flex flex-wrap gap-2">
-                        {categories.length === 0 && (
-                            <span className="text-gray-500">Không có thể loại nào</span>
-                        )}
-
-                        {categories.map((cat: any) => (
-                            <CheckableTag
-                                key={cat.catgoryId}
-                                checked={course.courseCategories.some(
-                                    (c: any) => c.categoryId === cat.catgoryId
-                                )}
-                                onChange={(checked) => {
-                                    const category = {
-                                        categoryId: cat.catgoryId,
-                                        courseId: -1,
-                                        courseCategoryId: -1
-                                    };
-
-                                    const next = checked
-                                        ? [...course.courseCategories, category]
-                                        : course.courseCategories.filter(
-                                            (c: any) => c.categoryId !== cat.catgoryId
-                                        );
-
-                                    dispatch(updateCourseCategory(next));
-                                }}
-                            >
-                                {cat.name}
-                            </CheckableTag>
-                        ))}
-                    </div>
-
-                    <div className="mt-3 flex gap-2 w-full max-w-sm">
-                        <Input
-                            placeholder="Thêm thể loại mới..."
-                            value={newCategoryName}
-                            onChange={(e) => setNewCategoryName(e.target.value)}
+                        <Select
+                            placeholder="Chọn lĩnh vực..."
+                            style={{ width: "100%", maxWidth: 400 }}
+                            size="large"
+                            value={selectedFieldId || undefined}
+                            onChange={(v) => setSelectedFieldId(v)}
+                            options={fieldList.map((f: any) => ({
+                                label: f.name,
+                                value: f.fieldId
+                            }))}
                         />
-                        <Button type="primary" onClick={handleAddCategory}>
-                            Thêm
-                        </Button>
                     </div>
-                </div>
-            )}
+
+                    {/* CATEGORY */}
+                    {selectedFieldId && (
+                        <div
+                            style={{
+                                padding: 20,
+                                background: "#fafafa",
+                                borderRadius: 8,
+                                border: "1px solid #f0f0f0"
+                            }}
+                        >
+                            <Text strong style={{ fontSize: 14, color: "#262626", display: "block", marginBottom: 12 }}>
+                                Thể loại
+                            </Text>
+
+                            <Space wrap size={[8, 8]} style={{ marginBottom: 16 }}>
+                                {categories.length === 0 && (
+                                    <Text type="secondary">Không có thể loại nào</Text>
+                                )}
+
+                                {categories.map((cat: any) => {
+                                    const categoryId = cat.catgoryId ?? cat.categoryId;
+
+                                    return (
+                                        <CheckableTag
+                                            key={categoryId}
+                                            checked={course.courseCategories.some(
+                                                (c: any) => c.categoryId === categoryId
+                                            )}
+                                            onChange={(checked) => {
+                                                const category = {
+                                                    categoryId,
+                                                    courseId: course.courseId || -1,
+                                                    courseCategoryId: -1,
+                                                    category: cat
+                                                };
+
+                                                const next = checked
+                                                    ? [...course.courseCategories, category]
+                                                    : course.courseCategories.filter(
+                                                        (c: any) => c.categoryId !== categoryId
+                                                    );
+
+                                                dispatch(updateCourseCategory(next));
+                                            }}
+                                        >
+                                            {cat.name}
+                                        </CheckableTag>
+                                    );
+                                })}
+                            </Space>
+
+                            {/* ADD NEW CATEGORY */}
+                            <Space.Compact style={{ width: "100%", maxWidth: 400 }}>
+                                <Input
+                                    placeholder="Thêm thể loại mới..."
+                                    value={newCategoryName}
+                                    onChange={(e) => setNewCategoryName(e.target.value)}
+                                    onPressEnter={handleAddCategory}
+                                />
+                                <Button
+                                    type="primary"
+                                    icon={<PlusOutlined />}
+                                    onClick={handleAddCategory}
+                                >
+                                    Thêm
+                                </Button>
+                            </Space.Compact>
+                        </div>
+                    )}
+                </Space>
+            </Card>
 
             {/* LEVEL */}
-            <div>
-                <p className="font-semibold mb-2 text-blue-600">Cấp độ phù hợp</p>
+            <Card bordered={false} style={{ borderRadius: 12 }}>
+                <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                    <Space>
+                        <TrophyOutlined style={{ fontSize: 18, color: "#1677ff" }} />
+                        <Text strong style={{ fontSize: 15 }}>Cấp độ phù hợp</Text>
+                    </Space>
 
-                {["1", "2", "3"].map((lvl) => (
-                    <CheckableTag
-                        key={lvl}
-                        checked={selectedLevels.includes(lvl)}
-                        onChange={(checked) => {
-                            const next = checked
-                                ? [...selectedLevels, lvl]
-                                : selectedLevels.filter((x) => x !== lvl);
+                    <Space wrap size={[8, 8]}>
+                        {["1", "2", "3"].map((lvl) => (
+                            <CheckableTag
+                                key={lvl}
+                                checked={selectedLevels.includes(lvl)}
+                                style={{ padding: "8px 20px", fontSize: 14, borderRadius: 6 }}
+                                onChange={(checked) => {
+                                    const next = checked
+                                        ? [...selectedLevels, lvl]
+                                        : selectedLevels.filter((x) => x !== lvl);
 
-                            setSelectedLevels(next);
-                        }}
-                    >
-                        {lvl === "1" && "Fresher"}
-                        {lvl === "2" && "Junior"}
-                        {lvl === "3" && "Master"}
-                    </CheckableTag>
-                ))}
-            </div>
+                                    setSelectedLevels(next);
+                                }}
+                            >
+                                {lvl === "1" && "🌱 Fresher"}
+                                {lvl === "2" && "🚀 Junior"}
+                                {lvl === "3" && "⭐ Master"}
+                            </CheckableTag>
+                        ))}
+                    </Space>
+                </Space>
+            </Card>
 
             {/* KNOWLEDGE */}
-            <div>
-                <p className="font-semibold mb-2 text-blue-600">Mục tiêu khóa học</p>
-                <MultipleInput
-                    maxInputItem={8}
-                    maxLengthInput={120}
-                    values={course.knowdledgeDescription}
-                    seperator="|"
-                    onDataChange={(data) => dispatch(setCourseKnowledge(data))}
-                />
-            </div>
-        </div>
+            <Card bordered={false} style={{ borderRadius: 12 }}>
+                <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                    <Space>
+                        <BulbOutlined style={{ fontSize: 18, color: "#1677ff" }} />
+                        <Text strong style={{ fontSize: 15 }}>Mục tiêu khóa học</Text>
+                    </Space>
+
+                    <MultipleInput
+                        maxInputItem={8}
+                        maxLengthInput={120}
+                        values={course.knowdledgeDescription}
+                        seperator="|"
+                        onDataChange={(data) => dispatch(setCourseKnowledge(data))}
+                    />
+                </Space>
+            </Card>
+        </Space>
     );
 }

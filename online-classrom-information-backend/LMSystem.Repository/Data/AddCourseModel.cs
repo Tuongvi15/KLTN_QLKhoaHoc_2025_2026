@@ -9,8 +9,7 @@ namespace LMSystem.Repository.Data
 {
     public class AddCourseModel
     {
-        [Required(ErrorMessage = "Title is required!")]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         [Required(ErrorMessage = "Description is required!")]
         public string? Description { get; set; }
@@ -30,17 +29,12 @@ namespace LMSystem.Repository.Data
         [Required(ErrorMessage = "IsPublic is required!")]
         public bool IsPublic { get; set; }
 
-        [Required(ErrorMessage = "Total duration is required!")]
         public int TotalDuration { get; set; }
         public string? CourseLevel { get; set; }
 
-        [Required(ErrorMessage = "CourseIsActive is required!")]
         public bool CourseIsActive { get; set; }
-
-        [Required(ErrorMessage = "KnowdledgeDescription is required!")]
         public string? KnowdledgeDescription { get; set; }
 
-        [Required(ErrorMessage = "LinkCertificated is required!")]
         public string? LinkCertificated {  get; set; }
 
         [Required(ErrorMessage = "CategoryList is required!")]

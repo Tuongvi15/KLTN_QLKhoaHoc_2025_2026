@@ -1,3 +1,4 @@
+// src/layouts/teacherLayouts/TeacherLayout.tsx
 import React, { useState } from 'react';
 import { Layout, Menu, Avatar, Dropdown, Space, Typography } from 'antd';
 import type { MenuProps } from 'antd';
@@ -7,6 +8,7 @@ import {
   LogoutOutlined,
   UserOutlined,
   SettingOutlined,
+  WalletOutlined, // <-- thêm icon
 } from '@ant-design/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -56,6 +58,12 @@ const TeacherLayout = ({
       key: '/teacher/getAllCourse',
       icon: <BookOutlined />,
       label: <Link to="/teacher/getAllCourse">Khóa học</Link>,
+    },
+    // --- Mục mới: Tài khoản ngân hàng ---
+    {
+      key: '/teacher/bank-accounts',
+      icon: <WalletOutlined />,
+      label: <Link to="/teacher/bank-accounts">Tài khoản ngân hàng</Link>,
     },
   ];
 

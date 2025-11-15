@@ -1,15 +1,16 @@
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
-import { Descriptions, Image, Divider, Card, Tag, Typography } from "antd";
+import { Card, Tag, Typography, Row, Col, Space, Divider, Image } from "antd";
+import { CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { useGetCategoryQuery } from "../../../services/categoryService";
+import draftToHtml from "draftjs-to-html";
 
-const { Text, Title } = Typography;
+const { Text, Title, Paragraph } = Typography;
 
 export default function Step4_Confirm() {
     const course = useSelector((state: RootState) => state.course.addCourse.courseCreatedData);
     const { data: allCategories = [] } = useGetCategoryQuery();
 
-    // CATEGORY NAMES
     const categoryNames =
         course.courseCategories
             ?.map((c) => {
@@ -19,18 +20,22 @@ export default function Step4_Confirm() {
             .filter(Boolean)
             .join(", ") || "Chưa chọn";
 
-    // FIELD NAME (theo category)
-    const firstField =
-        course.courseCategories?.[0]?.category?.fieldCategories?.[0]?.field?.name || "Không có";
+    const firstCategory = course.courseCategories?.[0] as any; // mở rộng type tạm thời
 
-    // LEVELS FORMAT (1|2|3 → Fresher, Junior, Master)
+const firstField =
+    firstCategory?.field?.name ||
+    firstCategory?.category?.fieldName ||
+    "Không có";
+
+
+
     const levelNames = (course.suitableLevels || "")
         .split("|")
         .filter(Boolean)
         .map((l) => {
-            if (l === "1") return "Fresher";
-            if (l === "2") return "Junior";
-            if (l === "3") return "Master";
+            if (l === "1") return "🌱 Fresher";
+            if (l === "2") return "🚀 Junior";
+            if (l === "3") return "⭐ Master";
             return l;
         })
         .join(", ");
@@ -41,99 +46,137 @@ export default function Step4_Confirm() {
     );
 
     return (
-        <div className="flex flex-col md:flex-row gap-8">
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <Card
+                bordered={false}
+                style={{
+                    borderRadius: 12,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                }}
+            >
+                <Space direction="vertical" size={8}>
+                    <Title level={3} style={{ margin: 0, color: '#fff' }}>
+                        {course.title || "Khóa học chưa có tiêu đề"}
+                    </Title>
+                    <Space>
+                        <Tag icon={<ClockCircleOutlined />} color="default" style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff' }}>
+                            Trạng thái: Nháp
+                        </Tag>
+                        <Tag color="default" style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff' }}>
+                            {course.totalDuration || 0} phút
+                        </Tag>
+                    </Space>
+                </Space>
+            </Card>
 
-            {/* LEFT COLUMN */}
-            <div className="md:w-1/2 space-y-4">
-                {course.imageUrl && (
-                    <Card bordered hoverable className="rounded-xl overflow-hidden">
-                        <Image src={course.imageUrl} alt="Ảnh khóa học" width="100%" />
-                    </Card>
-                )}
+            <Row gutter={[24, 24]}>
+                <Col xs={24} lg={10}>
+                    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                        {course.imageUrl && (
+                            <Card bordered={false} style={{ borderRadius: 12, overflow: 'hidden' }}>
+                                <Image src={course.imageUrl} alt="Ảnh khóa học" style={{ width: '100%', borderRadius: 8 }} />
+                            </Card>
+                        )}
 
-                {course.videoPreviewUrl && (
-                    <Card bordered className="rounded-xl">
-                        <video src={course.videoPreviewUrl} controls className="w-full rounded-lg" />
-                    </Card>
-                )}
-            </div>
+                        {course.videoPreviewUrl && (
+                            <Card bordered={false} style={{ borderRadius: 12 }}>
+                                <video src={course.videoPreviewUrl} controls style={{ width: '100%', borderRadius: 8 }} />
+                            </Card>
+                        )}
+                    </Space>
+                </Col>
 
-            {/* RIGHT COLUMN */}
-            <div className="md:w-1/2">
-                <Title level={4} className="text-[#1677ff]">
-                    Thông tin khóa học
-                </Title>
+                <Col xs={24} lg={14}>
+                    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                        <Card bordered={false} style={{ borderRadius: 12 }}>
+                            <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                                <Title level={5} style={{ margin: 0 }}>Thông tin cơ bản</Title>
 
-                <Descriptions bordered column={1} size="small">
+                                <div>
+                                    <Text type="secondary" style={{ fontSize: 13 }}>Mô tả</Text>
+                                    <div style={{ marginTop: 8 }}>
+                                        <div
+                                            dangerouslySetInnerHTML={{
+                                                __html: course.description
+                                                    ? draftToHtml(JSON.parse(course.description))
+                                                    : "<em>Chưa có mô tả</em>"
+                                            }}
+                                        />
 
-                    <Descriptions.Item label="Tiêu đề">
-                        {course.title || "(Chưa có tiêu đề)"}
-                    </Descriptions.Item>
+                                    </div>
+                                </div>
 
-                    <Descriptions.Item label="Mô tả">
-                        <div dangerouslySetInnerHTML={{ __html: course.description || "" }} />
-                    </Descriptions.Item>
+                                <Row gutter={[16, 16]}>
+                                    <Col span={12}>
+                                        <Text type="secondary" style={{ fontSize: 13, display: 'block' }}>Lĩnh vực</Text>
+                                        <Tag color="blue" style={{ marginTop: 4 }}>{firstField}</Tag>
+                                    </Col>
+                                    <Col span={12}>
+                                        <Text type="secondary" style={{ fontSize: 13, display: 'block' }}>Cấp độ</Text>
+                                        <Text style={{ marginTop: 4, display: 'block' }}>{levelNames || "Chưa chọn"}</Text>
+                                    </Col>
+                                </Row>
 
-                    <Descriptions.Item label="Lĩnh vực">
-                        {firstField}
-                    </Descriptions.Item>
+                                <div>
+                                    <Text type="secondary" style={{ fontSize: 13, display: 'block' }}>Thể loại</Text>
+                                    <Text style={{ marginTop: 4 }}>{categoryNames}</Text>
+                                </div>
+                            </Space>
+                        </Card>
 
-                    <Descriptions.Item label="Cấp độ phù hợp">
-                        {levelNames || "Chưa chọn"}
-                    </Descriptions.Item>
+                        <Card bordered={false} style={{ borderRadius: 12, background: '#f8f9fa' }}>
+                            <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                                <Title level={5} style={{ margin: 0 }}>Giá</Title>
 
-                    <Descriptions.Item label="Thể loại">
-                        {categoryNames}
-                    </Descriptions.Item>
+                                <Row gutter={16}>
+                                    <Col span={8}>
+                                        <Text type="secondary" style={{ fontSize: 13 }}>Giá gốc</Text>
+                                        <div style={{ fontSize: 18, fontWeight: 500, marginTop: 4 }}>
+                                            {course.price?.toLocaleString()} ₫
+                                        </div>
+                                    </Col>
+                                    <Col span={8}>
+                                        <Text type="secondary" style={{ fontSize: 13 }}>Giảm giá</Text>
+                                        <div style={{ fontSize: 18, fontWeight: 500, marginTop: 4, color: '#52c41a' }}>
+                                            -{course.salesCampaign || 0}%
+                                        </div>
+                                    </Col>
+                                    <Col span={8}>
+                                        <Text type="secondary" style={{ fontSize: 13 }}>Giá cuối</Text>
+                                        <div style={{ fontSize: 20, fontWeight: 600, marginTop: 4, color: '#1677ff' }}>
+                                            {priceAfterDiscount.toLocaleString()} ₫
+                                        </div>
+                                    </Col>
+                                </Row>
+                            </Space>
+                        </Card>
 
-                    <Descriptions.Item label="Giá gốc">
-                        {course.price?.toLocaleString()} ₫
-                    </Descriptions.Item>
+                        <Card bordered={false} style={{ borderRadius: 12 }}>
+                            <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                                <Space>
+                                    <CheckCircleOutlined style={{ fontSize: 18, color: '#52c41a' }} />
+                                    <Title level={5} style={{ margin: 0 }}>Mục tiêu khóa học</Title>
+                                </Space>
 
-                    <Descriptions.Item label="Giảm giá">
-                        {course.salesCampaign || 0}%
-                    </Descriptions.Item>
-
-                    <Descriptions.Item label="Giá sau giảm">
-                        <Text strong className="text-green-600">
-                            {priceAfterDiscount.toLocaleString()} ₫
-                        </Text>
-                    </Descriptions.Item>
-
-                    {/* <Descriptions.Item label="Chứng chỉ (Link)">
-                        {course.linkCertificated || "Không có"}
-                    </Descriptions.Item> */}
-                </Descriptions>
-
-                <Divider />
-
-                <Card bordered className="rounded-xl bg-gradient-to-br from-blue-50 to-white shadow-sm">
-                    <p className="text-sm text-gray-600 mb-2">Mục tiêu khóa học:</p>
-
-                    {course.knowdledgeDescription ? (
-                        <ul className="list-disc pl-6 space-y-1 text-sm text-gray-700">
-                            {course.knowdledgeDescription
-                                .split("|")
-                                .filter(Boolean)
-                                .map((item, i) => (
-                                    <li key={i}>{item}</li>
-                                ))}
-                        </ul>
-                    ) : (
-                        <Text type="secondary">Chưa có mục tiêu</Text>
-                    )}
-                </Card>
-
-                <Divider />
-
-                <div className="mt-4">
-                    <Tag color="blue">
-                        Tổng thời lượng: {course.totalDuration || 0} phút
-                    </Tag>
-
-                    <Tag color="default">Trạng thái: Nháp</Tag>
-                </div>
-            </div>
-        </div>
+                                {course.knowdledgeDescription ? (
+                                    <ul style={{ margin: 0, paddingLeft: 20 }}>
+                                        {course.knowdledgeDescription
+                                            .split("|")
+                                            .filter(Boolean)
+                                            .map((item, i) => (
+                                                <li key={i} style={{ marginBottom: 8 }}>
+                                                    <Text>{item}</Text>
+                                                </li>
+                                            ))}
+                                    </ul>
+                                ) : (
+                                    <Text type="secondary">Chưa có mục tiêu</Text>
+                                )}
+                            </Space>
+                        </Card>
+                    </Space>
+                </Col>
+            </Row>
+        </Space>
     );
 }

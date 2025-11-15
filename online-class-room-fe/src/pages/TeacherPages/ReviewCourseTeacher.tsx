@@ -292,12 +292,18 @@ export default function ReviewCourseTeacher(): JSX.Element {
             type="primary"
             icon={<SendOutlined />}
             loading={isPublishing}
+            style={{
+              backgroundColor: "#1677ff",
+              borderColor: "#1677ff",
+            }}
             onClick={async () => {
               try {
-                // call publish API to set courseIsActive = true (and optionally isActiveToggle)
-                await publishCourse({ courseId: Number(course.courseId ?? course.courseId ?? course.courseId), isActive: true } as any).unwrap();
+                await publishCourse({
+                  courseId: Number(course.courseId),
+                  isActive: true,
+                } as any).unwrap();
+
                 message.success("Đã gửi yêu cầu xuất bản đến Admin");
-                // refresh data
                 refetch?.();
               } catch (err) {
                 console.error(err);
@@ -307,6 +313,7 @@ export default function ReviewCourseTeacher(): JSX.Element {
           >
             Gửi tới Admin
           </Button>
+
         </div>
       )}
 
