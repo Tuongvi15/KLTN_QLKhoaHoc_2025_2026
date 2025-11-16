@@ -44,5 +44,25 @@ namespace LMSystem.API.Controllers
             }
             return Ok(new { AverageRating = averageRating });
         }
+
+        [HttpGet("List/{courseId}")]
+        public async Task<IActionResult> GetCourseRatingList(int courseId)
+        {
+            var ratings = await _ratingCourseService.GetCourseRatingList(courseId);
+            if (ratings == null || !ratings.Any())
+                return Ok(new List<object>());
+
+            var result = ratings.Select(r => new {
+                ratingId = r.RatingId,
+                rating = r.RatingStar,
+                comment = r.CommentContent,
+                ratingDate = r.RatingDate,
+                userName = r.Registration.Account.FirstName + " " + r.Registration.Account.LastName,
+                avatarUrl = r.Registration.Account.ProfileImg
+            });
+
+            return Ok(result);
+        }
+
     }
 }

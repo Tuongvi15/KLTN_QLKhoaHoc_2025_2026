@@ -12,6 +12,7 @@ namespace LMSystem.Services.Interfaces
     {
         public Task<RatingCourse> AddRatingAsync(RatingCourse ratingCourse);
         public Task<CourseRatingResult> GetCourseRating(int courseId);
+        Task<IEnumerable<RatingCourse>> GetCourseRatingList(int courseId);
 
     }
 }

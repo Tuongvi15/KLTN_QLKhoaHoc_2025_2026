@@ -19,17 +19,18 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useGetCourseIDQuery } from '../../services';
 import { Course, Section } from '../../types/Course.type';
+import RatingCourseList from "../../components/RatingCourseItem/RatingCourseItem";
 
 const CourseDetailsPage = () => {
     const location = useLocation();
     const [course, setCourse] = useState<Course>();
     const courseId = location.pathname.split('/').pop();
     const { data, isLoading } = useGetCourseIDQuery(courseId ? courseId : '');
-    
+
     useEffect(() => {
         if (data) setCourse(data);
     }, [data]);
-    
+
     const handleCalTotalTime = (sections: Section[]) => {
         let totalTimeLession = 0;
         sections.forEach((section) => {
@@ -82,11 +83,11 @@ const CourseDetailsPage = () => {
                     {/* Enhanced Banner Section */}
                     <div className="relative overflow-hidden">
                         <CourseBanner isLoading={isLoading} course={course} />
-                        
+
                         {/* Floating Elements */}
                         <div className="absolute inset-0 overflow-hidden pointer-events-none">
                             <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full filter blur-3xl animate-pulse" />
-                            <div className="absolute bottom-20 left-20 w-40 h-40 bg-gradient-to-r from-pink-400/20 to-orange-400/20 rounded-full filter blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
+                            <div className="absolute bottom-20 left-20 w-40 h-40 bg-gradient-to-r from-pink-400/20 to-orange-400/20 rounded-full filter blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
                         </div>
                     </div>
 
@@ -98,10 +99,10 @@ const CourseDetailsPage = () => {
                                 {/* What You'll Learn Section */}
                                 <section className="relative">
                                     <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-green-400 to-blue-500 rounded-full" />
-                                    
+
                                     <div className="bg-white rounded-3xl shadow-xl p-8 lg:p-10 border border-green-100 relative overflow-hidden">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-100/50 to-blue-100/50 rounded-full transform translate-x-16 -translate-y-16" />
-                                        
+
                                         <div className="relative z-10">
                                             <div className="flex items-center mb-6">
                                                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center mr-4">
@@ -137,10 +138,10 @@ const CourseDetailsPage = () => {
                                 {/* Course Content Section */}
                                 <section className="relative">
                                     <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full" />
-                                    
+
                                     <div className="bg-white rounded-3xl shadow-xl p-8 lg:p-10 border border-purple-100 relative overflow-hidden">
                                         <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-purple-100/50 to-pink-100/50 rounded-full transform -translate-x-20 translate-y-20" />
-                                        
+
                                         <div className="relative z-10">
                                             <div className="flex items-center mb-6">
                                                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mr-4">
@@ -162,7 +163,7 @@ const CourseDetailsPage = () => {
                                                     </div>
                                                     <div className="text-sm text-gray-600 font-medium">Học phần</div>
                                                 </div>
-                                                
+
                                                 <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 text-center group hover:from-emerald-100 hover:to-teal-100 transition-all duration-300">
                                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
                                                         <PlayLessonIcon className="text-white" />
@@ -172,7 +173,7 @@ const CourseDetailsPage = () => {
                                                     </div>
                                                     <div className="text-sm text-gray-600 font-medium">Bài học</div>
                                                 </div>
-                                                
+
                                                 <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 text-center group hover:from-orange-100 hover:to-red-100 transition-all duration-300">
                                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
                                                         <AccessTimeIcon className="text-white" />
@@ -199,10 +200,10 @@ const CourseDetailsPage = () => {
                                 {/* Course Details Section */}
                                 <section className="relative">
                                     <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full" />
-                                    
+
                                     <div className="bg-white rounded-3xl shadow-xl p-8 lg:p-10 border border-cyan-100 relative overflow-hidden">
                                         <div className="absolute top-0 left-0 w-36 h-36 bg-gradient-to-br from-cyan-100/50 to-blue-100/50 rounded-full transform -translate-x-18 -translate-y-18" />
-                                        
+
                                         <div className="relative z-10">
                                             <div className="flex items-center mb-6">
                                                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center mr-4">
@@ -221,12 +222,13 @@ const CourseDetailsPage = () => {
                                 </section>
 
                                 {/* Reviews Section */}
+                                {/* Reviews Section */}
                                 <section className="relative">
                                     <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full" />
-                                    
+
                                     <div className="bg-white rounded-3xl shadow-xl p-8 lg:p-10 border border-yellow-100 relative overflow-hidden">
                                         <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-100/50 to-orange-100/50 rounded-full transform translate-x-16 translate-y-16" />
-                                        
+
                                         <div className="relative z-10">
                                             <div className="flex items-center mb-8">
                                                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center mr-4">
@@ -236,27 +238,15 @@ const CourseDetailsPage = () => {
                                                     <h2 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
                                                         Đánh giá học viên
                                                     </h2>
-                                                    <p className="text-gray-600 mt-1">5.0 ⭐ từ 47 đánh giá</p>
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 hover:from-yellow-100 hover:to-orange-100 transition-all duration-300">
-                                                    <RatingCourseItem />
-                                                </div>
-                                                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 hover:from-yellow-100 hover:to-orange-100 transition-all duration-300">
-                                                    <RatingCourseItem />
-                                                </div>
-                                                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 hover:from-yellow-100 hover:to-orange-100 transition-all duration-300">
-                                                    <RatingCourseItem />
-                                                </div>
-                                                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 hover:from-yellow-100 hover:to-orange-100 transition-all duration-300">
-                                                    <RatingCourseItem />
-                                                </div>
-                                            </div>
+                                            {/* ⭐ HIỂN THỊ DANH SÁCH ĐÁNH GIÁ THẬT */}
+                                            <RatingCourseList courseId={course.courseId} />
                                         </div>
                                     </div>
                                 </section>
+
                             </div>
 
                             {/* Right Column - Course Preview Card */}
@@ -265,7 +255,7 @@ const CourseDetailsPage = () => {
                                     <div className="transform hover:scale-105 transition-transform duration-500">
                                         <CourseCardPreview course={course} />
                                     </div>
-                                    
+
                                     {/* Additional Info Cards */}
                                     <div className="mt-8 space-y-6">
                                         <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
@@ -282,11 +272,11 @@ const CourseDetailsPage = () => {
                                                 <li>• Hỗ trợ 24/7</li>
                                             </ul>
                                         </div>
-                                        
+
                                         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
                                             <h3 className="font-bold text-blue-700 mb-3">📱 Học mọi lúc, mọi nơi</h3>
                                             <p className="text-sm text-blue-600">
-                                                Truy cập trên máy tính, điện thoại và tablet. 
+                                                Truy cập trên máy tính, điện thoại và tablet.
                                                 Tải xuống để học offline.
                                             </p>
                                         </div>

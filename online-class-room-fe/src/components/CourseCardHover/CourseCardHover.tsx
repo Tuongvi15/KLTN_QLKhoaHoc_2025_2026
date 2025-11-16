@@ -50,7 +50,7 @@ const CourseCardHover = ({ course }: Props) => {
         if (accountId && course && isLogin) {
             addOrder({ accountId, courseId: course.courseId });
         } else {
-            navigate('/login');
+            navigate(`/login?redirect=/course/${course?.courseId}`);
         }
     };
     const handleLearnClick = () => {
@@ -89,6 +89,8 @@ const CourseCardHover = ({ course }: Props) => {
                             ))}
                 </div>
                 <div className="mt-4 flex gap-2">
+
+                    {/* 🛒 CHƯA MUA */}
                     {!isCheckRegistrationLoading && !checkRegistrationData?.registrationId && (
                         <LoadingButton
                             onClick={handleBuyClick}
@@ -99,18 +101,40 @@ const CourseCardHover = ({ course }: Props) => {
                             Mua khóa học
                         </LoadingButton>
                     )}
-                    {!isCheckRegistrationLoading && checkRegistrationData?.registrationId && (
-                        <LoadingButton
-                            onClick={handleLearnClick}
-                            variant="contained"
-                            className="flex-1 bg-[#a435f0]"
-                        >
-                            Tiếp tục học
-                        </LoadingButton>
-                    )}
+
+                    {/* ▶️ ĐÃ MUA NHƯNG CHƯA HOÀN THÀNH */}
+                    {!isCheckRegistrationLoading &&
+                        checkRegistrationData?.registrationId &&
+                        !checkRegistrationData?.isCompleted && (
+                            <LoadingButton
+                                onClick={handleLearnClick}
+                                variant="contained"
+                                className="flex-1 bg-[#a435f0]"
+                            >
+                                Tiếp tục học
+                            </LoadingButton>
+                        )}
+
+                    {/* 🎉 ĐÃ HOÀN THÀNH KHÓA HỌC */}
+                    {!isCheckRegistrationLoading &&
+                        checkRegistrationData?.registrationId &&
+                        checkRegistrationData?.isCompleted && (
+                            <LoadingButton
+                                variant="outlined"
+                                disabled
+                                className="flex-1 !text-green-600 !border-green-600"
+                            >
+                                Bạn đã hoàn thành ✓
+                            </LoadingButton>
+                        )}
+
+                    {/* LOADING SKELETON */}
                     {isCheckRegistrationLoading && <Skeleton.Input active className="!flex-1" />}
-                    {course?.courseId && <FavoriteButton courseId={course?.courseId} />}
+
+                    {/* BUTTON YÊU THÍCH */}
+                    {course?.courseId && <FavoriteButton courseId={course.courseId} />}
                 </div>
+
             </div>
         </>
     );

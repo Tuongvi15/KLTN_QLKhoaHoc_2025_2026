@@ -29,6 +29,9 @@ namespace LMSystem.Services.Services
         {
             return await _ratingCourseRepository.GetCourseRating(courseId);
         }
-
+        public async Task<IEnumerable<RatingCourse>> GetCourseRatingList(int courseId)
+        {
+            return await _ratingCourseRepository.GetCourseRatingList(courseId);
+        }
     }
 }

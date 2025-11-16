@@ -17,6 +17,9 @@ import { RootState } from '../../store';
 import { setPreOrderData } from '../../slices/orderSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCheckRegistrationCourseQuery } from '../../services/registrationCourse.services';
+import { Rating, TextField } from "@mui/material";
+import { useAddRatingCourseMutation } from "../../services/ratingCourse.services";
+import { message } from "antd";
 
 interface Props {
     course: Course;
@@ -37,6 +40,11 @@ const CourseCardPreview = ({ course }: Props) => {
         addOrder,
         { isLoading: isAddOrderLoading, isSuccess: isAddOrderSuccess, data: addOrderData },
     ] = useAddOrderToDBMutation();
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [ratingValue, setRatingValue] = useState<number>(0);
+    const [comment, setComment] = useState<string>("");
+
+    const [addRatingCourse, { isLoading: isSendingRating }] = useAddRatingCourseMutation();
 
     const {
         refetch,
@@ -91,6 +99,32 @@ const CourseCardPreview = ({ course }: Props) => {
     const handlePreviewClick = () => {
         requireLogin(() => setOpenPreviewModal(true));
     };
+    const handleSendRating = async () => {
+        if (!checkRegistrationData?.registrationId) {
+            message.error("Không tìm thấy đăng ký khóa học!");
+            return;
+        }
+
+        if (ratingValue === 0) {
+            message.warning("Vui lòng chọn số sao!");
+            return;
+        }
+
+        try {
+            await addRatingCourse({
+                rating: ratingValue,
+                comment,
+                registrationId: checkRegistrationData.registrationId,
+            }).unwrap();
+
+            message.success("Cảm ơn bạn đã đánh giá khóa học!");
+            setShowRatingModal(false);
+            setRatingValue(0);
+            setComment("");
+        } catch (err) {
+            message.error("Bạn đã đánh giá khóa học này rồi.");
+        }
+    };
 
     return (
         <>
@@ -140,21 +174,21 @@ const CourseCardPreview = ({ course }: Props) => {
                             <FavoriteButton courseId={course.courseId} />
                         </div>
 
-                        {/* BUY / CONTINUE LEARNING */}
-                        {!isCheckRegistrationLoading &&
-                            !checkRegistrationData?.registrationId && (
-                                <LoadingButton
-                                    onClick={handleBuyClick}
-                                    loading={isAddOrderLoading}
-                                    variant="contained"
-                                    className="flex-1 bg-[#a435f0]"
-                                >
-                                    Mua khóa học
-                                </LoadingButton>
-                            )}
+                        {/* BUY / CONTINUE LEARNING / COMPLETED */}
+                        {!isCheckRegistrationLoading && !checkRegistrationData?.registrationId && (
+                            <LoadingButton
+                                onClick={handleBuyClick}
+                                loading={isAddOrderLoading}
+                                variant="contained"
+                                className="flex-1 bg-[#a435f0]"
+                            >
+                                Mua khóa học
+                            </LoadingButton>
+                        )}
 
                         {!isCheckRegistrationLoading &&
-                            checkRegistrationData?.registrationId && (
+                            checkRegistrationData?.registrationId &&
+                            !checkRegistrationData?.isCompleted && (
                                 <LoadingButton
                                     onClick={handleLearnClick}
                                     variant="contained"
@@ -162,6 +196,31 @@ const CourseCardPreview = ({ course }: Props) => {
                                 >
                                     Tiếp tục học
                                 </LoadingButton>
+                            )}
+
+                        {!isCheckRegistrationLoading &&
+                            checkRegistrationData?.registrationId &&
+                            checkRegistrationData?.isCompleted && (
+                                <LoadingButton
+                                    onClick={() => setShowRatingModal(true)}
+                                    variant="outlined"
+                                    className="flex-1 !text-green-600 !border-green-600"
+                                >
+                                    Đánh giá khóa học ngay🌟
+                                </LoadingButton>
+
+                            )}
+                        {!isCheckRegistrationLoading &&
+                            checkRegistrationData?.registrationId &&
+                            checkRegistrationData?.isCompleted && (
+                                <LoadingButton
+                                    onClick={handleLearnClick}
+                                    variant="outlined"
+                                    className="flex-1 text-green-600 !border-green-600"
+                                >
+                                    Bạn đã hoàn thành khóa học
+                                </LoadingButton>
+
                             )}
 
                         {isCheckRegistrationLoading && (
@@ -246,6 +305,49 @@ const CourseCardPreview = ({ course }: Props) => {
                     </button>
                 </div>
             </Modal>
+            {/* RATING MODAL */}
+            <Modal
+                open={showRatingModal}
+                onCancel={() => setShowRatingModal(false)}
+                footer={null}
+                centered
+            >
+                <div className="text-center py-6 flex flex-col gap-4">
+                    <h2 className="text-xl font-bold">Đánh giá khóa học</h2>
+
+                    <div className="flex justify-center pointer-events-auto">
+                        <Rating
+                            value={ratingValue}
+                            onChange={(e, v) => setRatingValue(v || 0)}
+                            size="large"
+                            sx={{
+                                zIndex: 99999,
+                                pointerEvents: 'auto',
+                            }}
+                        />
+                    </div>
+
+
+                    <TextField
+                        multiline
+                        rows={4}
+                        placeholder="Cảm nhận của bạn?"
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        className="w-full"
+                    />
+
+                    <LoadingButton
+                        loading={isSendingRating}
+                        onClick={handleSendRating}
+                        variant="contained"
+                        className="bg-[#a435f0] !text-white"
+                    >
+                        Gửi đánh giá
+                    </LoadingButton>
+                </div>
+            </Modal>
+
         </>
     );
 };

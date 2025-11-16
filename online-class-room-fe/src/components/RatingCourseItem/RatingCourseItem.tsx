@@ -1,56 +1,49 @@
-import { Avatar, Paper, Rating, styled } from '@mui/material';
-import StarIcon from '@mui/icons-material/Star';
+import { Avatar, Rating } from "@mui/material";
+import { Skeleton } from "antd";
+import { useGetRatingListQuery } from "../../services/ratingCourse.services";
 
-const StyledRating = styled(Rating)({
-    '& .MuiRating-icon': {
-        color: '#cccccc',
-    },
-    '& .MuiRating-iconFilled': {
-        color: '#f69c08',
-    },
-    '& .MuiRating-iconHover': {
-        color: '#ff3d47',
-    },
-});
+interface RatingCourseListProps {
+    courseId: number;
+}
 
-const RatingCourseItem = () => {
-    const starRating = 4.8;
+const RatingCourseList = ({ courseId }: RatingCourseListProps) => {
+    const { data, isLoading } = useGetRatingListQuery(courseId);
+
+    if (isLoading) return <Skeleton active />;
+
+    if (!data || data.length === 0)
+        return <p className="text-gray-500 italic">Chưa có đánh giá nào.</p>;
+
     return (
-        <>
-            <Paper elevation={2}>
-                <div className="px-6 py-6 text-[#2d2f31]">
-                    <div className="flex gap-4">
+        <div className="flex flex-col gap-4">
+            {data.map((item: any) => (
+                <div key={item.ratingId} className="p-4 bg-white rounded-lg shadow">
+                    <div className="flex gap-4 items-start">
                         <Avatar
-                            style={{ height: '40px', width: '40px' }}
-                            src="https://th.bing.com/th/id/R.8da1bbe00590cf6fd1a30c7ec52833c6?rik=oJKgqspCMDp0hw&pid=ImgRaw&r=0"
+                            src={item.avatarUrl}
+                            style={{ width: 48, height: 48 }}
                         />
-                        <div>
-                            <h2 className="font-bold ">Jost</h2>
-                            <div className="mt-1 flex">
-                                <span>
-                                    <StyledRating
-                                        name="half-rating-read"
-                                        defaultValue={starRating}
-                                        precision={0.1}
-                                        emptyIcon={<StarIcon fontSize="inherit" />}
-                                        size="small"
-                                        readOnly
-                                    />
-                                </span>
-                                <span className="ml-2 items-center text-xs font-bold">
-                                    a month ago
-                                </span>
-                            </div>
-                            <div className="text-sm">
-                                A very complete course, I would say it is an intermediate level
-                                course, although at the beginning you start with the basics.
-                            </div>
+                        <div className="flex-1">
+                            <p className="font-bold text-gray-700">{item.userName}</p>
+
+                            <Rating
+                                value={item.rating}
+                                readOnly
+                                precision={0.5}
+                                size="small"
+                            />
+
+                            <p className="text-sm mt-1">{item.comment}</p>
+
+                            <p className="text-xs text-gray-400 mt-1">
+                                {new Date(item.ratingDate).toLocaleDateString("vi-VN")}
+                            </p>
                         </div>
                     </div>
                 </div>
-            </Paper>
-        </>
+            ))}
+        </div>
     );
 };
 
-export default RatingCourseItem;
+export default RatingCourseList;

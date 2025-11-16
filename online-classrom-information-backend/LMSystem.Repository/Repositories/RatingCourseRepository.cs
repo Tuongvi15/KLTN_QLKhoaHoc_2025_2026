@@ -50,6 +50,15 @@ namespace LMSystem.Repository.Repositories
             await _context.SaveChangesAsync();
             return ratingCourse;
         }
+        public async Task<IEnumerable<RatingCourse>> GetCourseRatingList(int courseId)
+        {
+            return await _context.RatingCourses
+                .Include(r => r.Registration)
+                    .ThenInclude(reg => reg.Account)
+                .Where(r => r.Registration.CourseId == courseId)
+                .OrderByDescending(r => r.RatingDate)
+                .ToListAsync();
+        }
 
         public async Task<CourseRatingResult> GetCourseRating(int courseId)
         {
