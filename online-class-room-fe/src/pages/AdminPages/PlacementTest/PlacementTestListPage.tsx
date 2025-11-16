@@ -51,7 +51,7 @@ const PlacementTestListPage = () => {
     {
       title: "Số câu hỏi",
       render: (_: unknown, record: PlacementTest) =>
-        record.placementQuestions?.length ?? 0,
+        record.questionCount ?? 0,
     },
     {
       title: "Trạng thái",

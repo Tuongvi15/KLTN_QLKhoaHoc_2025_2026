@@ -80,7 +80,7 @@ const LectureVideoContent = ({ step }: LectureVideoContentProps) => {
                             showPreview={false}
                         />
                     </div>
-                    {isUpdate && (
+                    {/* {isUpdate && (
                         <Button
                             variant="contained"
                             className="!bg-[#333]"
@@ -88,7 +88,7 @@ const LectureVideoContent = ({ step }: LectureVideoContentProps) => {
                         >
                             Hủy
                         </Button>
-                    )}
+                    )} */}
                 </div>
             )}
 
@@ -98,13 +98,13 @@ const LectureVideoContent = ({ step }: LectureVideoContentProps) => {
                         <Video src={step.videoUrl} />
                     </div>
                     <div className="flex flex-col gap-4">
-                        <Button
+                        {/* <Button
                             variant="outlined"
                             startIcon={<CreateIcon />}
                             onClick={() => setIsUpdate(true)}
                         >
                             Chỉnh sửa
-                        </Button>
+                        </Button> */}
 
                         <Popconfirm
                             title="Xác nhận xóa"
@@ -115,14 +115,14 @@ const LectureVideoContent = ({ step }: LectureVideoContentProps) => {
                             cancelText="No"
                             okButtonProps={{ style: { background: '#d32f2f' } }}
                         >
-                            <Button
+                            {/* <Button
                                 variant="outlined"
                                 color="error"
                                 startIcon={isLoadingDelete ? <CircularProgress /> : <DeleteIcon />}
                                 disabled={isLoadingDelete}
                             >
                                 Xóa
-                            </Button>
+                            </Button> */}
                         </Popconfirm>
                     </div>
                 </div>

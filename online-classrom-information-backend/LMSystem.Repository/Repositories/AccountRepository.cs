@@ -413,6 +413,14 @@ namespace LMSystem.Repository.Repositories
                 {
                     return new ResponeModel { Status = "Error", Message = "Account not found" };
                 }
+                if (updateProfileModel.BirthDate != null)
+                {
+                    var birth = updateProfileModel.BirthDate.Value;
+
+                    // Nếu birth không có giờ thì thêm 00:00:00
+                    // rồi convert sang UTC
+                    existingAccount.BirthDate = DateTime.SpecifyKind(birth, DateTimeKind.Utc);
+                }
 
                 existingAccount = submitAccountChanges(existingAccount, updateProfileModel);
 
@@ -476,12 +484,19 @@ namespace LMSystem.Repository.Repositories
             account.LastName = updateProfileModel.LastName;
             account.Email = updateProfileModel.Email;
             account.PhoneNumber = updateProfileModel.PhoneNumber;
-            account.BirthDate = updateProfileModel.BirthDate;
+
+            // FIX LỖI TẠI ĐÂY
+            account.BirthDate = updateProfileModel.BirthDate == null
+                ? null
+                : DateTime.SpecifyKind(updateProfileModel.BirthDate.Value, DateTimeKind.Utc);
+
             account.Biography = updateProfileModel.Biography;
             account.ProfileImg = updateProfileModel.ProfileImg;
             account.Sex = updateProfileModel.Sex;
+
             return account;
         }
+
         public async Task<ResponeModel> ChangePasswordAsync(ChangePasswordModel model)
         {
             var account = await userManager.FindByEmailAsync(model.Email);

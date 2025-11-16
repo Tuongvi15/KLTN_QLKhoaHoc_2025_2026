@@ -233,6 +233,10 @@ namespace LMSystem.API.Controllers
                 c.Price,
                 c.CourseIsActive,
                 c.IsPublic,
+                c.CreateAt,
+                c.UpdateAt,
+                c.SalesCampaign,
+                c.CourseLevel,
                 Categories = c.CourseCategories.Select(cc => new {
                     cc.CategoryId,
                     cc.Category.Name

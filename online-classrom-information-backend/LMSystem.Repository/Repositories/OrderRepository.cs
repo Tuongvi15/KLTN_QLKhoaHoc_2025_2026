@@ -56,6 +56,48 @@ namespace LMSystem.Repository.Repositories
                 return new ResponeModel { Status = "Error", Message = "An error occurred while counting total orders in the system" };
             }
         }
+        public async Task<List<TeacherRevenueReportDto>> GetTeacherRevenueReport(
+    string teacherId, DateTime? fromDate, DateTime? toDate)
+        {
+            var query =
+      from order in _context.Orders
+      join reg in _context.RegistrationCourses
+          on new { order.AccountId, order.CourseId }
+          equals new { reg.AccountId, reg.CourseId }
+      join course in _context.Courses
+          on order.CourseId equals course.CourseId
+      join user in _context.Account
+          on order.AccountId equals user.Id
+      where course.AccountId == teacherId
+      select new { order, reg, course, user };
+
+
+            if (fromDate.HasValue)
+                query = query.Where(x => x.order.PaymentDate >= fromDate.Value.Date);
+
+            if (toDate.HasValue)
+                query = query.Where(x => x.order.PaymentDate <= toDate.Value.Date.AddDays(1));
+
+            return await query
+                .Select(x => new TeacherRevenueReportDto
+                {
+                    OrderId = x.order.OrderId,
+                    PurchaseDate = (DateTime)x.order.PaymentDate,
+                    UserId = x.user.Id,
+                    StudentName = x.user.FirstName + " " + x.user.LastName,
+                    Email = x.user.Email,
+                    PhoneNumber = x.user.PhoneNumber,
+                    CourseTitle = x.course.Title,
+                    CourseId = x.course.CourseId,
+                    OriginalPrice = (decimal)x.course.Price,
+                    Discount = (decimal)x.course.SalesCampaign,
+                    PaidAmount = (decimal)x.order.TotalPrice,
+                    PaymentMethod = x.order.PaymentMethod,
+                    PaymentStatus = x.order.Status,
+                    RevenueReceived = (decimal)(x.order.TotalPrice * (1 - x.course.SalesCampaign))
+                })
+                .ToListAsync();
+        }
 
         public async Task<ResponeModel> CountTotalOrdersByStatus(string status)
         {
@@ -144,6 +186,57 @@ namespace LMSystem.Repository.Repositories
                 };
             }
         }
+        public async Task<List<TeacherCourseReportDto>> GetTeacherCoursesReport(
+    string teacherId, string? search, DateTime? fromDate, DateTime? toDate)
+        {
+            var query = _context.Courses
+                .Where(c => c.AccountId == teacherId)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(c => c.Title.Contains(search));
+
+            if (fromDate.HasValue)
+                query = query.Where(c => c.CreateAt >= fromDate.Value.Date);
+
+            if (toDate.HasValue)
+                query = query.Where(c => c.CreateAt <= toDate.Value.Date.AddDays(1));
+
+            return await query
+                .Select(c => new TeacherCourseReportDto
+                {
+                    CourseId = c.CourseId,
+                    Title = c.Title,
+
+                    TeacherName = c.Account.FirstName + " " + c.Account.LastName,
+
+                    CategoryNames = string.Join(", ",
+                        c.CourseCategories.Select(cc => cc.Category.Name)
+                    ),
+
+                    Price = (decimal)c.Price,
+
+                    // số lượng học viên
+                    StudentCount = c.RegistrationCourses.Count(),
+
+                    // doanh thu = sum tất cả orders thuộc khóa này
+                    CourseRevenue = _context.Orders
+                        .Where(o => o.CourseId == c.CourseId)
+                        .Sum(o => (decimal?)o.TotalPrice) ?? 0,
+
+                    LessonCount = c.Sections.Count(),
+                    VideoDuration = c.TotalDuration,
+
+                    PublishDate = c.PublicAt,
+                    LastUpdated = c.UpdateAt,
+
+                    Status = (bool)c.IsPublic ? "Public"
+                        : (bool)c.CourseIsActive ? "Active"
+                        : "Draft"
+                })
+                .ToListAsync();
+        }
+
 
         public async Task<IEnumerable<Order>> GetOrdersByAccountIdAsync(string accountId)
         {
@@ -155,7 +248,7 @@ namespace LMSystem.Repository.Repositories
         public async Task<Order?> GetOrdersByIdAsync(int id)
         {
             return await _context.Orders
-                .Include(o => o.Course) 
+                .Include(o => o.Course)
                 .Include(o => o.Account)
                 .FirstOrDefaultAsync(o => o.OrderId == id);
         }
@@ -321,7 +414,7 @@ namespace LMSystem.Repository.Repositories
                         AccountId = account.Id,
                         AccountName = account.FirstName + " " + account.LastName,
                         CourseId = addOrderPaymentModel.CourseId,
-                        TotalPrice = (course.Price - course.Price*course.SalesCampaign),
+                        TotalPrice = (course.Price - course.Price * course.SalesCampaign),
                         CurrencyCode = "VND",
                         PaymentDate = DateTime.UtcNow,
                         Status = status.Status,
@@ -491,7 +584,7 @@ namespace LMSystem.Repository.Repositories
                         return new PagedList<Order>(new List<Order>(), 0, 0, 0);
                     }
                 }
-          
+
 
                 var orders = await query.OrderBy(o => o.OrderId).ToListAsync();
 
@@ -509,7 +602,7 @@ namespace LMSystem.Repository.Repositories
             {
                 var order = await _context.Orders
                     .FirstOrDefaultAsync(o => o.OrderCode.ToString() == orderCode);
-                if(order != null && order.Status == OrderStatusEnum.Completed.ToString())
+                if (order != null && order.Status == OrderStatusEnum.Completed.ToString())
                 {
                     return true;
                 }
@@ -623,5 +716,40 @@ namespace LMSystem.Repository.Repositories
         }
 
     }
+    public class TeacherRevenueReportDto
+    {
+        public int OrderId { get; set; }
+        public DateTime PurchaseDate { get; set; }
+        public string UserId { get; set; }
+        public string StudentName { get; set; }
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
+        public string CourseTitle { get; set; }
+        public int CourseId { get; set; }
+        public decimal OriginalPrice { get; set; }
+        public decimal Discount { get; set; }
+        public decimal PaidAmount { get; set; }
+        public string PaymentMethod { get; set; }
+        public string PaymentStatus { get; set; }
+        public decimal RevenueReceived { get; set; }
+    }
+    public class TeacherCourseReportDto
+    {
+        public int CourseId { get; set; }
+        public string Title { get; set; }
+        public string TeacherName { get; set; }
+        public string CategoryNames { get; set; }
+        public decimal Price { get; set; }
+        public int StudentCount { get; set; }
+        public decimal CourseRevenue { get; set; }
+        public int LessonCount { get; set; }
+        public int VideoDuration { get; set; }
+        public DateTime? PublishDate { get; set; }
+        public DateTime? LastUpdated { get; set; }
+        public double AverageRating { get; set; }
+        public int RatingCount { get; set; }
+        public string Status { get; set; }
+    }
+
 }
 

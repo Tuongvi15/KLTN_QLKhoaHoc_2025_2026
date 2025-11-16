@@ -269,7 +269,7 @@ const LectureQuizzContent = ({ step }: LectureQuizzContentProps) => {
                                 inputProps={{ maxLength: 76 }}
                                 helperText={`${titleTemp.length}/76`}
                             />
-                            <MuiButton
+                            {/* <MuiButton
                                 variant="contained"
                                 size="small"
                                 disabled={isAddLoading}
@@ -279,20 +279,9 @@ const LectureQuizzContent = ({ step }: LectureQuizzContentProps) => {
                                 }
                             >
                                 {isCreatingQuizRef.current ? 'Đang tạo...' : 'Tạo quiz'}
-                            </MuiButton>
+                            </MuiButton> */}
                         </div>
-                    ) : (
-                        <EditableText
-                            isLoading={isUpdateQuizLoading}
-                            maxLength={76}
-                            showCount
-                            textCSS="font-medium text-base"
-                            edit={false}
-                            value={quizState?.title || ''}
-                            onDoneClick={handleSaveQuiz}
-                            onChage={handleTitleChange}
-                        />
-                    )}
+                    ) : ""}
                 </div>
             </div>
 
@@ -317,10 +306,10 @@ const LectureQuizzContent = ({ step }: LectureQuizzContentProps) => {
                         ))
                     ) : (
                         <p className="text-gray-400 text-sm">
-                            Chưa có câu hỏi nào. Nhấn “Thêm câu hỏi” để bắt đầu.
+                            {/* Chưa có câu hỏi nào. Nhấn “Thêm câu hỏi” để bắt đầu. */}
                         </p>
                     )}
-                    <MuiButton
+                    {/* <MuiButton
                         onClick={handleAddQuestion}
                         className="!w-fit"
                         variant="text"
@@ -328,7 +317,7 @@ const LectureQuizzContent = ({ step }: LectureQuizzContentProps) => {
                         startIcon={<AddIcon />}
                     >
                         Thêm câu hỏi
-                    </MuiButton>
+                    </MuiButton> */}
                 </div>
             )}
 

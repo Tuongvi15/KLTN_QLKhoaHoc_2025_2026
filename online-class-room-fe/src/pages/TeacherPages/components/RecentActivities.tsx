@@ -22,23 +22,23 @@ const RecentActivities: React.FC<RecentActivitiesProps> = ({ recent }) => {
       {recent.length === 0 ? (
         <Empty description="Không có hoạt động" />
       ) : (
-        <List<RecentActivity>
-          itemLayout="horizontal"
-          dataSource={recent}
-          renderItem={(item) => (
-            <List.Item>
-              <List.Item.Meta
-                avatar={<Avatar>{item.name.charAt(0)}</Avatar>}
-                title={<Text strong>{item.name}</Text>}
-                description={`Đăng ký khóa #${item.courseId} • ${new Date(
-                  item.joinedAt
-                ).toLocaleString()}`}
-              />
-              <Tag color="green">MỚI</Tag>
-            </List.Item>
-          )}
-        />
-      )}
+        // <List<RecentActivity>
+        //   itemLayout="horizontal"
+        //   dataSource={recent}
+        //   renderItem={(item) => (
+        //     <List.Item>
+        //       <List.Item.Meta
+        //         avatar={<Avatar>{item.name.charAt(0)}</Avatar>}
+        //         title={<Text strong>{item.name}</Text>}
+        //         description={`Đăng ký khóa #${item.courseId} • ${new Date(
+        //           item.joinedAt
+        //         ).toLocaleString()}`}
+        //       />
+        //       <Tag color="green">MỚI</Tag>
+        //     </List.Item>
+        //   )}
+        // />
+    <Empty description="Không có hoạt động" />  )}
     </Card>
   );
 };

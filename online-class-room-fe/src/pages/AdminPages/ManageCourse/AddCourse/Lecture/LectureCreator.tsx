@@ -276,10 +276,10 @@ const LectureCreator = ({ position, isCreate, step = null }: LectureProps) => {
                             transition={{ duration: 0.3 }}
                             className="space-x-4"
                         >
-                            <IconButton disabled={!isHovered} onClick={() => setIsEdit(true)} color="info" size="small">
+                            {/* <IconButton disabled={!isHovered} onClick={() => setIsEdit(true)} color="info" size="small">
                                 <CreateIcon className="!text-xl" />
-                            </IconButton>
-                            <Popconfirm
+                            </IconButton> */}
+                            {/* <Popconfirm
                                 title="Xác nhận xóa"
                                 description="Bạn có chắc chắn muốn xóa bài học này?"
                                 onConfirm={handleOnRemoveClick}
@@ -290,13 +290,13 @@ const LectureCreator = ({ position, isCreate, step = null }: LectureProps) => {
                                 <IconButton disabled={!isHovered} color="error" size="small">
                                     <DeleteIcon className="!text-xl" />
                                 </IconButton>
-                            </Popconfirm>
+                            </Popconfirm> */}
                         </motion.div>
                     )}
                 </div>
 
                 <div>
-                    {lectureState === LectureState.DEFAULT && (
+                    {/* {lectureState === LectureState.DEFAULT && (
                         <Button
                             icon={<AddIcon />}
                             onClick={() => {
@@ -311,7 +311,7 @@ const LectureCreator = ({ position, isCreate, step = null }: LectureProps) => {
                         >
                             Thêm nội dung
                         </Button>
-                    )}
+                    )} */}
 
                     {lectureState === LectureState.COLLAPSE_CONTENT && (
                         <MuiButton
@@ -400,7 +400,7 @@ const LectureCreator = ({ position, isCreate, step = null }: LectureProps) => {
                     {/* Miêu tả */}
                     {LectureState.SELECTED_CONTENT === lectureState && (
                         <div className="mt-4 flex flex-col gap-4">
-                            {!isAddDescription && (
+                            {/* {!isAddDescription && (
                                 <MuiButton
                                     startIcon={<AddIcon />}
                                     variant="outlined"
@@ -409,9 +409,9 @@ const LectureCreator = ({ position, isCreate, step = null }: LectureProps) => {
                                 >
                                     Thêm miêu tả
                                 </MuiButton>
-                            )}
+                            )} */}
 
-                            {isAddDescription && currentStep && (
+                            {/* {isAddDescription && currentStep && (
                                 <EditableItem
                                     displayElement={
                                         <div className="flex items-center gap-4">
@@ -434,7 +434,7 @@ const LectureCreator = ({ position, isCreate, step = null }: LectureProps) => {
                                     onDoneClick={handleOnSaveDescription}
                                     showEditFirst={currentStep.stepDescription.length < 10}
                                 />
-                            )}
+                            )} */}
                         </div>
                     )}
                 </div>

@@ -21,6 +21,8 @@ export interface PlacementTest {
     createdAt: string;
     field?: Field;
     placementQuestions?: PlacementQuestion[];
+    questionCount: number;
+
 }
 
 export interface AddPlacementTestRequest {

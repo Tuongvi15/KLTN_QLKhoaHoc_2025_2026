@@ -12,7 +12,8 @@ export interface TopCourseRecord {
   title: string;
   imageUrl?: string;
   totalStudents: number;
-  revenue: number;
+  revenue: number;   // tiền sau sale
+  profit: number;    // revenue * 0.7
 }
 
 // 👉 Define props
@@ -46,7 +47,20 @@ const TopCoursesTable: React.FC<TopCoursesProps> = ({ topCourses }) => {
       title: "Doanh thu",
       key: "revenue",
       align: "right",
-      render: (_: any, r: TopCourseRecord) => r.revenue.toLocaleString("vi-VN"),
+      render: (_: any, r: TopCourseRecord) =>
+        r.revenue.toLocaleString("vi-VN") + " ₫",
+    },
+
+    // ⭐⭐⭐ THÊM CỘT LỢI NHUẬN ⭐⭐⭐
+    {
+      title: "Lợi nhuận (70%)",
+      dataIndex: "profit",
+      align: "right",
+      render: (v: number) => (
+        <Text strong style={{ color: "#1d4ed8" }}>
+          {v.toLocaleString("vi-VN")} ₫
+        </Text>
+      ),
     },
   ];
 
@@ -60,7 +74,9 @@ const TopCoursesTable: React.FC<TopCoursesProps> = ({ topCourses }) => {
         dataSource={topCourses}
         pagination={false}
         rowKey="courseId"
+        scroll={{ x: 'max-content' }}   // 👑 Tự fit theo kích thước bảng
       />
+
     </Card>
   );
 };

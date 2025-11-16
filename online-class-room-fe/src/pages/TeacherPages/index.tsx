@@ -7,9 +7,19 @@ import RecentActivities from "./components/RecentActivities";
 import QuickChecklist from "./components/QuickChecklist";
 import EmptyState from "./components/EmptyState";
 import { useTeacherDashboard } from "./components/useTeacherDashboard";
+import { downloadExcel } from "../../utils/downloadExcel";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
+import { Button } from "antd";
 
 export default function TeacherDashboardPage() {
   const { courses, studentsPerCourse, loading } = useTeacherDashboard();
+  const teacherId = useSelector((state: RootState) => state.user.id);
+
+  const handleExportRevenue = () => {
+    const url = `${process.env.REACT_APP_API_URL}/Reports/ExportTeacherRevenueExcel?teacherId=${teacherId}`;
+    downloadExcel(url, "RevenueReport.xlsx");
+  };
 
   if (loading) return <Skeleton active />;
   if (courses.length === 0) return <EmptyState />;
@@ -18,13 +28,25 @@ export default function TeacherDashboardPage() {
   const totalCourses = courses.length;
 
   const totalStudents = studentsPerCourse.length;
+  const calcFinalPrice = (price: number, sale: number) => {
+    let finalPrice = price;
+
+    // sale = 0.2 → 20%
+    if (sale > 0 && sale < 1) finalPrice = price - price * sale;
+    // sale = 20 → 20%
+    else if (sale >= 1 && sale <= 100) finalPrice = price - (price * sale) / 100;
+    // sale = 15000 → giảm trực tiếp 15k
+    else if (sale > 100) finalPrice = price - sale;
+
+    return finalPrice;
+  };
 
   const totalRevenue = courses.reduce((sum, c) => {
-    const studentCount = studentsPerCourse.filter(x => x.courseId === c.courseId).length;
-    const price = c.price || 0;
-    const sale = c.salesCampaign || 0;
-    return sum + studentCount * (price - price * sale / 100);
+    const st = studentsPerCourse.filter(x => x.courseId === c.courseId).length;
+    const finalPrice = calcFinalPrice(c.price || 0, c.salesCampaign || 0);
+    return sum + st * finalPrice;
   }, 0);
+
 
   // 👉 Tạo chart data
   const chartData = {
@@ -34,9 +56,10 @@ export default function TeacherDashboardPage() {
         label: "Doanh thu",
         data: courses.map(c => {
           const st = studentsPerCourse.filter(x => x.courseId === c.courseId).length;
-          const price = c.price || 0;
-          return st * price;
+          const finalPrice = calcFinalPrice(c.price || 0, c.salesCampaign || 0);
+          return st * finalPrice;
         }),
+
       },
     ],
   };
@@ -45,16 +68,24 @@ export default function TeacherDashboardPage() {
   const topCourses = courses
     .map(c => {
       const st = studentsPerCourse.filter(x => x.courseId === c.courseId).length;
+
+      const finalPrice = calcFinalPrice(c.price || 0, c.salesCampaign || 0);
+
+      const revenue = st * finalPrice;
+      const profit = revenue * 0.7;
+
       return {
         courseId: c.courseId,
         title: c.title,
         imageUrl: c.imageUrl,
         totalStudents: st,
-        revenue: st * (c.price || 0),
+        revenue,
+        profit
       };
     })
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 5);
+
 
   // 👉 Recent students (demo)
   const recent = studentsPerCourse.slice(0, 5).map(x => ({
@@ -80,7 +111,9 @@ export default function TeacherDashboardPage() {
         totalCourses={totalCourses}
         totalStudents={totalStudents}
         totalRevenue={totalRevenue}
+        totalProfit={totalRevenue * 0.7}
       />
+
 
       <Row gutter={[16, 16]} className="mt-6">
         <Col xs={24} lg={16}>

@@ -158,23 +158,39 @@ const TeacherDashboard: React.FC = () => {
 
   const totalRevenue = useMemo(() => {
     if (!courses || courses.length === 0) return 0;
-    return courses.reduce((sum: number, c: CourseType) => {
-      const studentCount =
-        (studentsPerCourse as any[]).filter((x) => x.courseId === c.courseId).length || 0;
+
+    return courses.reduce((sum, c) => {
+      const s = studentsPerCourse.filter(x => x.courseId === c.courseId).length;
+
       const price = c.price || 0;
-      const discount = c.salesCampaign || 0;
-      const final = price - (price * discount) / 100;
-      return sum + final * studentCount;
+      const sc = c.salesCampaign || 0;
+
+      let finalPrice = price;
+
+      if (sc > 0 && sc < 1) finalPrice = price - price * sc;
+      else if (sc >= 1 && sc <= 100) finalPrice = price - (price * sc) / 100;
+      else if (sc > 100) finalPrice = price - sc;
+
+      return sum + finalPrice * s;
     }, 0);
   }, [courses, studentsPerCourse]);
+
 
   const chartData = useMemo(() => {
     const labels = (courses || []).map((c: any) => c.title || `Course ${c.courseId}`);
     const data = (courses || []).map((c: any) => {
       const s = (studentsPerCourse || []).filter((x: any) => x.courseId === c.courseId).length;
       const price = c.price || 0;
-      const discount = c.salesCampaign || 0;
-      return (price - (price * discount) / 100) * s;
+      const sc = c.salesCampaign || 0;
+
+      let finalPrice = price;
+
+      if (sc > 0 && sc < 1) finalPrice = price - price * sc;
+      else if (sc >= 1 && sc <= 100) finalPrice = price - (price * sc) / 100;
+      else if (sc > 100) finalPrice = price - sc;
+
+      return finalPrice * s;
+
     });
 
     return {
@@ -204,8 +220,16 @@ const TeacherDashboard: React.FC = () => {
     const arr = courses.map((c: any) => {
       const s = (studentsPerCourse || []).filter((x: any) => x.courseId === c.courseId).length;
       const price = c.price || 0;
-      const discount = c.salesCampaign || 0;
-      const revenue = (price - (price * discount) / 100) * s;
+      const sc = c.salesCampaign || 0;
+
+      let finalPrice = price;
+
+      if (sc > 0 && sc < 1) finalPrice = price - price * sc;
+      else if (sc >= 1 && sc <= 100) finalPrice = price - (price * sc) / 100;
+      else if (sc > 100) finalPrice = price - sc;
+
+      const revenue = finalPrice * s;
+
       return {
         courseId: c.courseId,
         title: c.title,
@@ -214,8 +238,10 @@ const TeacherDashboard: React.FC = () => {
         revenue,
         rating: (Math.random() * 2 + 3).toFixed(1),
       };
+
     });
     return arr.sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+
   }, [courses, studentsPerCourse]);
 
   const recentStudents = useMemo(() => {
@@ -235,12 +261,12 @@ const TeacherDashboard: React.FC = () => {
       key: "title",
       render: (_: any, record: any) => (
         <div className="flex items-center gap-3">
-          <Avatar 
-            shape="square" 
-            size={52} 
+          <Avatar
+            shape="square"
+            size={52}
             src={record.imageUrl}
             icon={<BookOutlined />}
-            style={{ 
+            style={{
               borderRadius: '12px',
               background: 'linear-gradient(135deg, #dbeafe, #bfdbfe)',
               color: '#3b82f6',
@@ -263,8 +289,8 @@ const TeacherDashboard: React.FC = () => {
       dataIndex: "totalStudents",
       align: "center" as const,
       render: (v: number) => (
-        <div 
-          style={{ 
+        <div
+          style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
@@ -284,8 +310,8 @@ const TeacherDashboard: React.FC = () => {
       key: "rating",
       align: "center" as const,
       render: (_: any, record: any) => (
-        <div 
-          style={{ 
+        <div
+          style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '4px',
@@ -304,12 +330,25 @@ const TeacherDashboard: React.FC = () => {
       title: "Doanh thu",
       key: "revenue",
       align: "right" as const,
+
       render: (_: any, record: any) => (
         <Text strong style={{ fontSize: '15px', color: '#059669' }}>
           {record.revenue.toLocaleString("vi-VN")} ₫
         </Text>
       ),
     },
+    {
+      title: "Lợi nhuận (70%)",
+      key: "profit",
+      align: "right" as const,
+      render: (_: any, record: any) => (
+        <Text strong style={{ fontSize: '15px', color: '#1d4ed8' }}>
+          {record.profit.toLocaleString("vi-VN")} ₫
+        </Text>
+      ),
+    },
+
+
   ];
 
   // Empty state
@@ -317,9 +356,9 @@ const TeacherDashboard: React.FC = () => {
     return (
       <div style={{ minHeight: '100vh', padding: '32px 24px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <Card 
+          <Card
             bordered={false}
-            style={{ 
+            style={{
               borderRadius: '24px',
               overflow: 'hidden',
               boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
@@ -329,7 +368,7 @@ const TeacherDashboard: React.FC = () => {
               <Row gutter={[48, 48]} align="middle">
                 <Col xs={24} lg={12}>
                   <div style={{ textAlign: 'center' }}>
-                    <div 
+                    <div
                       style={{
                         width: '160px',
                         height: '160px',
@@ -343,7 +382,7 @@ const TeacherDashboard: React.FC = () => {
                       }}
                     >
                       <BookOutlined style={{ fontSize: '72px', color: '#3b82f6' }} />
-                      <div 
+                      <div
                         style={{
                           position: 'absolute',
                           top: -8,
@@ -367,10 +406,10 @@ const TeacherDashboard: React.FC = () => {
                 <Col xs={24} lg={12}>
                   <Space direction="vertical" size={24} style={{ width: '100%' }}>
                     <div>
-                      <Tag 
-                        color="blue" 
-                        style={{ 
-                          borderRadius: '8px', 
+                      <Tag
+                        color="blue"
+                        style={{
+                          borderRadius: '8px',
                           padding: '6px 16px',
                           border: 'none',
                           fontSize: '13px',
@@ -379,9 +418,9 @@ const TeacherDashboard: React.FC = () => {
                       >
                         KHỞI ĐẦU
                       </Tag>
-                      <Title 
-                        level={2} 
-                        style={{ 
+                      <Title
+                        level={2}
+                        style={{
                           margin: '16px 0 12px',
                           color: '#0f172a',
                           fontSize: '32px',
@@ -390,26 +429,26 @@ const TeacherDashboard: React.FC = () => {
                       >
                         Bắt đầu hành trình giảng dạy
                       </Title>
-                      <Text 
-                        style={{ 
-                          fontSize: '16px', 
+                      <Text
+                        style={{
+                          fontSize: '16px',
                           color: '#64748b',
                           lineHeight: '1.7',
                           display: 'block',
                         }}
                       >
-                        Tạo khóa học đầu tiên và chia sẻ kiến thức của bạn với hàng ngàn học viên trên toàn quốc. 
+                        Tạo khóa học đầu tiên và chia sẻ kiến thức của bạn với hàng ngàn học viên trên toàn quốc.
                         Xây dựng thương hiệu cá nhân và tạo thu nhập thụ động.
                       </Text>
                     </div>
 
                     <Space size={12}>
-                      <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />} 
+                      <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
                         size="large"
                         href="/teacher/getAllCourse"
-                        style={{ 
+                        style={{
                           borderRadius: '12px',
                           height: '48px',
                           fontSize: '15px',
@@ -421,10 +460,10 @@ const TeacherDashboard: React.FC = () => {
                       >
                         Tạo khóa học ngay
                       </Button>
-                      <Button 
+                      <Button
                         size="large"
                         href="/teacher/getAllCourse"
-                        style={{ 
+                        style={{
                           borderRadius: '12px',
                           height: '48px',
                           fontSize: '15px',
@@ -449,7 +488,7 @@ const TeacherDashboard: React.FC = () => {
                           { text: "Thiết lập giá cả & chương trình khuyến mãi", done: false },
                           { text: "Xuất bản & marketing khóa học", done: false },
                         ].map((item, idx) => (
-                          <div 
+                          <div
                             key={idx}
                             style={{
                               display: 'flex',
@@ -461,7 +500,7 @@ const TeacherDashboard: React.FC = () => {
                               border: '1px solid #e2e8f0',
                             }}
                           >
-                            <div 
+                            <div
                               style={{
                                 width: '24px',
                                 height: '24px',
@@ -489,32 +528,32 @@ const TeacherDashboard: React.FC = () => {
 
           <Row gutter={[24, 24]} style={{ marginTop: '32px' }}>
             {[
-              { 
-                icon: <FireOutlined />, 
-                title: "Nội dung hấp dẫn", 
+              {
+                icon: <FireOutlined />,
+                title: "Nội dung hấp dẫn",
                 desc: "Video chất lượng cao với kịch bản rõ ràng và bài tập thực hành",
                 color: '#ef4444',
                 bg: '#fef2f2',
               },
-              { 
-                icon: <TeamOutlined />, 
-                title: "Cộng đồng học tập", 
+              {
+                icon: <TeamOutlined />,
+                title: "Cộng đồng học tập",
                 desc: "Xây dựng mối quan hệ bền vững với học viên qua Q&A",
                 color: '#8b5cf6',
                 bg: '#faf5ff',
               },
-              { 
-                icon: <TrophyOutlined />, 
-                title: "Thu nhập ổn định", 
+              {
+                icon: <TrophyOutlined />,
+                title: "Thu nhập ổn định",
                 desc: "Kiếm tiền thụ động từ khóa học và xây dựng thương hiệu cá nhân",
                 color: '#10b981',
                 bg: '#f0fdf4',
               },
             ].map((tip, idx) => (
               <Col xs={24} md={8} key={idx}>
-                <Card 
+                <Card
                   bordered={false}
-                  style={{ 
+                  style={{
                     borderRadius: '20px',
                     background: tip.bg,
                     border: 'none',
@@ -522,7 +561,7 @@ const TeacherDashboard: React.FC = () => {
                   }}
                 >
                   <div style={{ padding: '8px' }}>
-                    <div 
+                    <div
                       style={{
                         width: '56px',
                         height: '56px',
@@ -573,8 +612,8 @@ const TeacherDashboard: React.FC = () => {
               </div>
             }
           />
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             style={{ marginTop: '16px', borderRadius: '8px' }}
           >
             Tải lại
@@ -591,7 +630,7 @@ const TeacherDashboard: React.FC = () => {
         {/* Welcome Section */}
         <div style={{ marginBottom: '32px' }}>
           <Space align="center" size={16}>
-            <div 
+            <div
               style={{
                 width: '56px',
                 height: '56px',
@@ -619,10 +658,10 @@ const TeacherDashboard: React.FC = () => {
         {/* KPI Cards */}
         <Row gutter={[20, 20]} style={{ marginBottom: '32px' }}>
           <Col xs={24} sm={12} lg={8}>
-            <Card 
+            <Card
               bordered={false}
               className="hover:shadow-lg transition-all duration-300"
-              style={{ 
+              style={{
                 borderRadius: '20px',
                 background: 'white',
                 padding: '8px',
@@ -632,7 +671,7 @@ const TeacherDashboard: React.FC = () => {
             >
               <div style={{ padding: '20px' }}>
                 <div className="flex items-start justify-between mb-4">
-                  <div 
+                  <div
                     style={{
                       width: '52px',
                       height: '52px',
@@ -645,7 +684,7 @@ const TeacherDashboard: React.FC = () => {
                   >
                     <BookOutlined style={{ fontSize: '24px', color: '#3b82f6' }} />
                   </div>
-                  <div 
+                  <div
                     style={{
                       padding: '4px 10px',
                       borderRadius: '8px',
@@ -659,11 +698,11 @@ const TeacherDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <Text 
-                    style={{ 
+                  <Text
+                    style={{
                       display: 'block',
-                      color: '#64748b', 
-                      fontSize: '14px', 
+                      color: '#64748b',
+                      fontSize: '14px',
                       fontWeight: '500',
                       marginBottom: '8px',
                       letterSpacing: '0.3px',
@@ -671,9 +710,9 @@ const TeacherDashboard: React.FC = () => {
                   >
                     Tổng khóa học
                   </Text>
-                  <div style={{ 
-                    fontSize: '36px', 
-                    fontWeight: '700', 
+                  <div style={{
+                    fontSize: '36px',
+                    fontWeight: '700',
                     color: '#0f172a',
                     lineHeight: '1',
                     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -687,12 +726,12 @@ const TeacherDashboard: React.FC = () => {
               </div>
             </Card>
           </Col>
-          
+
           <Col xs={24} sm={12} lg={8}>
-            <Card 
+            <Card
               bordered={false}
               className="hover:shadow-lg transition-all duration-300"
-              style={{ 
+              style={{
                 borderRadius: '20px',
                 background: 'white',
                 padding: '8px',
@@ -702,7 +741,7 @@ const TeacherDashboard: React.FC = () => {
             >
               <div style={{ padding: '20px' }}>
                 <div className="flex items-start justify-between mb-4">
-                  <div 
+                  <div
                     style={{
                       width: '52px',
                       height: '52px',
@@ -715,7 +754,7 @@ const TeacherDashboard: React.FC = () => {
                   >
                     <TeamOutlined style={{ fontSize: '24px', color: '#8b5cf6' }} />
                   </div>
-                  <div 
+                  <div
                     style={{
                       padding: '4px 10px',
                       borderRadius: '8px',
@@ -729,11 +768,11 @@ const TeacherDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <Text 
-                    style={{ 
+                  <Text
+                    style={{
                       display: 'block',
-                      color: '#64748b', 
-                      fontSize: '14px', 
+                      color: '#64748b',
+                      fontSize: '14px',
                       fontWeight: '500',
                       marginBottom: '8px',
                       letterSpacing: '0.3px',
@@ -741,9 +780,9 @@ const TeacherDashboard: React.FC = () => {
                   >
                     Tổng học viên
                   </Text>
-                  <div style={{ 
-                    fontSize: '36px', 
-                    fontWeight: '700', 
+                  <div style={{
+                    fontSize: '36px',
+                    fontWeight: '700',
                     color: '#0f172a',
                     lineHeight: '1',
                     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -757,12 +796,12 @@ const TeacherDashboard: React.FC = () => {
               </div>
             </Card>
           </Col>
-          
+
           <Col xs={24} sm={24} lg={8}>
-            <Card 
+            <Card
               bordered={false}
               className="hover:shadow-lg transition-all duration-300"
-              style={{ 
+              style={{
                 borderRadius: '20px',
                 background: 'white',
                 padding: '8px',
@@ -772,7 +811,7 @@ const TeacherDashboard: React.FC = () => {
             >
               <div style={{ padding: '20px' }}>
                 <div className="flex items-start justify-between mb-4">
-                  <div 
+                  <div
                     style={{
                       width: '52px',
                       height: '52px',
@@ -785,7 +824,7 @@ const TeacherDashboard: React.FC = () => {
                   >
                     <DollarOutlined style={{ fontSize: '24px', color: '#10b981' }} />
                   </div>
-                  <div 
+                  <div
                     style={{
                       padding: '4px 10px',
                       borderRadius: '8px',
@@ -799,11 +838,11 @@ const TeacherDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <Text 
-                    style={{ 
+                  <Text
+                    style={{
                       display: 'block',
-                      color: '#64748b', 
-                      fontSize: '14px', 
+                      color: '#64748b',
+                      fontSize: '14px',
                       fontWeight: '500',
                       marginBottom: '8px',
                       letterSpacing: '0.3px',
@@ -811,9 +850,9 @@ const TeacherDashboard: React.FC = () => {
                   >
                     Tổng doanh thu
                   </Text>
-                  <div style={{ 
-                    fontSize: '32px', 
-                    fontWeight: '700', 
+                  <div style={{
+                    fontSize: '32px',
+                    fontWeight: '700',
                     color: '#0f172a',
                     lineHeight: '1',
                     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -834,9 +873,9 @@ const TeacherDashboard: React.FC = () => {
         <Row gutter={[24, 24]}>
           <Col xs={24} lg={16}>
             {/* Chart */}
-            <Card 
+            <Card
               bordered={false}
-              style={{ 
+              style={{
                 borderRadius: '20px',
                 marginBottom: '24px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
@@ -844,7 +883,7 @@ const TeacherDashboard: React.FC = () => {
               }}
               title={
                 <div className="flex items-center gap-3">
-                  <div 
+                  <div
                     style={{
                       width: '40px',
                       height: '40px',
@@ -875,7 +914,7 @@ const TeacherDashboard: React.FC = () => {
                 </div>
               ) : (
                 <div style={{ padding: '48px 0', textAlign: 'center' }}>
-                  <Empty 
+                  <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                     description={
                       <Text style={{ color: '#64748b' }}>Chưa có dữ liệu doanh thu</Text>
@@ -886,9 +925,9 @@ const TeacherDashboard: React.FC = () => {
             </Card>
 
             {/* Top Courses */}
-            <Card 
+            <Card
               bordered={false}
-              style={{ 
+              style={{
                 borderRadius: '20px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                 border: '1px solid #f1f5f9',
@@ -896,7 +935,7 @@ const TeacherDashboard: React.FC = () => {
               title={
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div 
+                    <div
                       style={{
                         width: '40px',
                         height: '40px',
@@ -923,16 +962,16 @@ const TeacherDashboard: React.FC = () => {
               }
             >
               {topCourses.length > 0 ? (
-                <Table 
-                  columns={columns} 
-                  dataSource={topCourses} 
-                  rowKey="courseId" 
+                <Table
+                  columns={columns}
+                  dataSource={topCourses}
+                  rowKey="courseId"
                   pagination={false}
                   style={{ overflow: 'hidden' }}
                 />
               ) : (
                 <div style={{ padding: '48px 0', textAlign: 'center' }}>
-                  <Empty 
+                  <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                     description={
                       <Text style={{ color: '#64748b' }}>Chưa có dữ liệu khóa học</Text>
@@ -945,9 +984,9 @@ const TeacherDashboard: React.FC = () => {
 
           <Col xs={24} lg={8}>
             {/* Recent Activity */}
-            <Card 
+            <Card
               bordered={false}
-              style={{ 
+              style={{
                 borderRadius: '20px',
                 marginBottom: '24px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
@@ -955,7 +994,7 @@ const TeacherDashboard: React.FC = () => {
               }}
               title={
                 <div className="flex items-center gap-3">
-                  <div 
+                  <div
                     style={{
                       width: '40px',
                       height: '40px',
@@ -978,7 +1017,7 @@ const TeacherDashboard: React.FC = () => {
             >
               {recentStudents.length === 0 ? (
                 <div style={{ padding: '32px 0', textAlign: 'center' }}>
-                  <Empty 
+                  <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                     description={
                       <Text style={{ color: '#64748b' }}>Chưa có hoạt động</Text>
@@ -993,9 +1032,9 @@ const TeacherDashboard: React.FC = () => {
                     <List.Item style={{ padding: '16px 0', border: 'none' }}>
                       <List.Item.Meta
                         avatar={
-                          <Avatar 
+                          <Avatar
                             size={48}
-                            style={{ 
+                            style={{
                               background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
                               fontWeight: '600',
                               fontSize: '18px',
@@ -1011,13 +1050,13 @@ const TeacherDashboard: React.FC = () => {
                         }
                         description={
                           <Text style={{ fontSize: '13px', color: '#64748b' }}>
-                            Đăng ký khóa học #{item.name}
+                            Đăng ký khóa học #{item.joinedAt}
                           </Text>
                         }
                       />
-                      <Tag 
-                        color="blue" 
-                        style={{ 
+                      <Tag
+                        color="blue"
+                        style={{
                           borderRadius: '6px',
                           border: 'none',
                           fontSize: '11px',
@@ -1034,9 +1073,9 @@ const TeacherDashboard: React.FC = () => {
             </Card>
 
             {/* Quick Actions */}
-            <Card 
+            <Card
               bordered={false}
-              style={{ 
+              style={{
                 borderRadius: '20px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                 border: '1px solid #f1f5f9',
@@ -1048,13 +1087,13 @@ const TeacherDashboard: React.FC = () => {
               }
             >
               <Space direction="vertical" style={{ width: '100%' }} size={16}>
-                <Button 
-                  type="primary" 
-                  icon={<PlusOutlined />} 
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
                   href="/teacher/addCourse"
                   block
                   size="large"
-                  style={{ 
+                  style={{
                     borderRadius: '12px',
                     height: '48px',
                     fontSize: '15px',
@@ -1064,13 +1103,13 @@ const TeacherDashboard: React.FC = () => {
                 >
                   Tạo khóa học mới
                 </Button>
-                
-                <Button 
-                  icon={<BookOutlined />} 
+
+                <Button
+                  icon={<BookOutlined />}
                   href="/teacher/getAllCourse"
                   block
                   size="large"
-                  style={{ 
+                  style={{
                     borderRadius: '12px',
                     height: '48px',
                     fontSize: '15px',
@@ -1099,11 +1138,11 @@ const TeacherDashboard: React.FC = () => {
                             {item.value}%
                           </Text>
                         </div>
-                        <Progress 
-                          percent={item.value} 
+                        <Progress
+                          percent={item.value}
                           strokeColor={item.color}
                           trailColor="#f1f5f9"
-                          size="small" 
+                          size="small"
                           showInfo={false}
                           strokeWidth={8}
                           style={{ marginBottom: 0 }}

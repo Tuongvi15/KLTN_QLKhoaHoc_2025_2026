@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Switch, Button, message, Divider, InputNumber } from 'antd';
+import { Switch, Button, message, InputNumber } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../../store';
 import {
@@ -8,6 +8,7 @@ import {
 } from '../../../../slices/courseSlice';
 import { useUpdateCourseMutation } from '../../../../services/course.services';
 import { RoleType } from '../../../../slices/authSlice';
+import { CheckCircle, XCircle, DollarSign, Percent, Info } from 'lucide-react';
 
 const Publication: React.FC = () => {
     const dispatch = useDispatch();
@@ -17,7 +18,6 @@ const Publication: React.FC = () => {
     const role = useSelector((state: RootState) => state.auth.currentRole);
     const [updateCourse, { isLoading }] = useUpdateCourseMutation();
 
-    // 🧮 Local state cho giá tiền và giảm giá
     const [price, setPrice] = useState<number>(courseCreatedData.price || 0);
     const [discount, setDiscount] = useState<number>(
         courseCreatedData.salesCampaign || 0
@@ -34,58 +34,23 @@ const Publication: React.FC = () => {
                 ...courseCreatedData,
                 isPublic: checked,
                 categoryList: courseCreatedData.courseCategories.map((c) => c.categoryId),
+
+                // ⭐ FIX BẮT BUỘC
+                suitableLevels: courseCreatedData.suitableLevels ?? "",
             };
+
             await updateCourse(updated);
             dispatch(setCoursePublish(checked));
             message.success(
                 checked
-                    ? 'Khóa học đã được xuất bản!'
-                    : 'Khóa học đã được gỡ khỏi xuất bản.'
+                    ? 'Cập nhật thành công!'
+                    : 'Cập nhật thành công'
             );
         } catch {
             message.error('Không thể thay đổi trạng thái xuất bản.');
         }
     };
 
-    const handleActiveChange = async (checked: boolean) => {
-        try {
-            const updated = {
-                ...courseCreatedData,
-                courseIsActive: checked,
-                categoryList: courseCreatedData.courseCategories.map(
-                    (c) => c.categoryId
-                ),
-            };
-
-            // Nếu teacher, không cho public
-            if (role === RoleType.TEACHER) updated.isPublic = false;
-
-            await updateCourse(updated);
-
-            dispatch(
-                setCourseCreatedData({
-                    ...courseCreatedData,
-                    courseIsActive: checked,
-                })
-            );
-
-            if (role === RoleType.TEACHER) {
-                message.info(
-                    'Trạng thái khóa học đã được cập nhật. Khóa học sẽ được xuất bản khi quản trị viên duyệt.'
-                );
-            } else {
-                message.success(
-                    checked
-                        ? 'Khóa học đã được kích hoạt!'
-                        : 'Khóa học đã được tạm dừng!'
-                );
-            }
-        } catch {
-            message.error('Không thể cập nhật trạng thái khóa học.');
-        }
-    };
-
-    // 💰 Cập nhật giá tiền & giảm giá
     const handlePriceChange = (value: number | null) => {
         setPrice(value || 0);
     };
@@ -99,18 +64,18 @@ const Publication: React.FC = () => {
             const updated = {
                 ...courseCreatedData,
                 price,
-                // ⚙️ Giảm giá từ % sang tỷ lệ (ví dụ 14% → 0.14)
                 salesCampaign: discount / 100,
-                // ✅ Tự động kích hoạt khóa học
                 courseIsActive: true,
-                // 🚫 Không cho phép public — chờ admin duyệt
                 isPublic: false,
                 categoryList: courseCreatedData.courseCategories.map((c) => c.categoryId),
+
+                // ⭐ FIX BẮT BUỘC
+                suitableLevels: courseCreatedData.suitableLevels ?? "",
             };
+
 
             await updateCourse(updated);
 
-            // ✅ Cập nhật lại Redux store
             dispatch(
                 setCourseCreatedData({
                     ...courseCreatedData,
@@ -129,106 +94,248 @@ const Publication: React.FC = () => {
         }
     };
 
-
     return (
-        <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-[#1677ff] mb-4">
-                {role === RoleType.TEACHER
-                    ? 'Cập nhật trạng thái & giá khóa học'
-                    : 'Xuất bản khóa học'}
-            </h2>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+            <div className="max-w-4xl mx-auto">
+                {/* Header */}
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                        {role === RoleType.TEACHER
+                            ? 'Quản lý khóa học'
+                            : 'Xuất bản khóa học'}
+                    </h1>
+                    <p className="text-gray-600">
+                        {role === RoleType.TEACHER
+                            ? 'Cập nhật giá và thông tin khóa học của bạn'
+                            : 'Quản lý trạng thái xuất bản và hoạt động'}
+                    </p>
+                </div>
 
-            <Divider />
+                {role === RoleType.ADMIN ? (
+                    <div className="space-y-4">
+                        {/* Xuất bản khóa học */}
+                        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                            <div className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div
+                                            className={`w-12 h-12 rounded-xl flex items-center justify-center ${courseCreatedData.isPublic ? "bg-green-100" : "bg-gray-100"
+                                                }`}
+                                        >
+                                            {courseCreatedData.isPublic ? (
+                                                <CheckCircle className="w-6 h-6 text-green-600" />
+                                            ) : (
+                                                <XCircle className="w-6 h-6 text-gray-400" />
+                                            )}
+                                        </div>
 
-            {role === RoleType.ADMIN ? (
-                <>
-                    <div className="flex items-center justify-between mb-4">
-                        <p className="text-base font-medium">Xuất bản khóa học:</p>
-                        <Switch
-                            checked={courseCreatedData.isPublic}
-                            onChange={handlePublishChange}
-                            loading={isLoading}
-                        />
-                    </div>
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900">Xuất bản khóa học</h3>
+                                            <p className="text-sm text-gray-500 mt-1">
+                                                {courseCreatedData.isPublic
+                                                    ? "Khóa học đang được công khai"
+                                                    : "Khóa học chưa được xuất bản"}
+                                            </p>
+                                        </div>
+                                    </div>
 
-                    <div className="flex items-center justify-between">
-                        <p className="text-base font-medium">Trạng thái khóa học:</p>
-                        <Switch
-                            checked={courseCreatedData.courseIsActive}
-                            onChange={handleActiveChange}
-                            loading={isLoading}
-                        />
-                    </div>
-                </>
-            ) : (
-                <>
-                    {/* 👨‍🏫 Teacher view */}
-                    <div className="flex items-center justify-between mb-4">
-                        <p className="text-base font-medium">Trạng thái khóa học:</p>
-                        <Switch
-                            checked={courseCreatedData.courseIsActive}
-                            onChange={handleActiveChange}
-                            loading={isLoading}
-                        />
-                    </div>
+                                    <div
+                                        className={!courseCreatedData.courseIsActive
+                                            ? "rounded-full bg-red-200 p-1"   // nền đậm hơn
+                                            : "rounded-full bg-gray-100 p-1"
+                                        }
+                                    >
+                                        <Switch
+                                            checked={courseCreatedData.isPublic}
+                                            onChange={handlePublishChange}
+                                            loading={isLoading}
+                                            size="default"
+                                            disabled={!courseCreatedData.courseIsActive}
+                                        />
+                                    </div>
 
-                    <Divider />
+                                </div>
 
-                    {/* 💰 Giá và Giảm giá */}
-                    <div className="flex flex-col gap-4 mb-4">
-                        <div>
-                            <p className="text-base font-medium text-[#1677ff] mb-1">
-                                Giá khóa học (₫):
-                            </p>
-                            <InputNumber
-                                value={price}
-                                min={0}
-                                max={100000000}
-                                onChange={handlePriceChange}
-                                className="w-full"
-                            />
+                                {/* ⚠ Hiển thị lý do không thể public */}
+                                {!courseCreatedData.courseIsActive && (
+                                    <div className="mt-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg p-3 text-sm">
+                                        ⚠ Khóa học hiện đang <strong>tạm dừng</strong>.
+                                        Giảng viên cần kích hoạt khóa học trước thì khóa học mới có thể xuất bản.
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        <div>
-                            <p className="text-base font-medium text-[#1677ff] mb-1">
-                                Giảm giá (%):
-                            </p>
-                            <InputNumber
-                                value={discount}
-                                min={0}
-                                max={100}
-                                onChange={handleDiscountChange}
-                                className="w-full"
-                            />
+                        {/* Trạng thái khóa học */}
+                        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden opacity-60">
+                            <div className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div
+                                            className={`w-12 h-12 rounded-xl flex items-center justify-center ${courseCreatedData.courseIsActive ? "bg-blue-100" : "bg-gray-100"
+                                                }`}
+                                        >
+                                            {courseCreatedData.courseIsActive ? (
+                                                <CheckCircle className="w-6 h-6 text-blue-600" />
+                                            ) : (
+                                                <XCircle className="w-6 h-6 text-gray-400" />
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900">Trạng thái khóa học</h3>
+                                            <p className="text-sm text-gray-500 mt-1">
+                                                {courseCreatedData.courseIsActive
+                                                    ? "Khóa học đang hoạt động"
+                                                    : "Khóa học đã tạm dừng"}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        className={!courseCreatedData.courseIsActive
+                                            ? "rounded-full bg-red-200 p-1"   // nền đậm hơn
+                                            : "rounded-full bg-gray-100 p-1"
+                                        }
+                                    > <Switch checked={courseCreatedData.courseIsActive} disabled size="default" /></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                )
+                    : (
+                        <div className="space-y-6">
+                            {/* Trạng thái khóa học - Disabled for Teacher */}
+                            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden opacity-60">
+                                <div className="p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${courseCreatedData.courseIsActive
+                                                ? 'bg-blue-100'
+                                                : 'bg-gray-100'
+                                                }`}>
+                                                {courseCreatedData.courseIsActive ? (
+                                                    <CheckCircle className="w-6 h-6 text-blue-600" />
+                                                ) : (
+                                                    <XCircle className="w-6 h-6 text-gray-400" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-gray-900">
+                                                    Trạng thái khóa học
+                                                </h3>
+                                                <p className="text-sm text-gray-500 mt-1">
+                                                    {courseCreatedData.courseIsActive
+                                                        ? 'Khóa học đang hoạt động'
+                                                        : 'Khóa học đã tạm dừng'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className={!courseCreatedData.courseIsActive
+                                                ? "rounded-full bg-red-200 p-1"   // nền đậm hơn
+                                                : "rounded-full bg-gray-100 p-1"
+                                            }
+                                        >
+                                            <Switch
+                                                checked={courseCreatedData.courseIsActive}
+                                                disabled={true}
+                                                size="default"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div className="flex justify-end">
-                        <Button
-                            type="primary"
-                            onClick={handleSavePrice}
-                            loading={isLoading}
-                            className="bg-[#1677ff] text-white hover:bg-[#4096ff]"
-                        >
-                            Lưu giá & giảm giá
-                        </Button>
-                    </div>
+                            {/* Pricing Section */}
+                            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
+                                    <h3 className="text-xl font-bold text-white">
+                                        Thiết lập giá khóa học
+                                    </h3>
+                                    <p className="text-blue-100 mt-1">
+                                        Cập nhật giá và chương trình giảm giá
+                                    </p>
+                                </div>
 
-                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md text-blue-700 text-sm">
-                        <strong>💡 Ghi chú:</strong> Việc lưu giá sẽ đồng nghĩa với bật trạng thái hoạt động. Khi bật trạng thái hoạt động, khóa học sẽ được
-                        gửi lên hệ thống chờ quản trị viên duyệt và xuất bản.
-                    </div>
-                </>
-            )}
+                                <div className="p-6 space-y-6">
+                                    {/* Price Input */}
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                                            <DollarSign className="w-5 h-5 text-blue-600" />
+                                            Giá khóa học (₫)
+                                        </label>
+                                        <InputNumber
+                                            value={price}
+                                            min={0}
+                                            max={100000000}
+                                            onChange={handlePriceChange}
+                                            className="w-full"
+                                            size="large"
+                                            formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                            parser={(value) => Number((value ?? "0").replace(/\$\s?|(,*)/g, ""))}
 
-            {/* <div className="flex justify-end mt-6">
-                <Button
-                    type="default"
-                    onClick={() => message.success('Cập nhật trạng thái thành công!')}
-                >
-                    Lưu thay đổi
-                </Button>
-            </div> */}
+                                        />
+                                    </div>
+
+                                    {/* Discount Input */}
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                                            <Percent className="w-5 h-5 text-blue-600" />
+                                            Giảm giá (%)
+                                        </label>
+                                        <InputNumber
+                                            value={discount}
+                                            min={0}
+                                            max={100}
+                                            onChange={handleDiscountChange}
+                                            className="w-full"
+                                            size="large"
+                                        />
+                                    </div>
+
+                                    {/* Final Price Preview */}
+                                    {discount > 0 && (
+                                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-600 font-medium">Giá sau giảm:</span>
+                                                <div className="text-right">
+                                                    <span className="text-gray-400 line-through text-sm">
+                                                        {price.toLocaleString('vi-VN')}₫
+                                                    </span>
+                                                    <div className="text-2xl font-bold text-green-600">
+                                                        {(price * (1 - discount / 100)).toLocaleString('vi-VN')}₫
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Save Button */}
+                                    <Button
+                                        type="primary"
+                                        onClick={handleSavePrice}
+                                        loading={isLoading}
+                                        size="large"
+                                        className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 border-0 text-white font-semibold hover:from-blue-700 hover:to-indigo-700 shadow-lg"
+                                    >
+                                        Lưu giá & Kích hoạt khóa học
+                                    </Button>
+
+                                    {/* Info Box */}
+                                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                        <div className="flex gap-3">
+                                            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                            <div className="text-sm text-blue-800">
+                                                <strong className="font-semibold">Lưu ý:</strong> Việc lưu giá sẽ tự động kích hoạt khóa học và gửi lên hệ thống chờ quản trị viên duyệt và xuất bản.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+            </div>
         </div>
     );
 };

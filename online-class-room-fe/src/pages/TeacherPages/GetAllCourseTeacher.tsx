@@ -1,4 +1,4 @@
-import { Button, Input, Table, Tooltip, Modal, message, Tag } from "antd";
+import { Button, Input, Table, Tooltip, Modal, message, Tag, DatePicker } from "antd";
 import { useState } from "react";
 import {
     EyeOutlined,
@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import dayjs from "dayjs";
 
 import {
     resetCourse,
@@ -31,6 +32,10 @@ const GetAllCourseTeacher = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
+    // ⭐ ADDED: filter date states
+    const [fromDate, setFromDate] = useState<any>(null);
+    const [toDate, setToDate] = useState<any>(null);
+
     const { data: courses, isFetching, refetch } = useGetCoursesByTeacherQuery(
         teacherId,
         { skip: !teacherId }
@@ -43,10 +48,30 @@ const GetAllCourseTeacher = () => {
     const [searchValue, setSearchValue] = useState("");
     const [openCreateModal, setOpenCreateModal] = useState(false);
 
+    // ⭐ OLD FILTER — replaced with extended filter
     const filteredCourses =
-        courses?.filter((c: Course) =>
-            c.title?.toLowerCase().includes(searchValue.toLowerCase())
-        ) || [];
+        (courses || [])
+            .filter((c: Course) => {
+                const matchText = c.title?.toLowerCase().includes(searchValue.toLowerCase());
+
+                // ⭐ ADDED: If no date filter → return search filter only
+                if (!fromDate && !toDate) return matchText;
+
+                const created = c.createAt ? dayjs(c.createAt) : null;
+                if (!created) return false;
+
+                let valid = true;
+
+                if (fromDate) {
+                    valid = valid && created.isAfter(fromDate.startOf("day"));
+                }
+
+                if (toDate) {
+                    valid = valid && created.isBefore(toDate.endOf("day"));
+                }
+
+                return matchText && valid;
+            });
 
     const handleDelete = (courseId: number) => {
         setDeletingId(courseId);
@@ -76,6 +101,23 @@ const GetAllCourseTeacher = () => {
             render: (price: number) => <span>{price?.toLocaleString()} đ</span>,
         },
         {
+            title: "Khuyến mãi",
+            dataIndex: "salesCampaign",
+            render: (salesCampaign: number) => <span>{(salesCampaign * 100)?.toLocaleString()} %</span>,
+        },
+        {
+            title: "Ngày tạo",
+            dataIndex: "createAt",
+            key: "createAt",
+            render: (value: string) => value ? dayjs(value).format("DD/MM/YYYY HH:mm") : ""
+        },
+        {
+            title: "Ngày cập nhật",
+            dataIndex: "updateAt",
+            key: "updateAt",
+            render: (value: string) => value ? dayjs(value).format("DD/MM/YYYY HH:mm") : ""
+        },
+        {
             title: "Xuất bản",
             dataIndex: "isPublic",
             render: (isPublic: boolean) =>
@@ -94,7 +136,6 @@ const GetAllCourseTeacher = () => {
             render: (_: any, record: Course) => (
                 <div style={{ display: "flex", justifyContent: "left", gap: 10 }}>
 
-                    {/* 1️⃣ Chỉnh sửa chương trình học */}
                     <Tooltip
                         title={
                             record.courseIsActive
@@ -112,7 +153,6 @@ const GetAllCourseTeacher = () => {
                         />
                     </Tooltip>
 
-                    {/* ⭐ 2️⃣ Sửa thông tin khóa học */}
                     {!record.courseIsActive && (
                         <Tooltip title="Chỉnh sửa thông tin khóa học">
                             <Button
@@ -120,7 +160,6 @@ const GetAllCourseTeacher = () => {
                                 icon={<EditOutlined style={{ color: "#1677ff" }} />}
                                 onClick={async () => {
                                     try {
-                                        // ⭐ fetch thủ công — không lỗi TS
                                         const user = localStorage.getItem("user");
                                         const token = user ? JSON.parse(user).accessToken : "";
 
@@ -145,12 +184,10 @@ const GetAllCourseTeacher = () => {
                                     }
                                 }}
                             >
-                                Sửa thông tin
                             </Button>
                         </Tooltip>
                     )}
 
-                    {/* 3️⃣ Review khóa học */}
                     <Tooltip title="Xem trước & gửi admin duyệt">
                         <Button
                             type="link"
@@ -161,12 +198,12 @@ const GetAllCourseTeacher = () => {
                         />
                     </Tooltip>
 
-                    {/* 4️⃣ Xóa khóa học */}
                     <Tooltip title="Xóa khóa học">
                         <Button
                             danger
                             type="link"
                             icon={<DeleteOutlined />}
+                            disabled={record.courseIsActive === true || record.isPublic === true}
                             onClick={() => handleDelete(record.courseId!)}
                         />
                     </Tooltip>
@@ -194,12 +231,48 @@ const GetAllCourseTeacher = () => {
                 </Button>
             </div>
 
-            <Input.Search
-                placeholder="Tìm khóa học..."
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                className="mb-4 w-[40%]"
-            />
+            {/* ⭐ ADDED: UI FILTER DATE */}
+            <div className="flex gap-3 mb-3">
+                <Input.Search
+                    placeholder="Tìm khóa học..."
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    className="w-[40%]"
+                />
+
+                <DatePicker
+                    placeholder="Từ ngày"
+                    value={fromDate}
+                    onChange={setFromDate}
+                    format="DD/MM/YYYY"
+                />
+
+                <DatePicker
+                    placeholder="Đến ngày"
+                    value={toDate}
+                    format="DD/MM/YYYY"
+                    onChange={(v) => {
+                        if (fromDate && v && v.isBefore(fromDate, "day")) {
+                            message.warning("Ngày kết thúc không được nhỏ hơn ngày bắt đầu!");
+                            return;
+                        }
+                        setToDate(v);
+                    }}
+                />
+
+
+                <Button
+                    danger
+                    onClick={() => {
+                        setSearchValue("");
+                        setFromDate(null);
+                        setToDate(null);
+                        message.success("Đã xóa bộ lọc");
+                    }}
+                >
+                    Xóa bộ lọc
+                </Button>
+            </div>
 
             <Table
                 columns={columns}
@@ -212,7 +285,6 @@ const GetAllCourseTeacher = () => {
                 }}
             />
 
-            {/* Modal xác nhận xóa */}
             <Modal
                 title="Xác nhận xóa"
                 open={deleteModalVisible}
@@ -225,7 +297,6 @@ const GetAllCourseTeacher = () => {
                 <p>Bạn có chắc chắn muốn xóa khóa học này?</p>
             </Modal>
 
-            {/* Modal tạo / sửa khóa học */}
             <CreateCourseModal
                 open={openCreateModal}
                 onClose={() => {

@@ -146,26 +146,32 @@ export default function CreateCourseModal({ open, onClose }: CreateCourseModalPr
                 linkCertificated: addCourseState.linkCertificated
             };
 
-            const result = await addCourse(payload).unwrap();
+            if (mode === CouseMode.UPDATE) {
+                // ⭐ UPDATE
+                await updateCourse({
+                    courseId: addCourseState.courseId,
+                    ...payload
+                }).unwrap();
 
-            message.success("Tạo khóa học thành công!");
+                message.success("Cập nhật khóa học thành công!");
 
-            const normalized = {
-                ...result,
-                suitableLevels: result.courseLevel ?? result.suitableLevels ?? "",
-            };
+            } else {
+                // ⭐ CREATE
+                const result = await addCourse(payload).unwrap();
+                message.success("Tạo khóa học thành công!");
 
-            dispatch(setCourseCreatedData(normalized));
-            dispatch(setCourseMode(CouseMode.UPDATE));
+                dispatch(setCourseMode(CouseMode.UPDATE));
+            }
+
             onClose();
-
             navigate(`/teacher/getAllCourse`);
 
         } catch (err) {
             console.error(err);
-            message.error("Không thể tạo khóa học!");
+            message.error("Có lỗi xảy ra!");
         }
     };
+
 
     return (
         <Modal
@@ -297,12 +303,15 @@ export default function CreateCourseModal({ open, onClose }: CreateCourseModalPr
                             }}
                             onMouseLeave={(e) => {
                                 e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(183, 188, 207, 0.3)';
                             }}
                         >
-                            ✓ Hoàn tất & Tạo khóa học
+                            {mode === CouseMode.UPDATE
+                                ? "✓ Hoàn tất & Cập nhật khóa học"
+                                : "✓ Hoàn tất & Tạo khóa học"}
                         </Button>
                     )}
+
                 </div>
             </div>
 

@@ -47,6 +47,7 @@ const PlacementQuestionPage = () => {
     const [deleteQuestion] = useDeletePlacementQuestionMutation();
 
     const [form] = Form.useForm();
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 8 });
 
     // ✅ Local states
     const [correctAnswer, setCorrectAnswer] = useState<string>("A");
@@ -414,9 +415,10 @@ const PlacementQuestionPage = () => {
                     columns={[
                         {
                             title: "STT",
-                            render: (_: any, __: any, index: number) => index + 1,
                             width: 70,
                             align: "center",
+                            render: (_: any, __: any, index: number) =>
+                                (pagination.current - 1) * pagination.pageSize + index + 1,
                         },
                         {
                             title: "Ảnh",
@@ -489,6 +491,10 @@ const PlacementQuestionPage = () => {
                     loading={isLoading}
                     rowKey="questionId"
                     pagination={{ pageSize: 8 }}
+                    onChange={(p) => setPagination({
+                        current: p.current ?? 1,
+                        pageSize: p.pageSize ?? 8,
+                    })}
                 />
             </Card>
             <Modal
@@ -565,8 +571,8 @@ const PlacementQuestionPage = () => {
                                                 <div
                                                     key={label}
                                                     className={`p-2 rounded-md border text-sm ${isCorrect
-                                                            ? "bg-green-50 border-green-400 text-green-700 font-semibold"
-                                                            : "bg-white border-gray-200"
+                                                        ? "bg-green-50 border-green-400 text-green-700 font-semibold"
+                                                        : "bg-white border-gray-200"
                                                         }`}
                                                 >
                                                     <b>{label}.</b> {text}

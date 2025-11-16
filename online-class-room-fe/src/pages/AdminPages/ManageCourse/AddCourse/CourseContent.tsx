@@ -178,6 +178,8 @@ const CourseContent = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
             title: courseCreatedData.title,
             totalDuration: courseCreatedData.totalDuration,
             videoPreviewUrl: courseCreatedData.videoPreviewUrl,
+            suitableLevels: courseCreatedData.suitableLevels ?? "",
+
         };
     };
 
@@ -187,7 +189,7 @@ const CourseContent = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
             const data = getUpdateCourseRequest();
             updatecourse({ ...data, isPublic: true });
             message.success('Khóa học đã được xuất bản!');
-            return;
+            navigate('/admin/getAllCourse/');
         }
 
         // ✅ Teacher có thể chỉnh sửa
@@ -259,7 +261,7 @@ const CourseContent = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                     size="large"
                     variant="contained"
                 >
-                    {isReadOnly ? 'Xuất bản' : 'Lưu & Quay Lại'}
+                    {'Lưu & Quay Lại'}
                 </LoadingButton>
             </div>
             <div className="p-x-4 p-y-2 ml-4 flex-1">

@@ -1,27 +1,18 @@
 using LMSystem.API;
 using LMSystem.Repository.Helpers;
-using LMSystem.Repository.Interfaces;
 using LMSystem.Repository.Models;
-using LMSystem.Repository.Repositories;
-using LMSystem.Services.Interfaces;
-using LMSystem.Services.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Configuration;
 using System.Text;
 using System.Text.Json.Serialization;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using LMSystem.Library;
 using LMSystem.Repository.Library;
-using static Org.BouncyCastle.Math.EC.ECCurve;
+using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -156,6 +147,8 @@ builder.Services.AddAutoMapper(typeof(AutomapperProfile).Assembly);
 
 //Add DJ
 builder.Services.AddApiWebService();
+AppContext.SetSwitch("EPPlus:ExcelPackage.AllowUnlicensed", true);
+//ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 FirebaseApp.Create(new AppOptions()
 {

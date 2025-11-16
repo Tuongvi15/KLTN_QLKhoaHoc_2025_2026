@@ -83,7 +83,7 @@ const Curriculum = () => {
                     })}
                 </Reorder.Group>
             </div>
-            <div className="mt-8 flex justify-between">
+            {/* <div className="mt-8 flex justify-between">
                 <Button
                     icon={<AddIcon />}
                     onClick={() => setSection([...sections, initialSectionValue])}
@@ -93,7 +93,7 @@ const Curriculum = () => {
                 <Button loading={isUpdateLoading} onClick={handleSaveClick}>
                     Lưu
                 </Button>
-            </div>
+            </div> */}
         </div>
     );
 };

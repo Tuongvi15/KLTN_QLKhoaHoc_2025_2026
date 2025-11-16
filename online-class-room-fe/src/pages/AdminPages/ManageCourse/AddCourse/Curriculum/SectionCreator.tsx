@@ -114,8 +114,7 @@ const SectionCreator = ({
         <div className="bg-[#f7f9fa] p-4">
             <div
                 className="flex items-center gap-4"
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
+                
             >
                 <p className="text-base font-bold">Chương {position}: </p>
                 {isEdit ? (
@@ -147,14 +146,14 @@ const SectionCreator = ({
                             transition={{ duration: 0.3, type: 'spring' }}
                             className="space-x-4"
                         >
-                            <IconButton
+                            {/* <IconButton
                                 disabled={!isHovered}
                                 onClick={() => setIsEdit(true)}
                                 size="small"
                                 color="info"
                             >
                                 <CreateIcon />
-                            </IconButton>
+                            </IconButton> */}
                             <Popconfirm
                                 title="Xác nhận xóa"
                                 description="Bạn có chắc là muốn xóa ? toàn bộ nội dung trong chương này sẽ bị mất!"
@@ -166,9 +165,9 @@ const SectionCreator = ({
                                 cancelText="No"
                                 okButtonProps={{ style: { background: '#d32f2f' } }}
                             >
-                                <IconButton disabled={!isHovered} color="error" size="small">
+                                {/* <IconButton disabled={!isHovered} color="error" size="small">
                                     <DeleteIcon />
-                                </IconButton>
+                                </IconButton> */}
                             </Popconfirm>
                         </motion.div>
                     </div>
@@ -207,7 +206,7 @@ const SectionCreator = ({
                     </Reorder.Group>
                 </div>
 
-                <Button
+                {/* <Button
                     className="mt-3 bg-white"
                     icon={<AddIcon />}
                     onClick={() => {
@@ -215,7 +214,7 @@ const SectionCreator = ({
                     }}
                 >
                     Thêm bài học
-                </Button>
+                </Button> */}
             </div>
         </div>
     );
