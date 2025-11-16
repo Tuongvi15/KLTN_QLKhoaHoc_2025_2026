@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux';
 import { Footer, Header } from '.';
+import { ChatBox } from '../../components';
 import { RoleType } from '../../slices/authSlice';
 import { RootState } from '../../store';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -33,6 +34,9 @@ const DefaultLayout = ({ children, requireRole, whenRoleUnMatchNavTo }: DefaultL
             </main>
 
             {!isPlacementTestPage && <Footer />}
+
+            {/* Chat assistant (hidden on placement-test pages) */}
+            {!isPlacementTestPage && <ChatBox />}
         </div>
     );
 };
