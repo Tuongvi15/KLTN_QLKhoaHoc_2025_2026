@@ -6,7 +6,7 @@ import { LoginRequest, useLoginUserMutation } from '../../../services/auth.servi
 import { useEffect, useState } from 'react';
 import { setUser } from '../../../slices/authSlice';
 import { checkEmailValidaion, checkEmptyValidation } from '../../../utils/Validation';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { GoogleAuthProvider, getAuth, signInWithPopup } from 'firebase/auth';
 import { app } from '../../../firebase/firebase';
 
@@ -32,6 +32,8 @@ function LoginPage() {
     const [passwordValidation, setPasswordValidation] = useState(initialValidation);
     const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
+
     const [
         loginUser,
         {
@@ -47,6 +49,10 @@ function LoginPage() {
             setErrorMessage('Địa chỉ email hoặc mật khẩu không đúng!');
         }
     }, [isLoginError]);
+
+    // --------------------------
+    // ⭐ XỬ LÝ REDIRECT SAU LOGIN
+    // --------------------------
     useEffect(() => {
         if (isLoginSuccess && loginData) {
             const userData = {
@@ -58,18 +64,30 @@ function LoginPage() {
             };
             localStorage.setItem('user', JSON.stringify(userData));
             useDispach(setUser({ ...userData }));
-            navigate('/');
+
+            // lấy redirect từ URL
+            const params = new URLSearchParams(location.search);
+            const redirect = params.get("redirect");
+
+            if (redirect) {
+                navigate(redirect, { replace: true });
+            } else {
+                navigate('/', { replace: true });
+            }
         }
     }, [isLoginSuccess]);
+    // --------------------------
 
     const handleOnSubmit = async () => {
         await loginUser(formData);
     };
+
     const handleOnEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { isError, message } = checkEmailValidaion(e.target.value);
         setEmailValidation({ isError: isError, errorMessage: message });
         setFormData({ ...formData, accountEmail: e.target.value });
     };
+
     const handleOnPassworldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { isError, message } = checkEmptyValidation(
             e.target.value,
@@ -86,13 +104,17 @@ function LoginPage() {
             const userData = await signInWithPopup(auth, provider);
             console.log(userData);
             const { displayName, email, photoURL } = userData.user;
-            // Lưu thông tin người dùng vào localStorage
+
             localStorage.setItem(
                 'userLogin',
                 JSON.stringify({ name: displayName, email, avatar: photoURL }),
             );
 
-            navigate('/');
+            // GOOGLE LOGIN cũng hỗ trợ redirect
+            const params = new URLSearchParams(location.search);
+            const redirect = params.get("redirect");
+            if (redirect) navigate(redirect, { replace: true });
+            else navigate('/', { replace: true });
         } catch (error) {
             console.log(error);
         }
@@ -186,6 +208,7 @@ function LoginPage() {
                     </div>
                 </form>
             </div>
+
             <div className="hidden justify-end sm:block sm:w-[70%]">
                 <img
                     src="https://firebasestorage.googleapis.com/v0/b/estudyhub-a1699.appspot.com/o/logo%2Flogo-black-tail.png?alt=media&token=e65f65a8-94a6-4504-a370-730b122ba42e"

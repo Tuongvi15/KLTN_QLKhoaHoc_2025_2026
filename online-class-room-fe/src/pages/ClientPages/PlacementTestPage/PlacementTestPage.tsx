@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, Button, Skeleton, Tag, Progress } from "antd";
+import { Card, Button, Skeleton, Tag, Progress, Modal } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
     useGetAllFieldsQuery,
@@ -12,23 +12,36 @@ import SchoolIcon from "@mui/icons-material/School";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import HistoryIcon from "@mui/icons-material/History";
+import { useLocation } from "react-router-dom";
 
 const PlacementTestPage = () => {
     const [selectedField, setSelectedField] = useState<number | null>(null);
+    const [showLoginModal, setShowLoginModal] = useState(false);
+
     const { data: fields, isLoading: loadingFields } = useGetAllFieldsQuery();
     const userId = useSelector((state: RootState) => state.user.id);
+
     const { data: tests, isLoading: loadingTests } = useGetTestsByFieldQuery(
         { fieldId: selectedField!, accountId: userId },
         { skip: !selectedField }
     );
-    //     useEffect(() => {
-    //   window.scrollTo(0, 0); // đảm bảo cuộn về đầu trang
-    // }, []);
+
     useEffect(() => {
         console.log("Fields data:", fields);
     }, [fields]);
 
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Hàm check đăng nhập
+    const requireLogin = (callback: Function) => {
+        if (!userId) {
+            setShowLoginModal(true);
+            return false;
+        }
+        callback();
+        return true;
+    };
 
     return (
         <div
@@ -50,7 +63,6 @@ const PlacementTestPage = () => {
                 </p>
             </div>
 
-
             {/* 🎓 LĨNH VỰC */}
             <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
                 {loadingFields ? (
@@ -59,7 +71,9 @@ const PlacementTestPage = () => {
                     fields?.map((f: any) => (
                         <div
                             key={f.fieldId}
-                            onClick={() => setSelectedField(f.fieldId)}
+                            onClick={() =>
+                                requireLogin(() => setSelectedField(f.fieldId))
+                            }
                             className={`cursor-pointer rounded-3xl shadow-lg p-8 border-2 transition-all duration-300 backdrop-blur-md ${selectedField === f.fieldId
                                 ? "border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 scale-105"
                                 : "border-gray-200 bg-white hover:scale-105 hover:border-purple-400"
@@ -96,11 +110,8 @@ const PlacementTestPage = () => {
                                 const score = t.latestResult?.score || 0;
                                 const level = t.latestResult?.level || "1";
                                 const color =
-                                    level === "3"
-                                        ? "gold"
-                                        : level === "2"
-                                            ? "blue"
-                                            : "gray";
+                                    level === "3" ? "gold" : level === "2" ? "blue" : "gray";
+
                                 return (
                                     <Card
                                         key={t.placementTestId}
@@ -162,7 +173,9 @@ const PlacementTestPage = () => {
                                         <Button
                                             type="primary"
                                             onClick={() =>
-                                                navigate(`/placement-test/start/${t.placementTestId}`)
+                                                requireLogin(() =>
+                                                    navigate(`/placement-test/start/${t.placementTestId}`)
+                                                )
                                             }
                                             className="w-full h-11 rounded-full text-lg font-semibold border-none bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600"
                                         >
@@ -179,14 +192,44 @@ const PlacementTestPage = () => {
                     )}
                 </div>
             )}
+
             {/* 🌈 Nút nổi xem lịch sử */}
             <button
-                onClick={() => navigate("/placement-test/history")}
+                onClick={() =>
+                    requireLogin(() => navigate("/placement-test/history"))
+                }
                 className="fixed bottom-8 right-8 z-50 flex items-center gap-2 px-5 py-3 rounded-full text-white font-semibold shadow-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 transition-all duration-300 hover:scale-105"
             >
                 <HistoryIcon />
                 <span className="hidden sm:inline">Xem lịch sử</span>
             </button>
+
+            {/* 🔒 MODAL LOGIN */}
+            <Modal
+                open={showLoginModal}
+                onCancel={() => setShowLoginModal(false)}
+                footer={null}
+                centered
+            >
+                <div className="text-center py-6">
+                    <h2 className="text-xl font-bold mb-2 text-purple-600">
+                        Bạn chưa đăng nhập
+                    </h2>
+                    <p className="text-gray-600 mb-4">
+                        Vui lòng đăng nhập để làm bài test đầu vào.
+                    </p>
+
+                    <button
+                        onClick={() => {
+                            navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
+                        }}
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:opacity-90"
+                    >
+                        Đăng nhập ngay
+                    </button>
+
+                </div>
+            </Modal>
         </div>
     );
 };
