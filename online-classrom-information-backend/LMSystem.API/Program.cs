@@ -15,7 +15,7 @@ using LMSystem.Repository.Library;
 using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
-
+ExcelPackage.License.SetNonCommercialPersonal("estudy");
 // Add services to the container.
 
 builder.Services.AddControllers().AddJsonOptions(x =>
@@ -147,8 +147,6 @@ builder.Services.AddAutoMapper(typeof(AutomapperProfile).Assembly);
 
 //Add DJ
 builder.Services.AddApiWebService();
-AppContext.SetSwitch("EPPlus:ExcelPackage.AllowUnlicensed", true);
-//ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 FirebaseApp.Create(new AppOptions()
 {

@@ -28,6 +28,8 @@ export interface Course {
     // ⭐ THÊM để FE có thể đọc / hiển thị
     suitableLevels?: string;      // "1|2|3" từ BE.map courseLevel
     courseLevel?: string;         // BE trả về (giữ lại để tương thích)
+    categories?: { categoryId: number; name: string }[];
+    courseCategory?: string;
 }
 
 export interface AddCourseRequest {
@@ -174,6 +176,7 @@ export interface CategoryRespone {
     name: string;
     description: string;
     courseCategories?: any[];
+    categories?: { categoryId: number; name: string }[];
 }
 
 export interface CourseCategory {

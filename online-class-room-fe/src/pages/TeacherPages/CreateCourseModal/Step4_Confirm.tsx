@@ -22,11 +22,23 @@ export default function Step4_Confirm() {
 
     const firstCategory = course.courseCategories?.[0] as any; // mở rộng type tạm thời
 
-const firstField =
-    firstCategory?.field?.name ||
-    firstCategory?.category?.fieldName ||
-    "Không có";
+    const firstField =
+        firstCategory?.field?.name ||
+        firstCategory?.category?.fieldName ||
+        "Không có";
 
+    let descriptionHtml = "<em>Chưa có mô tả</em>";
+
+    try {
+        if (course.description) {
+            // Nếu description là JSON Draft.js
+            const parsed = JSON.parse(course.description);
+            descriptionHtml = draftToHtml(parsed);
+        }
+    } catch {
+        // Nếu chỉ là text thuần → hiển thị thẳng
+        descriptionHtml = course.description;
+    }
 
 
     const levelNames = (course.suitableLevels || "")
@@ -97,11 +109,10 @@ const firstField =
                                     <div style={{ marginTop: 8 }}>
                                         <div
                                             dangerouslySetInnerHTML={{
-                                                __html: course.description
-                                                    ? draftToHtml(JSON.parse(course.description))
-                                                    : "<em>Chưa có mô tả</em>"
+                                                __html: descriptionHtml
                                             }}
                                         />
+
 
                                     </div>
                                 </div>

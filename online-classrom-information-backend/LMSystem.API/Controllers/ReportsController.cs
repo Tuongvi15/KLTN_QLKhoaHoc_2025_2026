@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using System.Drawing;
 
 namespace LMSystem.API.Controllers
 {
@@ -26,19 +28,6 @@ namespace LMSystem.API.Controllers
             return Ok(data);
         }
 
-        [HttpGet("GetTeacherCoursesReport")]
-        public async Task<IActionResult> GetTeacherCoursesReport(
-    string teacherId,
-    string? search,
-    DateTime? fromDate,
-    DateTime? toDate)
-        {
-            var result = await _orderRepo.GetTeacherCoursesReport(
-                teacherId, search, fromDate, toDate);
-
-            return Ok(result);
-        }
-
         [HttpGet("ExportTeacherRevenueExcel")]
         public async Task<IActionResult> ExportTeacherRevenueExcel(
     string teacherId,
@@ -50,39 +39,53 @@ namespace LMSystem.API.Controllers
             using var package = new ExcelPackage();
             var sheet = package.Workbook.Worksheets.Add("RevenueReport");
 
-            // Header
-            sheet.Cells["A1"].Value = "Order ID";
+            // Header (BỎ USER ID)
+            sheet.Cells["A1"].Value = "Order Code";
             sheet.Cells["B1"].Value = "Ngày mua";
-            sheet.Cells["C1"].Value = "User ID";
-            sheet.Cells["D1"].Value = "Tên học viên";
-            sheet.Cells["E1"].Value = "Email";
-            sheet.Cells["F1"].Value = "SĐT";
-            sheet.Cells["G1"].Value = "Khóa học";
-            sheet.Cells["H1"].Value = "Course ID";
-            sheet.Cells["I1"].Value = "Giá niêm yết";
-            sheet.Cells["J1"].Value = "Giảm giá";
-            sheet.Cells["K1"].Value = "Số tiền thanh toán";
-            sheet.Cells["L1"].Value = "Phương thức";
-            sheet.Cells["M1"].Value = "Trạng thái";
-            sheet.Cells["N1"].Value = "Doanh thu thực nhận";
+            sheet.Cells["C1"].Value = "Học viên";
+            sheet.Cells["D1"].Value = "Email";
+            sheet.Cells["E1"].Value = "SĐT";
+            sheet.Cells["F1"].Value = "Tên khóa học";
+            sheet.Cells["G1"].Value = "Course ID";
+            sheet.Cells["H1"].Value = "Giá niêm yết";
+            sheet.Cells["I1"].Value = "Giảm giá";
+            sheet.Cells["J1"].Value = "Thanh toán";
+            sheet.Cells["K1"].Value = "Phương thức";
+            sheet.Cells["L1"].Value = "Trạng thái";
+            sheet.Cells["M1"].Value = "Doanh thu thực nhận";
+
+            var header = sheet.Cells["A1:M1"];
+            header.Style.Font.Bold = true;
+            header.Style.Font.Color.SetColor(Color.White);
+            header.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            header.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(0, 102, 204));
 
             int row = 2;
             foreach (var x in data)
             {
-                sheet.Cells[row, 1].Value = x.OrderId;
+                sheet.Cells[row, 1].Value = "'" + x.OrderId;
                 sheet.Cells[row, 2].Value = x.PurchaseDate.ToString("dd/MM/yyyy HH:mm");
-                sheet.Cells[row, 3].Value = x.UserId;
-                sheet.Cells[row, 4].Value = x.StudentName;
-                sheet.Cells[row, 5].Value = x.Email;
-                sheet.Cells[row, 6].Value = x.PhoneNumber;
-                sheet.Cells[row, 7].Value = x.CourseTitle;
-                sheet.Cells[row, 8].Value = x.CourseId;
-                sheet.Cells[row, 9].Value = x.OriginalPrice;
-                sheet.Cells[row, 10].Value = x.Discount;
-                sheet.Cells[row, 11].Value = x.PaidAmount;
-                sheet.Cells[row, 12].Value = x.PaymentMethod;
-                sheet.Cells[row, 13].Value = x.PaymentStatus;
-                sheet.Cells[row, 14].Value = x.RevenueReceived;
+                sheet.Cells[row, 3].Value = x.StudentName;
+                sheet.Cells[row, 4].Value = x.Email;
+                sheet.Cells[row, 5].Value = x.PhoneNumber;
+                sheet.Cells[row, 6].Value = x.CourseTitle;
+                sheet.Cells[row, 7].Value = x.CourseId;
+                sheet.Cells[row, 8].Value = x.OriginalPrice;
+                sheet.Cells[row, 9].Value = x.Discount;
+                sheet.Cells[row, 10].Value = x.PaidAmount;
+                sheet.Cells[row, 11].Value = x.PaymentMethod;
+
+                // 👉 Map trạng thái OrderStatusEnum sang tiếng Việt
+                sheet.Cells[row, 12].Value = x.PaymentStatus switch
+                {
+                    "Completed" => "Hoàn thành",
+                    "Failed" => "Thất bại",
+                    "Pending" => "Đang xử lý",
+                    _ => x.PaymentStatus
+                };
+
+                sheet.Cells[row, 13].Value = x.RevenueReceived;
+
                 row++;
             }
 
@@ -93,12 +96,14 @@ namespace LMSystem.API.Controllers
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"RevenueReport_{DateTime.Now:yyyyMMddHHmm}.xlsx");
         }
+
+
         [HttpGet("ExportTeacherCoursesExcel")]
         public async Task<IActionResult> ExportTeacherCoursesExcel(
-            string teacherId,
-            string? search,
-            DateTime? fromDate,
-            DateTime? toDate)
+    string teacherId,
+    string? search,
+    DateTime? fromDate,
+    DateTime? toDate)
         {
             var data = await _orderRepo.GetTeacherCoursesReport(
                 teacherId, search, fromDate, toDate);
@@ -108,19 +113,24 @@ namespace LMSystem.API.Controllers
 
             sheet.Cells["A1"].Value = "Course ID";
             sheet.Cells["B1"].Value = "Tên khóa học";
-            sheet.Cells["C1"].Value = "Giảng viên chính";
+            sheet.Cells["C1"].Value = "Giảng viên";
             sheet.Cells["D1"].Value = "Danh mục";
             sheet.Cells["E1"].Value = "Giá";
-            sheet.Cells["F1"].Value = "Số lượng học viên";
-            sheet.Cells["G1"].Value = "Doanh thu khóa học";
-            sheet.Cells["H1"].Value = "Số bài học";
+            sheet.Cells["F1"].Value = "Số học viên";
+            sheet.Cells["G1"].Value = "Doanh thu";
+            sheet.Cells["H1"].Value = "Số Bài học";
             sheet.Cells["I1"].Value = "Thời lượng video";
             sheet.Cells["J1"].Value = "Ngày xuất bản";
-            sheet.Cells["K1"].Value = "Cập nhật gần nhất";
+            sheet.Cells["K1"].Value = "Cập nhật";
             sheet.Cells["L1"].Value = "Trạng thái";
 
-            int row = 2;
+            var header = sheet.Cells["A1:L1"];
+            header.Style.Font.Bold = true;
+            header.Style.Font.Color.SetColor(Color.White);
+            header.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            header.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(0, 102, 204));
 
+            int row = 2;
             foreach (var c in data)
             {
                 sheet.Cells[row, 1].Value = c.CourseId;
@@ -134,7 +144,14 @@ namespace LMSystem.API.Controllers
                 sheet.Cells[row, 9].Value = c.VideoDuration;
                 sheet.Cells[row, 10].Value = c.PublishDate?.ToString("dd/MM/yyyy");
                 sheet.Cells[row, 11].Value = c.LastUpdated?.ToString("dd/MM/yyyy");
-                sheet.Cells[row, 12].Value = c.Status;
+
+                // 👉 Map trạng thái Public / Draft → tiếng Việt
+                sheet.Cells[row, 12].Value = c.Status switch
+                {
+                    "Public" => "Công khai",
+                    "Draft" => "Bản nháp",
+                    _ => c.Status
+                };
 
                 row++;
             }
@@ -146,7 +163,5 @@ namespace LMSystem.API.Controllers
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"CoursesReport_{DateTime.Now:yyyyMMddHHmm}.xlsx");
         }
-
-
     }
 }

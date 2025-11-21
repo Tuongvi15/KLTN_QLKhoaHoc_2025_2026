@@ -1,4 +1,4 @@
-import { Button, Input, Modal, Pagination, Table, Tag, Tooltip, message } from 'antd';
+import { Button, Input, Modal, Pagination, Select, Table, Tag, Tooltip, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Course } from '../../../../types/Course.type';
 import { ColumnType } from 'antd/es/table';
@@ -115,7 +115,7 @@ const columns = ({
                 );
             },
             width: '10%',
-        },{
+        }, {
             title: 'Xuất bản',
             dataIndex: 'isPublic',
             render: (isPublic) => {
@@ -160,7 +160,7 @@ const columns = ({
                 console.log('haha:', record.courseId);
 
                 // Thử các tên field khác nhau
-                const id = record.courseId ||record.courseId;
+                const id = record.courseId || record.courseId;
 
                 return (
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -263,6 +263,33 @@ const GetAllCourse = () => {
         // Hủy xóa, đóng modal
         setDeleteModalVisible(false);
     };
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const allCategoryOptions = Array.from(
+        new Set(
+            database.flatMap(d =>
+                String(d.courseCategory || "")
+                    .split(",")
+                    .map(x => x.trim())
+                    .filter(Boolean)
+            )
+        )
+    ).map(c => ({ label: c, value: c }));
+
+    const filteredData = database.filter(c => {
+        if (selectedCategories.length > 0) {
+            const catList = String(c.courseCategory || "")
+                .split(",")
+                .map(x => x.trim());
+
+            const match = selectedCategories.some(cat =>
+                catList.includes(cat)
+            );
+
+            if (!match) return false;
+        }
+
+        return true;
+    });
 
     const tableColumns: ColumnType<Course>[] = columns({ pagination, displayData, handleDelete });
 
@@ -289,13 +316,24 @@ const GetAllCourse = () => {
                                 onKeyDown={handleSearchKeyPress}
                                 value={searchValue}
                             />
+
+                            <Select
+                                mode="multiple"
+                                allowClear
+                                placeholder="Lọc theo thể loại"
+                                style={{ width: 280 }}
+                                options={allCategoryOptions}
+                                value={selectedCategories}
+                                onChange={(v) => setSelectedCategories(v)}
+                            />
+
                         </div>
                     </div>
                 </div>
                 <Table
                     columns={tableColumns}
                     rowKey={(record) => record.courseId}
-                    dataSource={database}
+                    dataSource={filteredData}
                     pagination={false}
                 />
                 <Pagination

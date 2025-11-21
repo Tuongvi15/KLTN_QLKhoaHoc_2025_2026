@@ -81,7 +81,7 @@ namespace LMSystem.Repository.Repositories
             return await query
                 .Select(x => new TeacherRevenueReportDto
                 {
-                    OrderId = x.order.OrderId,
+                    OrderId = x.order.OrderCode,
                     PurchaseDate = (DateTime)x.order.PaymentDate,
                     UserId = x.user.Id,
                     StudentName = x.user.FirstName + " " + x.user.LastName,
@@ -718,7 +718,7 @@ namespace LMSystem.Repository.Repositories
     }
     public class TeacherRevenueReportDto
     {
-        public int OrderId { get; set; }
+        public long OrderId { get; set; }
         public DateTime PurchaseDate { get; set; }
         public string UserId { get; set; }
         public string StudentName { get; set; }

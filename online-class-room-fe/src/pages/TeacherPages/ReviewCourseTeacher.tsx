@@ -113,7 +113,10 @@ const QuizPreview: React.FC<{ quizId: number }> = ({ quizId }) => {
                     )}
 
                     <div style={{ marginTop: 6 }}>
-                      <Text type="secondary">Đáp án đúng (index): {String(q.correctAnwser ?? "—")}</Text>
+                      <Text strong style={{ color: "#814e00ff" }}>
+                        Đáp án đúng: {String.fromCharCode(65 + correctIndex)}
+                      </Text>
+
                     </div>
                   </div>
                 </List.Item>
@@ -256,12 +259,26 @@ export default function ReviewCourseTeacher(): JSX.Element {
                         <div style={{ width: 240 }}>
                           <Card size="small" bordered>
                             <Space direction="vertical" style={{ width: "100%" }}>
-                              <div><Text type="secondary">StepId:</Text> <div>{String(step.stepId ?? "-")}</div></div>
-                              <div><Text type="secondary">QuizId:</Text> <div>{String(step.quizId ?? "-")}</div></div>
-                              <div><Text type="secondary">Position:</Text> <div>{step.position ?? idx + 1}</div></div>
-                              {step.duration ? <div><Text type="secondary">Duration:</Text> <div>{step.duration}s</div></div> : null}
+
+                              <div>
+                                <Text type="secondary">Mã Quiz:</Text>
+                                <div>{String(step.quizId ?? "-")}</div>
+                              </div>
+
+                              <div>
+                                <Text type="secondary">Vị trí trong chương:</Text>
+                                <div>{step.position ?? idx + 1}</div>
+                              </div>
+
+                              {step.duration ? (
+                                <div>
+                                  <Text type="secondary">Thời lượng:</Text>
+                                  <div>{Math.round(step.duration)} giây</div>
+                                </div>
+                              ) : null}
                             </Space>
                           </Card>
+
                         </div>
                       </div>
                     </Panel>

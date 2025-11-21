@@ -106,6 +106,33 @@ export default function TeacherDashboardPage() {
       <Typography.Title level={3} style={{ color: "#1677ff" }}>
         Dashboard Giảng viên
       </Typography.Title>
+      {/* ⭐⭐ BUTTON EXPORT Excel – dùng util ⭐⭐ */}
+      <div className="flex justify-end gap-3 mb-4">
+        <Button
+          type="primary"
+          className="bg-blue-500"
+          onClick={() =>
+            downloadExcel(
+              `${import.meta.env.VITE_API_URL}/Reports/ExportTeacherRevenueExcel?teacherId=${teacherId}`,
+              "RevenueReport.xlsx"
+            )
+          }
+        >
+          Xuất Excel Doanh thu
+        </Button>
+
+        <Button
+          type="default"
+          onClick={() =>
+            downloadExcel(
+              `${import.meta.env.VITE_API_URL}/Reports/ExportTeacherCoursesExcel?teacherId=${teacherId}`,
+              "CoursesReport.xlsx"
+            )
+          }
+        >
+          Xuất Excel Khóa học
+        </Button>
+      </div>
 
       <KPICards
         totalCourses={totalCourses}
