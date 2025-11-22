@@ -66,6 +66,40 @@ namespace LMSystem.Repository.Repositories
             }
         }
 
+        public async Task CreateApproveCourse(ApproveCourse approve)
+        {
+            _context.ApproveCourses.Add(approve);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateApproveCourse(ApproveCourse approve)
+        {
+            _context.ApproveCourses.Update(approve);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SetCoursePublic(int courseId)
+        {
+            var course = await _context.Courses.FirstOrDefaultAsync(c => c.CourseId == courseId);
+            if (course == null) return;
+
+            course.IsPublic = true;
+            course.UpdateAt = DateTime.UtcNow;
+            course.PublicAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<Course?> GetCourseByIdAsync(int courseId)
+        {
+            return await _context.Courses.FirstOrDefaultAsync(c => c.CourseId == courseId);
+        }
+
+
+        public async Task<ApproveCourse?> GetApproveCourseById(int id)
+        {
+            return await _context.ApproveCourses.FirstOrDefaultAsync(x => x.ApproveCourseId == id);
+        }
 
         public async Task<ResponeModel> AddCourse(AddCourseModel addCourseModel)
         {
@@ -112,6 +146,54 @@ namespace LMSystem.Repository.Repositories
                 Console.WriteLine($"Exception: {ex.Message}");
                 return new ResponeModel { Status = "Error", Message = "An error occurred while adding the course" };
             }
+        }
+
+        public async Task<List<CourseReportDto>> GetCoursesReport(string? teacherId, DateTime? fromDate, DateTime? toDate)
+        {
+            var query = _context.Courses
+                .Include(c => c.Account)
+                .Include(c => c.CourseCategories).ThenInclude(cc => cc.Category)
+                .Include(c => c.RegistrationCourses)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(teacherId))
+                query = query.Where(c => c.AccountId == teacherId);
+
+            if (fromDate.HasValue)
+            {
+                var fromUtc = DateTime.SpecifyKind(fromDate.Value, DateTimeKind.Utc);
+                query = query.Where(c => c.CreateAt >= fromUtc);
+            }
+
+            if (toDate.HasValue)
+            {
+                var toUtc = DateTime.SpecifyKind(toDate.Value, DateTimeKind.Utc);
+                query = query.Where(c => c.CreateAt <= toUtc);
+            }
+
+
+            return await query.Select(c => new CourseReportDto
+            {
+                CourseId = c.CourseId,
+                Title = c.Title,
+                TeacherName = c.Account.FirstName + " " + c.Account.LastName,
+                Categories = string.Join(", ", c.CourseCategories.Select(cc => cc.Category.Name)),
+                Price = c.Price ?? 0,
+                StudentCount = c.RegistrationCourses.Count(),
+                Duration = c.TotalDuration,
+                IsPublic = c.IsPublic ?? false,
+                IsActive = c.CourseIsActive ?? false,
+                Created = c.CreateAt,
+                Updated = c.UpdateAt
+            }).ToListAsync();
+        }
+
+        public async Task<List<ApproveCourse>> GetApproveHistory(int courseId)
+        {
+            return await _context.ApproveCourses
+                .Where(x => x.CourseId == courseId)
+                .OrderByDescending(x => x.ApproveAt)  // sort tại DB cho tối ưu
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Course>> GetAllCourses()
@@ -264,6 +346,11 @@ namespace LMSystem.Repository.Repositories
                 query = query.Where(c => c.Price >= filterParams.MinPrice.Value);
             }
 
+            if (filterParams.IsActive is not null)
+            {
+                query = query.Where(c => c.CourseIsActive == filterParams.IsActive);
+            }
+
             if (filterParams.MaxPrice is not null)
             {
                 query = query.Where(c => c.Price <= filterParams.MaxPrice.Value);
@@ -273,7 +360,7 @@ namespace LMSystem.Repository.Repositories
             if (!string.IsNullOrWhiteSpace(filterParams.Search))
             {
                 string search = filterParams.Search.Trim().ToLower();
-                query = query.Where(c => c.Title.ToLower().Contains(search));
+                query = query.Where(c => c.Title.ToLower().Contains(search) || (c.Account.FirstName + " " + c.Account.LastName).ToLower().Contains(search));
             }
 
             // 👤 Filter theo AccountId
@@ -336,6 +423,15 @@ namespace LMSystem.Repository.Repositories
                 TotalCourses: totalCourses,
                 TotalPages: totalPages
             );
+        }
+
+        public async Task<bool> CheckStudentStillLearning(int courseId)
+        {
+            return await _context.RegistrationCourses
+                .AnyAsync(rc =>
+                    rc.CourseId == courseId &&
+                    (rc.IsCompleted == false || rc.LearningProgress < 1)
+                );
         }
 
 
@@ -936,6 +1032,18 @@ namespace LMSystem.Repository.Repositories
             }
         }
 
+        public async Task SetCourseUnpublic(int courseId)
+        {
+            var course = await _context.Courses.FirstOrDefaultAsync(c => c.CourseId == courseId);
+            if (course == null) return;
+
+            course.IsPublic = false;
+            course.UpdateAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
+
+
         public async Task<bool> AddRegistrationAsync(RegistrationCourse registrationCourse)
         {
             _context.RegistrationCourses.Add(registrationCourse);
@@ -949,4 +1057,62 @@ namespace LMSystem.Repository.Repositories
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
     }
+
+    public class CourseReportDto
+    {
+        public int CourseId { get; set; }
+        public string Title { get; set; }
+        public string TeacherName { get; set; }
+        public string Categories { get; set; }
+        public double Price { get; set; }
+        public int StudentCount { get; set; }
+        public int Duration { get; set; }
+        public bool IsPublic { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime? Created { get; set; }
+        public DateTime? Updated { get; set; }
+    }
+    public enum ApproveType
+    {
+        DuyetKhoaHoc = 1,
+        HuyXuatBan = 2
+    }
+
+    public enum ApproveStatus
+    {
+        Pending = 0,
+        Approved = 1,
+        Rejected = 2
+    }
+    public class ApproveCourseDto
+    {
+        public int ApproveCourseId { get; set; }
+        public int CourseId { get; set; }
+        public string? CourseTitle { get; set; }
+        public string? RequesterId { get; set; }
+        public string? RequesterName { get; set; }
+        public ApproveType Type { get; set; }
+        public ApproveStatus ApproveStatus { get; set; }
+        public DateTime? ApproveAt { get; set; }
+        public string? Comment { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+    public class ApproveCourseRequest
+    {
+        public int ApproveCourseId { get; set; }
+        public bool IsApproved { get; set; }
+        public string? Comment { get; set; }
+    }
+
+    public class ApproveHistoryDto
+    {
+        public int ApproveCourseId { get; set; }
+        public int CourseId { get; set; }
+        public DateTime? ApproveAt { get; set; }
+        public string? Type { get; set; }
+        public string? ApproveStatus { get; set; }
+        public string? Comment { get; set; }
+        public DateTime? CreatedAt { get; set; }
+    }
+
 }

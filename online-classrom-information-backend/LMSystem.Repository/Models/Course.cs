@@ -48,6 +48,8 @@ public partial class Course
     public virtual ICollection<Section> Sections { get; set; } = new List<Section>();
 
     public virtual ICollection<WishList> WishLists { get; set; } = new List<WishList>();
+    public virtual ICollection<ApproveCourse> ApproveCourses { get; set; } = new List<ApproveCourse>();
+
 
     public virtual ICollection<LinkCertificateAccount> LinkCertificateAccounts { get; set; } = new List<LinkCertificateAccount>();
 }

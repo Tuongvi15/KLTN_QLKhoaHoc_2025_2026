@@ -1,4 +1,4 @@
-import { Button, Input, Modal, Pagination, Select, Table, Tag, Tooltip, message } from 'antd';
+import { Button, Input, Modal, Pagination, DatePicker, Select, Table, Tag, Tooltip, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Course } from '../../../../types/Course.type';
 import { ColumnType } from 'antd/es/table';
@@ -9,6 +9,9 @@ import { Link } from 'react-router-dom';
 import { PagingParam } from '../../../../types/TableParam';
 import { DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { useDeleteCourseMutation } from '../../../../services/course.services';
+import { downloadExcel } from "../../../../utils/downloadExcel";
+import { useGetAllTeachersQuery } from "../../../../services/account.services";
+
 
 type GetAllCourseProps = {
     pagination: { current: number; total: number };
@@ -182,6 +185,7 @@ const columns = ({
         }
 
     ];
+
 const GetAllCourse = () => {
     const [database, setDatabase] = useState<Course[]>([]);
     const displayData = 10;
@@ -190,6 +194,25 @@ const GetAllCourse = () => {
         current: 1,
         total: 0,
     });
+    const { data: teacherList = [] } = useGetAllTeachersQuery();
+    const [selectedTeacherId, setSelectedTeacherId] = useState<string>("");
+
+    const [dateRange, setDateRange] = useState<[string, string] | null>(null);
+
+    const handleExportExcel = () => {
+        const from = dateRange?.[0] ?? "";
+        const to = dateRange?.[1] ?? "";
+
+        const url =
+            `${import.meta.env.VITE_API_URL}/Reports/ExportCourses` +
+            `?teacherId=${selectedTeacherId}` +   // ⭐ dùng state
+            `&fromDate=${from}` +
+            `&toDate=${to}`;
+
+        downloadExcel(url, "CoursesReport.xlsx");
+    };
+
+
     const { Search } = Input;
     const [deleteModalVisible, setDeleteModalVisible] = useState(false); // State để điều khiển hiển thị của modal xác nhận xóa
     const [deletingItemId, setDeletingItemId] = useState<number | null>(null);
@@ -199,6 +222,7 @@ const GetAllCourse = () => {
         pageSize: displayData,
         pageNumber: pagination.current,
         search: searchValue,
+        isActive: true,
     };
 
     const { state, response } = useCourseAll(input);
@@ -288,8 +312,13 @@ const GetAllCourse = () => {
             if (!match) return false;
         }
 
+        // ⭐ Lọc theo giáo viên
+        if (selectedTeacherId && c.accountId !== selectedTeacherId)
+            return false;
+
         return true;
     });
+
 
     const tableColumns: ColumnType<Course>[] = columns({ pagination, displayData, handleDelete });
 
@@ -302,14 +331,11 @@ const GetAllCourse = () => {
                         <h1 className="mb-5 text-2xl font-bold text-gray-800">
                             Danh sách các khóa học:
                         </h1>
-                        <Button type="primary" className="bg-blue-500">
-                            <Link to={'/admin/addCourse/'}>Thêm khóa học mới</Link>
-                        </Button>
                     </div>
                     <div>
                         <div className="flex items-center justify-between">
                             <Search
-                                placeholder="Nhập tên khóa học để tìm kiếm"
+                                placeholder="Nhập tên khóa học hoặc giảng viên"
                                 className="w-[30%]"
                                 size="large"
                                 onChange={handleSearchChange}
@@ -317,17 +343,60 @@ const GetAllCourse = () => {
                                 value={searchValue}
                             />
 
-                            <Select
-                                mode="multiple"
-                                allowClear
-                                placeholder="Lọc theo thể loại"
-                                style={{ width: 280 }}
-                                options={allCategoryOptions}
-                                value={selectedCategories}
-                                onChange={(v) => setSelectedCategories(v)}
-                            />
+                            <div className="flex gap-3">
+                                <Select
+                                    allowClear
+                                    placeholder="Lọc theo giảng viên"
+                                    style={{ width: 220 }}
+                                    value={selectedTeacherId || undefined}
+                                    onChange={(value) => setSelectedTeacherId(value || "")}
+                                    options={teacherList.map(t => ({
+                                        label: t.fullName,
+                                        value: t.id
+                                    }))}
+                                />
 
+                                <Select
+                                    mode="multiple"
+                                    allowClear
+                                    placeholder="Lọc theo thể loại"
+                                    style={{ width: 280 }}
+                                    options={allCategoryOptions}
+                                    value={selectedCategories}
+                                    onChange={(v) => setSelectedCategories(v)}
+                                />
+                                <div className="flex gap-2">
+                                    <DatePicker
+                                        placeholder="Từ ngày"
+                                        onChange={(value) => {
+                                            setDateRange(prev => [
+                                                value ? value.format("YYYY-MM-DD") : "",
+                                                prev?.[1] ?? ""
+                                            ]);
+                                        }}
+                                    />
+
+                                    <DatePicker
+                                        placeholder="Đến ngày"
+                                        onChange={(value) => {
+                                            setDateRange(prev => [
+                                                prev?.[0] ?? "",
+                                                value ? value.format("YYYY-MM-DD") : ""
+                                            ]);
+                                        }}
+                                    />
+                                </div>
+
+
+                                <Button
+                                    className="bg-blue-600 text-white"
+                                    onClick={handleExportExcel}
+                                >
+                                    Xuất Excel
+                                </Button>
+                            </div>
                         </div>
+
                     </div>
                 </div>
                 <Table

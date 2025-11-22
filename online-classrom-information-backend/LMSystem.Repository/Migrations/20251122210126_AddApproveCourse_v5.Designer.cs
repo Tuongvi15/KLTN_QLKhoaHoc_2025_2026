@@ -3,6 +3,7 @@ using System;
 using LMSystem.Repository.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LMSystem.Repository.Migrations
 {
     [DbContext(typeof(LMOnlineSystemDbContext))]
-    partial class LMOnlineSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251122210126_AddApproveCourse_v5")]
+    partial class AddApproveCourse_v5
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1211,7 +1214,7 @@ namespace LMSystem.Repository.Migrations
                     b.HasOne("LMSystem.Repository.Models.PlacementQuestion", "PlacementQuestion")
                         .WithMany("PlacementAnswers")
                         .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("LMSystem.Repository.Models.PlacementResult", "PlacementResult")

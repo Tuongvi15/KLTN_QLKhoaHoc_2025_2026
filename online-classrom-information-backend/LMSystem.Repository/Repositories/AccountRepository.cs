@@ -54,6 +54,35 @@ namespace LMSystem.Repository.Repositories
             return result;
         }
 
+        public async Task<List<TeacherBasicDto>> GetAllTeachers()
+        {
+            var teacherRole = await _context.Roles
+                .Where(r => r.Name == "Teacher")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            if (teacherRole == null)
+                return new List<TeacherBasicDto>();
+
+            var teachers = await _context.UserRoles
+                .Where(ur => ur.RoleId == teacherRole)
+                .Join(
+                    _context.Account,
+                    ur => ur.UserId,
+                    a => a.Id,
+                    (ur, a) => new TeacherBasicDto
+                    {
+                        Id = a.Id,
+                        FullName = (a.FirstName + " " + a.LastName).Trim()
+                    }
+                )
+                .ToListAsync();
+
+            return teachers;
+        }
+
+
+
         public async Task<Account> GetAccountById(string id)
         {
             var account = await _context.Account.Where(x => x.Id.ToLower() == id.ToLower()).FirstOrDefaultAsync(); ;
@@ -950,5 +979,11 @@ namespace LMSystem.Repository.Repositories
                 };
             }
         }
+        public class TeacherBasicDto
+        {
+            public string Id { get; set; }
+            public string FullName { get; set; }
+        }
+
     }
 }

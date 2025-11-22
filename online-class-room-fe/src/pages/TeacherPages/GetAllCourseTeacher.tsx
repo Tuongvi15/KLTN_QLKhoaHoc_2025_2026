@@ -228,17 +228,17 @@ const GetAllCourseTeacher = () => {
             align: "center" as const,
             render: (_: any, record: Course) => (
                 <Space size={4}>
-                    <Tooltip title={record.courseIsActive ? "Khóa học đang hoạt động" : "Chỉnh sửa chương trình học"}>
+                    <Tooltip title={record.isPublic ? "Khóa học đang hoạt động" : "Chỉnh sửa chương trình học"}>
                         <Button
                             type="text"
                             icon={<EyeOutlined />}
-                            disabled={record.courseIsActive === true}
+                            disabled={record.isPublic === true}
                             onClick={() => navigate(`/teacher/updateCourse/${record.courseId}`)}
                             style={{ color: record.courseIsActive ? undefined : "#5624d0" }}
                         />
                     </Tooltip>
 
-                    {!record.courseIsActive && (
+                    {!record.isPublic && (
                         <Tooltip title="Chỉnh sửa thông tin">
                             <Button
                                 type="text"

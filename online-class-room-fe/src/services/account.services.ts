@@ -38,6 +38,10 @@ export const accountApi = createApi({
                 method: 'delete',
             }),
         }),
+        getAllTeachers: build.query<{ id: string; fullName: string }[], void>({
+            query: () => `api/Account/GetAllTeachers`,
+        }),
+
         countTotalAccounts: build.query<number, void>({
             query: () => 'api/Account/CountTotalAccount',
 
@@ -54,4 +58,5 @@ export const {
     useGetAccountByParentAccountIdQuery,
     useDeleteAccountMutation,
     useCountTotalAccountsQuery,
+    useGetAllTeachersQuery,
 } = accountApi;

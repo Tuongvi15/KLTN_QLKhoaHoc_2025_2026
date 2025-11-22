@@ -87,8 +87,18 @@ export const coursesApi = createApi({
 
         getAllCourses: build.query<GetAllCourse, PagingParam>({
             query: (input: PagingParam) =>
-                `api/Course/CourselistPagination?pageNumber=${input.pageNumber}&pageSize=${input.pageSize}&search=${input.search}`,
+                `api/Course/CourselistPagination?` +
+                `pageNumber=${input.pageNumber}&pageSize=${input.pageSize}` +
+                `&search=${input.search}` +
+                `${input.isActive !== undefined ? `&isActive=${input.isActive}` : ''}`,
+
         }),
+
+        checkStudentStillLearning: build.query<{ hasStudent: boolean }, number>({
+            query: (courseId) => `api/Course/CheckStudentStillLearning/${courseId}`,
+        }),
+
+
         deleteCourse: build.mutation<Course, number>({
             query: (id) => ({
                 url: `api/Course/DeleteCourse?courseId=${id}`,
@@ -121,6 +131,28 @@ export const coursesApi = createApi({
                 url: `api/Course/GetStudentsInMyCourses?teacherId=${teacherId}`,
                 method: 'POST',
                 body: courseIds,
+            }),
+        }),
+
+        getApproveHistory: build.query({
+            query: (courseId: number) => `api/Course/GetApproveHistory/${courseId}`,
+        }),
+        requestApproveCourse: build.mutation<any, number>({
+            query: (courseId) => ({
+                url: `api/Course/RequestApproveCourse/${courseId}`,
+                method: "POST"
+            }),
+        }),
+
+        approveCourse: build.mutation<any, {
+            approveCourseId: number,
+            isApproved: boolean,
+            comment?: string
+        }>({
+            query: (body) => ({
+                url: `api/Course/ApproveCourse`,
+                method: "POST",
+                body,
             }),
         }),
 
@@ -162,6 +194,10 @@ export const {
     useGetCourselistPaginationQuery,
     useGetCoursesByTeacherQuery,
     useGetStudentsInMyCourseQuery,
+    useGetApproveHistoryQuery,
     useGetStudentsInMyCoursesQuery,
     usePublishCourseMutation,
+    useCheckStudentStillLearningQuery,
+    useRequestApproveCourseMutation,
+    useApproveCourseMutation,
 } = coursesApi;

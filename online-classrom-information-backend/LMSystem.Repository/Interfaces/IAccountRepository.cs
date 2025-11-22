@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static LMSystem.Repository.Repositories.AccountRepository;
 
 namespace LMSystem.Repository.Interfaces
 {
@@ -16,6 +17,8 @@ namespace LMSystem.Repository.Interfaces
         public Task<AccountModel> GetAccountByEmail(string email);
         public Task<Account> GetAccountById(string id);
         public Task<List<string>> GetListAccountIds();
+        Task<List<TeacherBasicDto>> GetAllTeachers();
+
         public Task<Account> GetAccountByIdV1(string id);
         public Task<ResponeModel> GetAccountByParentAccountId(string accountId);
         public Task<AccountModel> UpdateAccountByEmail(AccountModel account);

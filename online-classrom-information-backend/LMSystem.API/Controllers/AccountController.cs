@@ -326,6 +326,13 @@ namespace LMSystem.API.Controllers
             }
         }
 
+        [HttpGet("GetAllTeachers")]
+        public async Task<IActionResult> GetAllTeachers()
+        {
+            var data = await _accountService.GetAllTeachers();
+            return Ok(data);
+        }
+
         [HttpGet("ViewAccountList")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ViewAccountList([FromQuery] AccountFilterParameters filterParams)

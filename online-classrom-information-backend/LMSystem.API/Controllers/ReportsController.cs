@@ -1,5 +1,5 @@
 ﻿using LMSystem.Repository.Interfaces;
-using Microsoft.AspNetCore.Http;
+using LMSystem.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
@@ -12,12 +12,39 @@ namespace LMSystem.API.Controllers
     public class ReportsController : ControllerBase
     {
         private readonly IOrderRepository _orderRepo;
+        private readonly ICourseService _courseService;
 
-        public ReportsController(IOrderRepository orderRepo)
+        public ReportsController(IOrderRepository orderRepo, ICourseService courseService)
         {
             _orderRepo = orderRepo;
+            _courseService = courseService;
         }
 
+        // ============================================================
+        // EXPORT ALL COURSES (ADMIN)
+        // ============================================================
+        [HttpGet("ExportCourses")]
+        public async Task<IActionResult> ExportCourses(
+            string? teacherId,
+            DateTime? fromDate,
+            DateTime? toDate)
+        {
+            var fileBytes = await _courseService.ExportCoursesExcel(teacherId, fromDate, toDate);
+
+            string fileName = $"Courses_{DateTime.Now:yyyyMMddHHmm}.xlsx";
+
+            // ⭐ BUỘC TRÌNH DUYỆT HỎI “SAVE AS”
+            Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+
+            return File(
+                fileBytes,
+                "application/octet-stream" // ⭐ BẮT TRÌNH DUYỆT GIỮA NHƯ FILE BINARY
+            );
+        }
+
+        // ============================================================
+        // TEACHER REVENUE REPORT
+        // ============================================================
         [HttpGet("GetTeacherRevenueReport")]
         public async Task<IActionResult> GetTeacherRevenueReport(
             string teacherId,
@@ -28,18 +55,20 @@ namespace LMSystem.API.Controllers
             return Ok(data);
         }
 
+        // ============================================================
+        // EXPORT TEACHER REVENUE EXCEL
+        // ============================================================
         [HttpGet("ExportTeacherRevenueExcel")]
         public async Task<IActionResult> ExportTeacherRevenueExcel(
-    string teacherId,
-    DateTime? fromDate,
-    DateTime? toDate)
+            string teacherId,
+            DateTime? fromDate,
+            DateTime? toDate)
         {
             var data = await _orderRepo.GetTeacherRevenueReport(teacherId, fromDate, toDate);
 
             using var package = new ExcelPackage();
             var sheet = package.Workbook.Worksheets.Add("RevenueReport");
 
-            // Header (BỎ USER ID)
             sheet.Cells["A1"].Value = "Order Code";
             sheet.Cells["B1"].Value = "Ngày mua";
             sheet.Cells["C1"].Value = "Học viên";
@@ -75,7 +104,6 @@ namespace LMSystem.API.Controllers
                 sheet.Cells[row, 10].Value = x.PaidAmount;
                 sheet.Cells[row, 11].Value = x.PaymentMethod;
 
-                // 👉 Map trạng thái OrderStatusEnum sang tiếng Việt
                 sheet.Cells[row, 12].Value = x.PaymentStatus switch
                 {
                     "Completed" => "Hoàn thành",
@@ -91,19 +119,24 @@ namespace LMSystem.API.Controllers
 
             sheet.Cells.AutoFitColumns();
 
+            string fileName = $"RevenueReport_{DateTime.Now:yyyyMMddHHmm}.xlsx";
+            Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+
             return File(
                 package.GetAsByteArray(),
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                $"RevenueReport_{DateTime.Now:yyyyMMddHHmm}.xlsx");
+                "application/octet-stream"
+            );
         }
 
-
+        // ============================================================
+        // EXPORT TEACHER COURSES REPORT
+        // ============================================================
         [HttpGet("ExportTeacherCoursesExcel")]
         public async Task<IActionResult> ExportTeacherCoursesExcel(
-    string teacherId,
-    string? search,
-    DateTime? fromDate,
-    DateTime? toDate)
+            string teacherId,
+            string? search,
+            DateTime? fromDate,
+            DateTime? toDate)
         {
             var data = await _orderRepo.GetTeacherCoursesReport(
                 teacherId, search, fromDate, toDate);
@@ -144,8 +177,6 @@ namespace LMSystem.API.Controllers
                 sheet.Cells[row, 9].Value = c.VideoDuration;
                 sheet.Cells[row, 10].Value = c.PublishDate?.ToString("dd/MM/yyyy");
                 sheet.Cells[row, 11].Value = c.LastUpdated?.ToString("dd/MM/yyyy");
-
-                // 👉 Map trạng thái Public / Draft → tiếng Việt
                 sheet.Cells[row, 12].Value = c.Status switch
                 {
                     "Public" => "Công khai",
@@ -158,10 +189,13 @@ namespace LMSystem.API.Controllers
 
             sheet.Cells.AutoFitColumns();
 
+            string fileName = $"TeacherCourses_{DateTime.Now:yyyyMMddHHmm}.xlsx";
+            Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+
             return File(
                 package.GetAsByteArray(),
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                $"CoursesReport_{DateTime.Now:yyyyMMddHHmm}.xlsx");
+                "application/octet-stream"
+            );
         }
     }
 }

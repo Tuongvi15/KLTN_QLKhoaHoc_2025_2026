@@ -34,6 +34,53 @@ namespace LMSystem.API.Controllers
             return Ok(response);
         }
 
+        [HttpGet("CheckStudentStillLearning/{courseId}")]
+        public async Task<IActionResult> CheckStudentStillLearning(int courseId)
+        {
+            bool has = await _courseService.CheckStudentStillLearning(courseId);
+            return Ok(new { hasStudent = has });
+        }
+        [HttpPost("RequestApproveCourse/{courseId}")]
+        [Authorize]
+        public async Task<IActionResult> RequestApproveCourse(int courseId)
+        {
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var res = await _courseService.RequestApproveCourse(courseId, teacherId);
+            return Ok(res);
+        }
+        [HttpPost("ApproveCourse")]
+        [Authorize]
+        public async Task<IActionResult> ApproveCourse([FromBody] ApproveCourseRequest model)
+        {
+            var res = await _courseService.ApproveCourse(model);
+            return Ok(res);
+        }
+
+        [HttpGet("GetApproveHistory/{courseId}")]
+        public async Task<IActionResult> GetApproveHistory(int courseId)
+        {
+            var res = await _courseService.GetApproveHistory(courseId);
+            return Ok(res);
+        }
+
+        [HttpPost("RequestUnpublishCourse/{courseId}")]
+        [Authorize]
+        public async Task<IActionResult> RequestUnpublishCourse(int courseId, [FromBody] UnpublishRequest model)
+        {
+            var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var res = await _courseService.RequestUnpublishCourse(courseId, adminId, model.Reason);
+            return Ok(res);
+        }
+
+        public class UnpublishRequest
+        {
+            public string? Reason { get; set; }
+        }
+
+
+
         [HttpGet("GetFullCourseDetail")]
         public async Task<IActionResult> GetFullCourseDetail()
         {

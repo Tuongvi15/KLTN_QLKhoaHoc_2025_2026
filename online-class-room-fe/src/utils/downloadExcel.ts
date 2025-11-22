@@ -6,16 +6,27 @@ export async function downloadExcel(url: string, fileName: string) {
             responseType: "blob",
         });
 
+        // ⭐ Dùng octet-stream để bắt trình duyệt mở Save As
         const blob = new Blob([response.data], {
-            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            type: "application/octet-stream",
         });
 
         const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
+        const downloadUrl = URL.createObjectURL(blob);
+
+        link.href = downloadUrl;
         link.download = fileName;
+        link.style.display = "none";
+        document.body.appendChild(link);
+
         link.click();
 
-        URL.revokeObjectURL(link.href);
+        // ⭐ Revoke URL an toàn
+        setTimeout(() => {
+            URL.revokeObjectURL(downloadUrl);
+            document.body.removeChild(link);
+        }, 100);
+
     } catch (error) {
         console.error("Excel download failed:", error);
     }

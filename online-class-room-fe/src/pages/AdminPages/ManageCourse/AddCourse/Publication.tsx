@@ -1,14 +1,40 @@
 import React, { useState } from 'react';
-import { Switch, Button, message, InputNumber } from 'antd';
+import {
+    Switch,
+    Button,
+    Modal,
+    message,
+    Tag,
+    Input,
+    Card,
+    Space,
+    Typography,
+    Empty,
+    Timeline
+} from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../../store';
+import { setCoursePublish } from '../../../../slices/courseSlice';
+
 import {
-    setCoursePublish,
-    setCourseCreatedData,
-} from '../../../../slices/courseSlice';
-import { useUpdateCourseMutation } from '../../../../services/course.services';
+    useGetApproveHistoryQuery,
+    useApproveCourseMutation
+} from '../../../../services/course.services';
+
 import { RoleType } from '../../../../slices/authSlice';
-import { CheckCircle, XCircle, DollarSign, Percent, Info } from 'lucide-react';
+
+import {
+    CheckCircleOutlined,
+    CloseCircleOutlined,
+    ClockCircleOutlined,
+    GlobalOutlined,
+    PoweroffOutlined,
+    CheckOutlined,
+    CloseOutlined,
+    HistoryOutlined
+} from '@ant-design/icons';
+
+const { Title, Text, Paragraph } = Typography;
 
 const Publication: React.FC = () => {
     const dispatch = useDispatch();
@@ -16,325 +42,351 @@ const Publication: React.FC = () => {
         (state: RootState) => state.course.addCourse.courseCreatedData
     );
     const role = useSelector((state: RootState) => state.auth.currentRole);
-    const [updateCourse, { isLoading }] = useUpdateCourseMutation();
 
-    const [price, setPrice] = useState<number>(courseCreatedData.price || 0);
-    const [discount, setDiscount] = useState<number>(
-        courseCreatedData.salesCampaign || 0
-    );
+    const [rejectModalVisible, setRejectModalVisible] = useState(false);
+    const [rejectComment, setRejectComment] = useState("");
 
-    const handlePublishChange = async (checked: boolean) => {
-        try {
-            if (role === RoleType.TEACHER) {
-                message.warning('Chỉ quản trị viên mới có thể xuất bản khóa học.');
-                return;
-            }
+    // Modal & reason cho hủy xuất bản
+    const [unpublishModalVisible, setUnpublishModalVisible] = useState(false);
+    const [unpublishReason, setUnpublishReason] = useState("");
 
-            const updated = {
-                ...courseCreatedData,
-                isPublic: checked,
-                categoryList: courseCreatedData.courseCategories.map((c) => c.categoryId),
+    const { data: approveHistory = [], refetch: refetchApprove } =
+        useGetApproveHistoryQuery(courseCreatedData.courseId);
 
-                // ⭐ FIX BẮT BUỘC
-                suitableLevels: courseCreatedData.suitableLevels ?? "",
-            };
+    const [approveCourse, { isLoading: isApproving }] =
+        useApproveCourseMutation();
 
-            await updateCourse(updated);
-            dispatch(setCoursePublish(checked));
-            message.success(
-                checked
-                    ? 'Cập nhật thành công!'
-                    : 'Cập nhật thành công'
-            );
-        } catch {
-            message.error('Không thể thay đổi trạng thái xuất bản.');
+    const latestApprove = approveHistory.length > 0 ? approveHistory[0] : null;
+
+    const hasPending =
+        latestApprove?.approveStatus === "Pending" &&
+        latestApprove?.type === "DuyetKhoaHoc";
+
+    const getApproveTypeLabel = (type: string) => {
+        switch (type) {
+            case "DuyetKhoaHoc":
+                return "Duyệt khóa học";
+            case "HuyXuatBan":
+                return "Hủy xuất bản";
+            default:
+                return "Không xác định";
         }
     };
 
-    const handlePriceChange = (value: number | null) => {
-        setPrice(value || 0);
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case "Approved":
+                return <CheckCircleOutlined className="text-green-500" />;
+            case "Rejected":
+                return <CloseCircleOutlined className="text-red-500" />;
+            case "Pending":
+                return <ClockCircleOutlined className="text-orange-500" />;
+            default:
+                return null;
+        }
     };
 
-    const handleDiscountChange = (value: number | null) => {
-        setDiscount(value || 0);
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case "Approved": return "success";
+            case "Rejected": return "error";
+            case "Pending": return "warning";
+            default: return "default";
+        }
     };
 
-    const handleSavePrice = async () => {
+    // ===============================
+    // HỦY XUẤT BẢN (DUYỆT NGAY)
+    // ===============================
+    const handleUnpublish = async () => {
+        if (!unpublishReason.trim()) {
+            message.warning("Vui lòng nhập lý do hủy xuất bản");
+            return;
+        }
+
         try {
-            const updated = {
-                ...courseCreatedData,
-                price,
-                salesCampaign: discount / 100,
-                courseIsActive: true,
-                isPublic: false,
-                categoryList: courseCreatedData.courseCategories.map((c) => c.categoryId),
+            // 1. Kiểm tra học viên còn học
+            const check = await fetch(
+                `https://localhost:7005/api/Course/CheckStudentStillLearning/${courseCreatedData.courseId}`
+            ).then(r => r.json());
 
-                // ⭐ FIX BẮT BUỘC
-                suitableLevels: courseCreatedData.suitableLevels ?? "",
-            };
+            if (check.hasStudent) {
+                message.error("Không thể hủy xuất bản vì đang có học viên đang học.");
+                return;
+            }
 
+            // 2. Gửi request unpublish (xử lý ngay)
+            const user = localStorage.getItem("user");
+            const token = user ? JSON.parse(user).accessToken : null;
 
-            await updateCourse(updated);
+            const res = await fetch(
+                `https://localhost:7005/api/Course/RequestUnpublishCourse/${courseCreatedData.courseId}`,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        reason: unpublishReason
+                    })
+                }
+            ).then(r => r.json());
 
-            dispatch(
-                setCourseCreatedData({
-                    ...courseCreatedData,
-                    price,
-                    salesCampaign: discount,
-                    courseIsActive: true,
-                    isPublic: false,
-                })
-            );
+            if (res.status !== "Success") {
+                message.error(res.message || "Hủy xuất bản thất bại");
+                return;
+            }
 
-            message.success(
-                'Đã lưu giá, giảm giá và kích hoạt khóa học. Khóa học sẽ được gửi lên hệ thống chờ quản trị viên duyệt.'
-            );
-        } catch {
-            message.error('Không thể cập nhật giá.');
+            // 3. Update FE
+            dispatch(setCoursePublish(false));
+
+            message.success("Khóa học đã được hủy xuất bản thành công!");
+
+            setUnpublishReason("");
+            setUnpublishModalVisible(false);
+
+            // 4. Reload lịch sử duyệt
+            refetchApprove?.();
+
+        } catch (err) {
+            message.error("Hủy xuất bản thất bại.");
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-            <div className="max-w-4xl mx-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                        {role === RoleType.TEACHER
-                            ? 'Quản lý khóa học'
-                            : 'Xuất bản khóa học'}
-                    </h1>
-                    <p className="text-gray-600">
-                        {role === RoleType.TEACHER
-                            ? 'Cập nhật giá và thông tin khóa học của bạn'
-                            : 'Quản lý trạng thái xuất bản và hoạt động'}
-                    </p>
+        <div className="min-h-screen bg-gray-50 p-6">
+            <div className="max-w-5xl mx-auto">
+                <div className="mb-6">
+                    <Title level={2}>Xuất bản & Duyệt khóa học</Title>
+                    <Text type="secondary">Quản lý trạng thái xuất bản và duyệt khóa học</Text>
                 </div>
 
-                {role === RoleType.ADMIN ? (
-                    <div className="space-y-4">
-                        {/* Xuất bản khóa học */}
-                        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                            <div className="p-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div
-                                            className={`w-12 h-12 rounded-xl flex items-center justify-center ${courseCreatedData.isPublic ? "bg-green-100" : "bg-gray-100"
-                                                }`}
-                                        >
-                                            {courseCreatedData.isPublic ? (
-                                                <CheckCircle className="w-6 h-6 text-green-600" />
-                                            ) : (
-                                                <XCircle className="w-6 h-6 text-gray-400" />
-                                            )}
-                                        </div>
+                <Space direction="vertical" size="large" className="w-full">
 
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-gray-900">Xuất bản khóa học</h3>
-                                            <p className="text-sm text-gray-500 mt-1">
-                                                {courseCreatedData.isPublic
-                                                    ? "Khóa học đang được công khai"
-                                                    : "Khóa học chưa được xuất bản"}
-                                            </p>
-                                        </div>
-                                    </div>
+                    {/* ================== LỊCH SỬ DUYỆT =================== */}
+                    {role === RoleType.ADMIN && (
+                        <Card
+                            title={
+                                <Space>
+                                    <HistoryOutlined className="text-blue-500" />
+                                    <span>Lịch sử duyệt khóa học</span>
+                                </Space>
+                            }
+                            className="shadow-sm"
+                        >
+                            {approveHistory.length === 0 ? (
+                                <Empty description="Chưa có lịch sử duyệt" />
+                            ) : (
+                                <Timeline
+                                    items={approveHistory.map((item: any) => ({
+                                        dot: getStatusIcon(item.approveStatus),
+                                        children: (
+                                            <div className="pb-4">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Tag color="blue">{getApproveTypeLabel(item.type)}</Tag>
+                                                    <Tag color={getStatusColor(item.approveStatus)}>
+                                                        {item.approveStatus === "Approved" && "Đã duyệt"}
+                                                        {item.approveStatus === "Rejected" && "Từ chối"}
+                                                        {item.approveStatus === "Pending" && "Đang chờ"}
+                                                    </Tag>
+                                                </div>
 
-                                    <div
-                                        className={!courseCreatedData.courseIsActive
-                                            ? "rounded-full bg-red-200 p-1"   // nền đậm hơn
-                                            : "rounded-full bg-gray-100 p-1"
-                                        }
-                                    >
-                                        <Switch
-                                            checked={courseCreatedData.isPublic}
-                                            onChange={handlePublishChange}
-                                            loading={isLoading}
-                                            size="default"
-                                            disabled={!courseCreatedData.courseIsActive}
-                                        />
-                                    </div>
+                                                {/* Ngày tạo phiếu */}
+                                                <Text type="secondary" className="text-sm block">
+                                                    <Text strong>Ngày tạo: </Text>
+                                                    {item.createdAt
+                                                        ? new Date(item.createdAt).toLocaleString("vi-VN")
+                                                        : "Không có dữ liệu"}
+                                                </Text>
 
-                                </div>
+                                                {/* Ngày duyệt phiếu */}
+                                                <Text type="secondary" className="text-sm block mb-1">
+                                                    <Text strong>Ngày duyệt: </Text>
+                                                    {item.approveAt
+                                                        ? new Date(item.approveAt).toLocaleString("vi-VN")
+                                                        : "Chưa xử lý"}
+                                                </Text>
 
-                                {/* ⚠ Hiển thị lý do không thể public */}
-                                {!courseCreatedData.courseIsActive && (
-                                    <div className="mt-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg p-3 text-sm">
-                                        ⚠ Khóa học hiện đang <strong>tạm dừng</strong>.
-                                        Giảng viên cần kích hoạt khóa học trước thì khóa học mới có thể xuất bản.
-                                    </div>
-                                )}
-                            </div>
-                        </div>
 
-                        {/* Trạng thái khóa học */}
-                        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden opacity-60">
-                            <div className="p-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div
-                                            className={`w-12 h-12 rounded-xl flex items-center justify-center ${courseCreatedData.courseIsActive ? "bg-blue-100" : "bg-gray-100"
-                                                }`}
-                                        >
-                                            {courseCreatedData.courseIsActive ? (
-                                                <CheckCircle className="w-6 h-6 text-blue-600" />
-                                            ) : (
-                                                <XCircle className="w-6 h-6 text-gray-400" />
-                                            )}
-                                        </div>
-
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-gray-900">Trạng thái khóa học</h3>
-                                            <p className="text-sm text-gray-500 mt-1">
-                                                {courseCreatedData.courseIsActive
-                                                    ? "Khóa học đang hoạt động"
-                                                    : "Khóa học đã tạm dừng"}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        className={!courseCreatedData.courseIsActive
-                                            ? "rounded-full bg-red-200 p-1"   // nền đậm hơn
-                                            : "rounded-full bg-gray-100 p-1"
-                                        }
-                                    > <Switch checked={courseCreatedData.courseIsActive} disabled size="default" /></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-                    : (
-                        <div className="space-y-6">
-                            {/* Trạng thái khóa học - Disabled for Teacher */}
-                            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden opacity-60">
-                                <div className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${courseCreatedData.courseIsActive
-                                                ? 'bg-blue-100'
-                                                : 'bg-gray-100'
-                                                }`}>
-                                                {courseCreatedData.courseIsActive ? (
-                                                    <CheckCircle className="w-6 h-6 text-blue-600" />
-                                                ) : (
-                                                    <XCircle className="w-6 h-6 text-gray-400" />
+                                                {item.reason && (
+                                                    <Paragraph className="text-sm bg-gray-50 p-3 rounded">
+                                                        <Text strong>Lý do: </Text>{item.reason}
+                                                    </Paragraph>
                                                 )}
                                             </div>
-                                            <div>
-                                                <h3 className="text-lg font-semibold text-gray-900">
-                                                    Trạng thái khóa học
-                                                </h3>
-                                                <p className="text-sm text-gray-500 mt-1">
-                                                    {courseCreatedData.courseIsActive
-                                                        ? 'Khóa học đang hoạt động'
-                                                        : 'Khóa học đã tạm dừng'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div
-                                            className={!courseCreatedData.courseIsActive
-                                                ? "rounded-full bg-red-200 p-1"   // nền đậm hơn
-                                                : "rounded-full bg-gray-100 p-1"
-                                            }
+                                        ),
+                                    }))}
+                                />
+                            )}
+
+                            {/* Nút duyệt cho pending */}
+                            {hasPending && (
+                                <div className="mt-4 pt-4 border-t border-gray-200">
+                                    <Space>
+                                        <Button
+                                            type="primary"
+                                            icon={<CheckOutlined />}
+                                            loading={isApproving}
+                                            onClick={async () => {
+                                                try {
+                                                    await approveCourse({
+                                                        approveCourseId: latestApprove.approveCourseId,
+                                                        isApproved: true
+                                                    }).unwrap();
+
+                                                    dispatch(setCoursePublish(true));
+                                                    message.success("Đã duyệt khóa học!");
+                                                    refetchApprove?.();
+                                                } catch {
+                                                    message.error("Duyệt thất bại!");
+                                                }
+                                            }}
                                         >
-                                            <Switch
-                                                checked={courseCreatedData.courseIsActive}
-                                                disabled={true}
-                                                size="default"
-                                            />
-                                        </div>
-                                    </div>
+                                            Duyệt khóa học
+                                        </Button>
+
+                                        <Button danger icon={<CloseOutlined />}
+                                            onClick={() => setRejectModalVisible(true)}>
+                                            Từ chối
+                                        </Button>
+                                    </Space>
                                 </div>
-                            </div>
-
-                            {/* Pricing Section */}
-                            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
-                                    <h3 className="text-xl font-bold text-white">
-                                        Thiết lập giá khóa học
-                                    </h3>
-                                    <p className="text-blue-100 mt-1">
-                                        Cập nhật giá và chương trình giảm giá
-                                    </p>
-                                </div>
-
-                                <div className="p-6 space-y-6">
-                                    {/* Price Input */}
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
-                                            <DollarSign className="w-5 h-5 text-blue-600" />
-                                            Giá khóa học (₫)
-                                        </label>
-                                        <InputNumber
-                                            value={price}
-                                            min={0}
-                                            max={100000000}
-                                            onChange={handlePriceChange}
-                                            className="w-full"
-                                            size="large"
-                                            formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                            parser={(value) => Number((value ?? "0").replace(/\$\s?|(,*)/g, ""))}
-
-                                        />
-                                    </div>
-
-                                    {/* Discount Input */}
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
-                                            <Percent className="w-5 h-5 text-blue-600" />
-                                            Giảm giá (%)
-                                        </label>
-                                        <InputNumber
-                                            value={discount}
-                                            min={0}
-                                            max={100}
-                                            onChange={handleDiscountChange}
-                                            className="w-full"
-                                            size="large"
-                                        />
-                                    </div>
-
-                                    {/* Final Price Preview */}
-                                    {discount > 0 && (
-                                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-gray-600 font-medium">Giá sau giảm:</span>
-                                                <div className="text-right">
-                                                    <span className="text-gray-400 line-through text-sm">
-                                                        {price.toLocaleString('vi-VN')}₫
-                                                    </span>
-                                                    <div className="text-2xl font-bold text-green-600">
-                                                        {(price * (1 - discount / 100)).toLocaleString('vi-VN')}₫
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Save Button */}
-                                    <Button
-                                        type="primary"
-                                        onClick={handleSavePrice}
-                                        loading={isLoading}
-                                        size="large"
-                                        className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 border-0 text-white font-semibold hover:from-blue-700 hover:to-indigo-700 shadow-lg"
-                                    >
-                                        Lưu giá & Kích hoạt khóa học
-                                    </Button>
-
-                                    {/* Info Box */}
-                                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                                        <div className="flex gap-3">
-                                            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                                            <div className="text-sm text-blue-800">
-                                                <strong className="font-semibold">Lưu ý:</strong> Việc lưu giá sẽ tự động kích hoạt khóa học và gửi lên hệ thống chờ quản trị viên duyệt và xuất bản.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                            )}
+                        </Card>
                     )}
+
+                    {/* ================= XUẤT BẢN KHÓA HỌC ================= */}
+                    {role === RoleType.ADMIN && (
+                        <Card className="shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <Space size="large">
+                                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${courseCreatedData.isPublic ? "bg-green-100" : "bg-gray-100"
+                                        }`}>
+                                        <GlobalOutlined className={`text-2xl ${courseCreatedData.isPublic ? "text-green-600" : "text-gray-400"
+                                            }`} />
+                                    </div>
+
+                                    <div>
+                                        <Title level={5}>Xuất bản khóa học</Title>
+                                        <Text type="secondary">
+                                            {courseCreatedData.isPublic
+                                                ? "Khóa học đang được công khai"
+                                                : "Khóa học chưa được xuất bản"}
+                                        </Text>
+                                    </div>
+                                </Space>
+
+                                <div className="flex flex-col items-end gap-2">
+                                    <Switch checked={courseCreatedData.isPublic} disabled />
+
+                                    <Text type="secondary" className="text-xs">
+                                        {courseCreatedData.isPublic ? "Đã xuất bản" : "Chưa xuất bản"}
+                                    </Text>
+
+                                    {/* NÚT HỦY XUẤT BẢN */}
+                                    {courseCreatedData.isPublic && (
+                                        <Button
+                                            danger
+                                            size="small"
+                                            onClick={() => setUnpublishModalVisible(true)}
+                                        >
+                                            Hủy xuất bản
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </Card>
+                    )}
+
+                    {/* =================== TRẠNG THÁI KHÓA HỌC ================= */}
+                    {role === RoleType.ADMIN && (
+                        <Card className="shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <Space size="large">
+                                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${courseCreatedData.courseIsActive ? "bg-blue-100" : "bg-gray-100"
+                                        }`}>
+                                        <PoweroffOutlined className={`text-2xl ${courseCreatedData.courseIsActive ? "text-blue-600" : "text-gray-400"
+                                            }`} />
+                                    </div>
+
+                                    <div>
+                                        <Title level={5}>Trạng thái hoạt động</Title>
+                                        <Text type="secondary">
+                                            {courseCreatedData.courseIsActive
+                                                ? "Khóa học đang hoạt động"
+                                                : "Khóa học đã tạm dừng"}
+                                        </Text>
+                                    </div>
+                                </Space>
+
+                                <Switch checked={courseCreatedData.courseIsActive} disabled />
+                            </div>
+                        </Card>
+                    )}
+                </Space>
+
+                {/* =================== MODAL HỦY XUẤT BẢN =================== */}
+                <Modal
+                    title="Xác nhận hủy xuất bản khóa học"
+                    open={unpublishModalVisible}
+                    onCancel={() => {
+                        setUnpublishModalVisible(false);
+                        setUnpublishReason("");
+                    }}
+                    onOk={handleUnpublish}
+                    okText="Xác nhận"
+                    okButtonProps={{ danger: true }}
+                >
+                    <Text strong className="block mb-2">
+                        Lý do hủy xuất bản: <Text type="danger">*</Text>
+                    </Text>
+
+                    <Input.TextArea
+                        rows={4}
+                        value={unpublishReason}
+                        onChange={(e) => setUnpublishReason(e.target.value)}
+                        placeholder="Nhập lý do hủy xuất bản khóa học..."
+                        maxLength={500}
+                        showCount
+                    />
+
+                    <Text type="secondary" className="text-xs block mt-1">
+                        Lý do này sẽ được ghi vào lịch sử duyệt khóa học.
+                    </Text>
+                </Modal>
+
+                {/* =================== MODAL TỪ CHỐI =================== */}
+                <Modal
+                    title="Từ chối yêu cầu duyệt"
+                    open={rejectModalVisible}
+                    onCancel={() => setRejectModalVisible(false)}
+                    onOk={async () => {
+                        try {
+                            await approveCourse({
+                                approveCourseId: latestApprove.approveCourseId,
+                                isApproved: false,
+                                comment: rejectComment
+                            }).unwrap();
+
+                            setRejectComment("");
+                            message.success("Đã từ chối yêu cầu");
+                            refetchApprove?.();
+                        } catch {
+                            message.error("Từ chối thất bại");
+                        }
+                        setRejectModalVisible(false);
+                    }}
+                    okButtonProps={{ danger: true }}
+                >
+                    <Text strong>Lý do từ chối:</Text>
+                    <Input.TextArea
+                        rows={4}
+                        value={rejectComment}
+                        onChange={(e) => setRejectComment(e.target.value)}
+                    />
+                </Modal>
+
             </div>
         </div>
     );

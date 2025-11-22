@@ -186,9 +186,9 @@ const CourseContent = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
     const handleOnSaveAll = () => {
         // ✅ Nếu admin → chỉ được xuất bản
         if (isReadOnly) {
-            const data = getUpdateCourseRequest();
-            updatecourse({ ...data, isPublic: true });
-            message.success('Khóa học đã được xuất bản!');
+            // const data = getUpdateCourseRequest();
+            // updatecourse({ ...data, isPublic: true });
+            //message.success('Khóa học đã được xuất bản!');
             navigate('/admin/getAllCourse/');
         }
 
@@ -261,7 +261,7 @@ const CourseContent = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                     size="large"
                     variant="contained"
                 >
-                    {'Lưu & Quay Lại'}
+                    {'Quay Lại'}
                 </LoadingButton>
             </div>
             <div className="p-x-4 p-y-2 ml-4 flex-1">
@@ -409,20 +409,25 @@ const CourseContent = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
                                     <p className="text-base font-medium text-[#1677ff]">
                                         Thumbnail khóa học
                                     </p>
+
                                     {isReadOnly ? (
-                                        <video
-                                            controls
+                                        <img
+                                            src={courseCreatedData.imageUrl}
+                                            alt="Course Thumbnail"
                                             className="max-w-md rounded-lg border"
-                                            src={courseCreatedData.videoPreviewUrl}
                                         />
                                     ) : (
                                         <UploadFileCustom
-                                            onUploadFileSuccess={handleOnUploadVideoPreviewSuccess}
-                                            onUploadFileError={(e) => console.error('Upload video lỗi:', e)}
+                                            onUploadFileSuccess={(url) => {
+                                                const data = getUpdateCourseRequest();
+                                                updatecourse({ ...data, imageUrl: url });
+                                                dispatch(updateCourseImageUrl(url));
+                                            }}
+                                            onUploadFileError={(e) => console.error('Upload ảnh lỗi:', e)}
                                             fileName={`course${courseCreatedData.courseId}`}
-                                            fileType={UploadFileType.VIDEO}
+                                            fileType={UploadFileType.IMAGE}
                                             showPreview
-                                            imgLink={courseCreatedData.videoPreviewUrl}
+                                            imgLink={courseCreatedData.imageUrl}
                                             storePath="images/courseThumbnail/"
                                             buttonText="Lưu"
                                         />

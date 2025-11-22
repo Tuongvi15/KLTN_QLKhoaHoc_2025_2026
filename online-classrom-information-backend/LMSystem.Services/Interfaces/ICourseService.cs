@@ -1,6 +1,7 @@
 ﻿using LMSystem.Repository.Data;
 using LMSystem.Repository.Helpers;
 using LMSystem.Repository.Models;
+using LMSystem.Repository.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,9 +20,14 @@ namespace LMSystem.Services.Interfaces
         Task<IEnumerable<object>> GetStudentsInCoursesAsync(List<int> courseIds, string teacherId);
         public Task<IEnumerable<Course>> GetTopCoursesByStudentJoined(int numberOfCourses);
         public Task<IEnumerable<Course>> GetTopCoursesBySales(int numberOfCourses);
-
+        Task<bool> CheckStudentStillLearning(int courseId);
+        Task<List<CourseReportDto>> GetCoursesReport(string? teacherId, DateTime? fromDate, DateTime? toDate);
+        Task<byte[]> ExportCoursesExcel(string? teacherId, DateTime? fromDate, DateTime? toDate);
         public Task<IEnumerable<Course>> GetTopCoursesByRating(int numberOfCourses);
-
+        Task<ResponeModel> RequestApproveCourse(int courseId, string teacherId);
+        Task<ResponeModel> ApproveCourse(ApproveCourseRequest request);
+        Task<List<ApproveHistoryDto>> GetApproveHistory(int courseId);
+        Task<ResponeModel> RequestUnpublishCourse(int courseId, string teacherId, string? reason);
         public Task<Course> GetCourseDetailByIdAsync(int courseId);
         public Task<CourseListModel> GetCourseDetailByCourseIdAsync(int courseId);
         public Task<ResponeModel> AddCourse(AddCourseModel addCourseModel);

@@ -3,6 +3,7 @@ using System;
 using LMSystem.Repository.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LMSystem.Repository.Migrations
 {
     [DbContext(typeof(LMOnlineSystemDbContext))]
-    partial class LMOnlineSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251122204946_AddApproveCourse_v3")]
+    partial class AddApproveCourse_v3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -169,15 +172,15 @@ namespace LMSystem.Repository.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("Comment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<int>("CourseId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Reason")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("Type")
                         .HasMaxLength(100)
@@ -1211,7 +1214,7 @@ namespace LMSystem.Repository.Migrations
                     b.HasOne("LMSystem.Repository.Models.PlacementQuestion", "PlacementQuestion")
                         .WithMany("PlacementAnswers")
                         .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("LMSystem.Repository.Models.PlacementResult", "PlacementResult")

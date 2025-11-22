@@ -42,7 +42,7 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
 
     public virtual DbSet<WishList> WishLists { get; set; }
 
-    public virtual DbSet<LinkCertificateAccount> LinkCertificateAccounts  { get; set; }
+    public virtual DbSet<LinkCertificateAccount> LinkCertificateAccounts { get; set; }
 
     public virtual DbSet<Quiz> Quizzes { get; set; }
 
@@ -57,6 +57,8 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
     public virtual DbSet<PlacementResult> PlacementResults { get; set; }
     public virtual DbSet<PlacementAnswer> PlacementAnswers { get; set; }
     public virtual DbSet<BankAccount> BankAccounts { get; set; }
+    public virtual DbSet<ApproveCourse> ApproveCourses { get; set; }
+
 
 
 
@@ -135,6 +137,28 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<ApproveCourse>(entity =>
+        {
+            entity.HasKey(e => e.ApproveCourseId);
+
+            entity.ToTable("ApproveCourse");
+
+            entity.Property(e => e.Type).HasMaxLength(100);
+            entity.Property(e => e.ApproveStatus).HasMaxLength(100);
+            entity.Property(e => e.Reason)
+      .HasMaxLength(500)
+      .HasColumnType("varchar(500)");
+
+            entity.Property(e => e.ApproveAt).HasColumnType("timestamp with time zone");
+            entity.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
+
+            entity.HasOne(e => e.Course)
+                .WithMany(c => c.ApproveCourses)
+                .HasForeignKey(e => e.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+
         modelBuilder.Entity<PlacementQuestion>(entity =>
         {
             entity.HasKey(e => e.QuestionId);
@@ -187,9 +211,10 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(e => e.PlacementQuestion)
-                .WithMany(q => q.PlacementAnswers)
-                .HasForeignKey(e => e.QuestionId)
-                .OnDelete(DeleteBehavior.NoAction);
+    .WithMany(q => q.PlacementAnswers)
+    .HasForeignKey(e => e.QuestionId)
+    .OnDelete(DeleteBehavior.Cascade);
+
         });
 
         modelBuilder.Entity<Category>(entity =>
@@ -443,7 +468,7 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
                 .HasForeignKey(d => d.CourseId)
                 .HasConstraintName("FK_WishList_Course");
         });
-        
+
         modelBuilder.Entity<LinkCertificateAccount>(entity =>
         {
             entity.HasKey(e => e.LinkCertId);
@@ -464,17 +489,17 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
                 .HasForeignKey(d => d.CourseId)
                 .HasConstraintName("FK_LinkCertificateAccount_Course");
         });
-        
+
         modelBuilder.Entity<Quiz>(entity =>
         {
             entity.HasKey(e => e.QuizId);
             entity.ToTable("Quiz");
-            
+
             entity.Property(e => e.Title).HasMaxLength(150);
 
             entity.Property(e => e.Description).HasMaxLength(250);
         });
-        
+
         modelBuilder.Entity<Question>(entity =>
         {
             entity.HasKey(e => e.QuestionId);
@@ -482,12 +507,12 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
 
             entity.HasIndex(e => e.QuizId, "IX_Question_QuizId");
             entity.Property(e => e.QuizId);
-            
+
             entity.HasOne(d => d.Quiz).WithMany(p => p.Questions)
                 .HasForeignKey(d => d.QuizId)
                 .HasConstraintName("FK_Question_Quiz");
-        }); 
-        
+        });
+
         modelBuilder.Entity<AnswerHistory>(entity =>
         {
             entity.HasKey(e => e.AnswerHistoryId);
@@ -495,14 +520,14 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
 
             entity.HasIndex(e => e.CompletedStepId, "IX_AnswerHistory_CompletedStepId");
             entity.Property(e => e.CompletedStepId);
-            
+
             entity.HasIndex(e => e.QuestionId, "IX_AnswerHistory_QuestionId");
             entity.Property(e => e.QuestionId);
-            
+
             entity.HasOne(d => d.StepCompleted).WithMany(p => p.AnswerHistories)
                 .HasForeignKey(d => d.CompletedStepId)
                 .HasConstraintName("FK_AnswerHistory_StepCompleted");
-            
+
             entity.HasOne(d => d.Question).WithMany(p => p.AnswerHistories)
                 .HasForeignKey(d => d.QuestionId)
                 .HasConstraintName("FK_AnswerHistory_Question");

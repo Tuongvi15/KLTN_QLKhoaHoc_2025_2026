@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static LMSystem.Repository.Repositories.AccountRepository;
 
 namespace LMSystem.Services.Interfaces
 {
@@ -14,6 +15,8 @@ namespace LMSystem.Services.Interfaces
         public Task<ResponeModel> SignUpAccountAsync(SignUpModel model);
         public Task<AccountModel> GetAccountByEmail(string email);
         public Task<Account> GetAccountById(string id);
+        Task<List<TeacherBasicDto>> GetAllTeachers();
+
         public Task<ResponeModel> GetAccountByParentAccountId(string accountId);
         public Task<AccountModel> UpdateAccountByEmail(AccountModel account);
         public Task<AuthenticationResponseModel> RefreshToken(TokenModel tokenModel);

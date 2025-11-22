@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static LMSystem.Repository.Repositories.AccountRepository;
 
 namespace LMSystem.Services.Services
 {
@@ -35,6 +36,10 @@ namespace LMSystem.Services.Services
         public async Task<ResponeModel> DeleteAccount(string accountId)
         {
             return await _repo.DeleteAccount(accountId);
+        }
+        public async Task<List<TeacherBasicDto>> GetAllTeachers()
+        {
+            return await _repo.GetAllTeachers();
         }
 
         public async Task<AccountModel> GetAccountByEmail(string email)
