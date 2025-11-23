@@ -208,8 +208,6 @@ namespace LMSystem.Repository.Repositories
                     .ThenInclude(s => s.Steps)
                 .Include(c => c.CourseCategories)
                     .ThenInclude(cc => cc.Category)
-                        .ThenInclude(cat => cat.FieldCategories)
-                            .ThenInclude(fc => fc.Field)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId);
 
             if (course == null)
@@ -234,8 +232,6 @@ namespace LMSystem.Repository.Repositories
                 .Where(c => c.AccountId == teacherId)
                 .Include(c => c.CourseCategories)
                     .ThenInclude(cc => cc.Category)
-                        .ThenInclude(cat => cat.FieldCategories)
-                            .ThenInclude(fc => fc.Field)
                 .Include(c => c.RegistrationCourses)
                 .ToListAsync();
         }
@@ -329,8 +325,6 @@ namespace LMSystem.Repository.Repositories
                 .Include(c => c.Account)
                 .Include(c => c.CourseCategories)
                     .ThenInclude(cc => cc.Category)
-                        .ThenInclude(cat => cat.FieldCategories)
-                            .ThenInclude(fc => fc.Field)
                 .AsQueryable();
 
             // 🔍 Filter theo category
@@ -400,18 +394,7 @@ namespace LMSystem.Repository.Repositories
                     CourseIsActive = c.CourseIsActive,
                     SalesCampaign = c.SalesCampaign,
                     AccountId = c.AccountId,
-                    AccountName = c.Account.FirstName + " " + c.Account.LastName,
-
-                    // ✅ Thêm thông tin Field
-                    Field = c.CourseCategories
-                        .SelectMany(cc => cc.Category.FieldCategories)
-                        .Select(fc => new FieldModel
-                        {
-                            FieldId = fc.Field.FieldId,
-                            Name = fc.Field.Name,
-                            Description = fc.Field.Description
-                        })
-                        .FirstOrDefault()
+                    AccountName = c.Account.FirstName + " " + c.Account.LastName
                 })
                 .ToListAsync();
 
@@ -767,8 +750,6 @@ namespace LMSystem.Repository.Repositories
                         .ThenInclude(s => s.Steps)
                     .Include(c => c.CourseCategories)
                         .ThenInclude(cc => cc.Category)
-                            .ThenInclude(cat => cat.FieldCategories)
-                                .ThenInclude(fc => fc.Field)
                     .ToListAsync();
 
                 if (courses == null || !courses.Any())
@@ -795,12 +776,6 @@ namespace LMSystem.Repository.Repositories
                         courseLevelDisplay = string.Join(", ", levels);
                     }
 
-                    // Lấy field đầu tiên (nếu có)
-                    var field = course.CourseCategories
-                        .SelectMany(cc => cc.Category.FieldCategories)
-                        .Select(fc => fc.Field)
-                        .FirstOrDefault();
-
                     return new
                     {
                         course.CourseId,
@@ -813,12 +788,6 @@ namespace LMSystem.Repository.Repositories
                         course.TotalDuration,
                         CourseLevel = courseLevelDisplay,
                         course.KnowdledgeDescription,
-                        Field = field != null ? new
-                        {
-                            field.FieldId,
-                            field.Name,
-                            field.Description
-                        } : null,
                         Account = new
                         {
                             course.Account?.Id,
@@ -1050,12 +1019,6 @@ namespace LMSystem.Repository.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
-    }
-    public class FieldModel
-    {
-        public int FieldId { get; set; }
-        public string Name { get; set; } = null!;
-        public string? Description { get; set; }
     }
 
     public class CourseReportDto

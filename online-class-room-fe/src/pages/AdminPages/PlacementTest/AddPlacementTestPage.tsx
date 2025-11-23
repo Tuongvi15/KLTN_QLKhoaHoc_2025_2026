@@ -3,7 +3,7 @@ import { Drawer, Form, Input, Select, Button, message, Switch } from "antd";
 import {
     useAddPlacementTestMutation,
     useUpdatePlacementTestMutation,
-    useGetAllFieldsQuery,
+    useGetAllCategoriesQuery,
 } from "../../../services/placementtest.services";
 import PlacementQuestionManager from "./PlacementQuestionManager";
 
@@ -15,7 +15,9 @@ interface AddPlacementTestPageProps {
 const AddPlacementTestPage = ({ test, onClose }: AddPlacementTestPageProps) => {
     const [form] = Form.useForm();
 
-    const { data: fields } = useGetAllFieldsQuery(undefined);
+    // ✔ Lấy danh mục thay vì field
+    const { data: categories } = useGetAllCategoriesQuery(undefined);
+
     const [addTest, { isLoading: isAdding }] = useAddPlacementTestMutation();
     const [updateTest, { isLoading: isUpdating }] = useUpdatePlacementTestMutation();
 
@@ -24,19 +26,19 @@ const AddPlacementTestPage = ({ test, onClose }: AddPlacementTestPageProps) => {
     const isEditMode = !!test?.placementTestId;
     const isActive = test?.isActive ?? false;
 
-    // ✅ Gán giá trị khi mở Drawer
+    // ✔ Load giá trị khi chỉnh sửa
     useEffect(() => {
         if (test) {
             form.setFieldsValue({
                 title: test.title,
                 description: test.description,
-                fieldId: test.field?.fieldId || test.fieldId,
+                categoryId: test.categoryId,
                 isActive: test.isActive,
             });
         }
     }, [test, form]);
 
-    // ✅ Submit
+    // ✔ Submit
     const handleSubmit = async (values: any) => {
         try {
             if (isEditMode) {
@@ -49,7 +51,7 @@ const AddPlacementTestPage = ({ test, onClose }: AddPlacementTestPageProps) => {
                     }
                     : {
                         placementTestId: test.placementTestId,
-                        fieldId: values.fieldId,
+                        categoryId: values.categoryId,
                         title: values.title,
                         description: values.description,
                         isActive: values.isActive,
@@ -58,14 +60,25 @@ const AddPlacementTestPage = ({ test, onClose }: AddPlacementTestPageProps) => {
                 await updateTest(payload).unwrap();
                 message.success("Cập nhật bài test thành công!");
             } else {
-                const res = await addTest(values).unwrap();
+                // ✔ Tạo payload đúng theo backend
+                const payload = {
+                    categoryId: values.categoryId,
+                    title: values.title,
+                    description: values.description,
+                };
+
+                const res = await addTest(payload).unwrap();
+
+                const createdTest = res?.dataObject ?? res; // backend trả ResponeModel
+                Object.assign(test, createdTest);
+
                 message.success("Thêm bài test mới thành công!");
-                Object.assign(test, res);
                 setShowQuestions(true);
             }
 
             if (!showQuestions) onClose();
         } catch (err) {
+            console.error(err);
             message.error("Thao tác thất bại!");
         }
     };
@@ -86,16 +99,16 @@ const AddPlacementTestPage = ({ test, onClose }: AddPlacementTestPageProps) => {
                         isActive: false,
                     }}
                 >
-                    {/* Lĩnh vực */}
+                    {/* ✔ Danh mục */}
                     <Form.Item
-                        label="Lĩnh vực"
-                        name="fieldId"
-                        rules={[{ required: true, message: "Vui lòng chọn lĩnh vực" }]}
+                        label="Danh mục"
+                        name="categoryId"
+                        rules={[{ required: true, message: "Vui lòng chọn danh mục" }]}
                     >
-                        <Select placeholder="Chọn lĩnh vực" disabled={isActive}>
-                            {fields?.map((field: any) => (
-                                <Select.Option key={field.fieldId} value={field.fieldId}>
-                                    {field.name}
+                        <Select placeholder="Chọn danh mục" disabled={isActive}>
+                            {categories?.map((cat: any) => (
+                                <Select.Option key={cat.catgoryId} value={cat.catgoryId}>
+                                    {cat.name}
                                 </Select.Option>
                             ))}
                         </Select>
@@ -107,32 +120,18 @@ const AddPlacementTestPage = ({ test, onClose }: AddPlacementTestPageProps) => {
                         name="title"
                         rules={[{ required: true, message: "Nhập tiêu đề bài test!" }]}
                     >
-                        <Input
-                            placeholder="VD: Kiểm tra đầu vào lập trình cơ bản"
-                            disabled={isActive}
-                        />
+                        <Input placeholder="VD: Kiểm tra đầu vào lập trình" disabled={isActive} />
                     </Form.Item>
 
-                    {/* Mô tả (luôn có thể sửa) */}
+                    {/* Mô tả */}
                     <Form.Item label="Mô tả" name="description">
-                        <Input.TextArea
-                            rows={4}
-                            placeholder="Nhập mô tả ngắn gọn..."
-                            disabled={false}
-                        />
+                        <Input.TextArea rows={4} placeholder="Nhập mô tả ngắn gọn..." />
                     </Form.Item>
 
                     {/* Trạng thái */}
                     {isEditMode && (
-                        <Form.Item
-                            label="Trạng thái"
-                            name="isActive"
-                            valuePropName="checked"
-                        >
-                            <Switch
-                                checkedChildren="Hoạt động"
-                                unCheckedChildren="Chưa hoạt động"
-                            />
+                        <Form.Item label="Trạng thái" name="isActive" valuePropName="checked">
+                            <Switch checkedChildren="Hoạt động" unCheckedChildren="Chưa hoạt động" />
                         </Form.Item>
                     )}
 
@@ -140,12 +139,8 @@ const AddPlacementTestPage = ({ test, onClose }: AddPlacementTestPageProps) => {
                     <div className="flex justify-end gap-2 mt-4">
                         <Button onClick={onClose}>Hủy</Button>
 
-                        {test?.placementTestId && (
-                            <Button
-                                type="dashed"
-                                onClick={() => setShowQuestions(true)}
-                                className="mr-auto"
-                            >
+                        {isEditMode && (
+                            <Button type="dashed" onClick={() => setShowQuestions(true)} className="mr-auto">
                                 Quản lý câu hỏi
                             </Button>
                         )}
@@ -155,9 +150,9 @@ const AddPlacementTestPage = ({ test, onClose }: AddPlacementTestPageProps) => {
                             htmlType="submit"
                             loading={isAdding || isUpdating}
                             style={{
-                                backgroundColor: '#1677FF', // Thay bằng màu xanh dương đậm hoặc màu bạn muốn
-                                borderColor: '#1677FF',
-                                color: '#FFFFFF', // Đảm bảo màu chữ là trắng (hoặc màu sáng)
+                                backgroundColor: "#1677FF",
+                                borderColor: "#1677FF",
+                                color: "#FFFFFF",
                             }}
                         >
                             {isEditMode ? "Lưu thay đổi" : "Thêm mới"}

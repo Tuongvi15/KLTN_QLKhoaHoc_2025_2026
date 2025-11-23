@@ -21,5 +21,7 @@ namespace LMSystem.Repository.Models
         public Account Account { get; set; } = null!;
         public PlacementTest PlacementTest { get; set; } = null!;
         public ICollection<PlacementAnswer>? PlacementAnswers { get; set; }
+        public ICollection<Category>? Categories{ get; set; }
+
     }
 }

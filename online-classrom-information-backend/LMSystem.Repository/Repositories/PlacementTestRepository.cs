@@ -19,101 +19,9 @@ namespace LMSystem.Repository.Repositories
             _context = context;
         }
 
-        // ===================== FIELD =====================
-        public async Task<ResponeModel> AddField(string name, string? description)
-        {
-            try
-            {
-                var field = new Field { Name = name, Description = description };
-                _context.Fields.Add(field);
-                await _context.SaveChangesAsync();
-
-                return new ResponeModel { Status = "Success", Message = "Added field successfully", DataObject = field };
-            }
-            catch (Exception ex)
-            {
-                return new ResponeModel { Status = "Error", Message = ex.Message };
-            }
-        }
-
-        public async Task<ResponeModel> UpdateField(int fieldId, string name, string? description)
-        {
-            try
-            {
-                var existingField = await _context.Fields.FindAsync(fieldId);
-                if (existingField == null)
-                {
-                    return new ResponeModel
-                    {
-                        Status = "Error",
-                        Message = "Field not found"
-                    };
-                }
-
-                // ✅ Cập nhật giá trị mới (nếu có)
-                if (!string.IsNullOrWhiteSpace(name))
-                    existingField.Name = name;
-
-                if (description != null)
-                    existingField.Description = description;
-
-                await _context.SaveChangesAsync();
-
-                return new ResponeModel
-                {
-                    Status = "Success",
-                    Message = "Updated field successfully",
-                    DataObject = existingField
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ResponeModel
-                {
-                    Status = "Error",
-                    Message = $"Update failed: {ex.Message}"
-                };
-            }
-        }
-
-
-        public async Task<IEnumerable<object>> GetAllFields()
-        {
-            return await _context.Fields
-                .Select(f => new
-                {
-                    f.FieldId,
-                    f.Name,
-                    f.Description,
-                    PlacementTests = f.PlacementTests.Select(t => new
-                    {
-                        t.PlacementTestId,
-                        t.Title,
-                        t.Description,
-                        PlacementQuestions = t.PlacementQuestions.Select(q => new
-                        {
-                            q.QuestionId,
-                            q.QuestionText,
-                            q.CorrectAnswer,
-                            q.DifficultyLevel
-                        }).ToList()
-                    }).ToList()
-                })
-                .ToListAsync();
-        }
-
-
-
-        public async Task<ResponeModel> DeleteField(int fieldId)
-        {
-            var field = await _context.Fields.FindAsync(fieldId);
-            if (field == null)
-                return new ResponeModel { Status = "Error", Message = "Field not found" };
-
-            _context.Fields.Remove(field);
-            await _context.SaveChangesAsync();
-            return new ResponeModel { Status = "Success", Message = "Deleted field successfully" };
-        }
+        // NOTE: This updated repository replaces usages of Field with Category.
+        // Make sure you also update the PlacementTest model (replace FieldId/Field with CategoryId/Category)
+        // and generate a migration after applying these changes.
 
         // ===================== PLACEMENT TEST =====================
         public async Task<ResponeModel> AddPlacementTest(AddPlacementTestModel model)
@@ -122,7 +30,7 @@ namespace LMSystem.Repository.Repositories
             {
                 var test = new PlacementTest
                 {
-                    FieldId = model.FieldId,
+                    CategoryId = model.CategoryId,
                     Title = model.Title,
                     Description = model.Description,
                     IsActive = false,
@@ -153,8 +61,8 @@ namespace LMSystem.Repository.Repositories
                     existingTest.Description = model.Description;
                 if (model.IsActive.HasValue)
                     existingTest.IsActive = model.IsActive.Value;
-                if (model.FieldId.HasValue)
-                    existingTest.FieldId = model.FieldId.Value;
+                if (model.CategoryId.HasValue)
+                    existingTest.CategoryId = model.CategoryId.Value;
 
                 await _context.SaveChangesAsync();
                 return new ResponeModel { Status = "Success", Message = "Updated placement test successfully", DataObject = existingTest };
@@ -174,7 +82,8 @@ namespace LMSystem.Repository.Repositories
             if (test == null)
                 return new ResponeModel { Status = "Error", Message = "Placement test not found" };
 
-            _context.PlacementQuestions.RemoveRange(test.PlacementQuestions);
+            // Remove dependent questions (and answers if FK is configured with NoAction)
+            _context.PlacementQuestions.RemoveRange(test.PlacementQuestions ?? Enumerable.Empty<PlacementQuestion>());
             _context.PlacementTests.Remove(test);
             await _context.SaveChangesAsync();
 
@@ -184,13 +93,13 @@ namespace LMSystem.Repository.Repositories
         public async Task<IEnumerable<PlacementTestListModel>> GetAllPlacementTests()
         {
             return await _context.PlacementTests
-                .Include(t => t.Field)
+                .Include(t => t.Category)
                 .Include(t => t.PlacementQuestions)
                 .Select(t => new PlacementTestListModel
                 {
                     PlacementTestId = t.PlacementTestId,
-                    FieldName = t.Field.Name,
-                    FieldId = t.FieldId,
+                    CategoryName = t.Category.Name,
+                    CategoryId = t.CategoryId,
                     Title = t.Title,
                     Description = t.Description,
                     IsActive = t.IsActive,
@@ -201,10 +110,10 @@ namespace LMSystem.Repository.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<object>> GetPlacementTestsByField(int fieldId, string accountId)
+        public async Task<IEnumerable<object>> GetPlacementTestsByCategory(int categoryId, string accountId)
         {
             return await _context.PlacementTests
-                .Where(t => t.FieldId == fieldId && t.IsActive == true)
+                .Where(t => t.CategoryId == categoryId && t.IsActive == true)
                 .Select(t => new
                 {
                     t.PlacementTestId,
@@ -214,7 +123,6 @@ namespace LMSystem.Repository.Repositories
                     t.CreatedAt,
                     QuestionCount = t.PlacementQuestions.Count,
 
-                    // ✅ Lấy kết quả gần nhất của người dùng này
                     LatestResult = t.PlacementResults
                         .Where(r => r.AccountId == accountId)
                         .OrderByDescending(r => r.CompletedAt)
@@ -234,7 +142,7 @@ namespace LMSystem.Repository.Repositories
         public async Task<PlacementTest?> GetPlacementTestById(int placementTestId)
         {
             return await _context.PlacementTests
-                .Include(t => t.Field)
+                .Include(t => t.Category)
                 .Include(t => t.PlacementQuestions)
                 .FirstOrDefaultAsync(t => t.PlacementTestId == placementTestId);
         }
@@ -348,11 +256,11 @@ namespace LMSystem.Repository.Repositories
             }
         }
 
-        public async Task<PlacementResult?> GetLatestResult(string accountId, int fieldId)
+        public async Task<PlacementResult?> GetLatestResult(string accountId, int categoryId)
         {
             return await _context.PlacementResults
                 .Include(r => r.PlacementTest)
-                .Where(r => r.AccountId == accountId && r.PlacementTest.FieldId == fieldId)
+                .Where(r => r.AccountId == accountId && r.PlacementTest.CategoryId == categoryId)
                 .OrderByDescending(r => r.CompletedAt)
                 .FirstOrDefaultAsync();
         }
@@ -372,8 +280,8 @@ namespace LMSystem.Repository.Repositories
                     PlacementTestId = r.PlacementTest.PlacementTestId,
                     Title = r.PlacementTest.Title,
                     Description = r.PlacementTest.Description,
-                    FieldId = r.PlacementTest.Field.FieldId,
-                    FieldName = r.PlacementTest.Field.Name
+                    CategoryId = r.PlacementTest.Category.CatgoryId,
+                    CategoryName = r.PlacementTest.Category.Name
                 })
                 .FirstOrDefaultAsync();
 
@@ -383,28 +291,19 @@ namespace LMSystem.Repository.Repositories
             // 2️⃣ Ánh xạ Level → số thứ tự để so sánh
             int levelValue = int.TryParse(latestResult.Level, out var val) ? val : 0;
 
-
-            // 3️⃣ Lấy danh sách khóa học theo Field và Level <= levelValue
+            // 3️⃣ Lấy danh sách khóa học theo Category và Level <= levelValue
             var courses = await _context.Courses
                 .Where(c => c.IsPublic == true && c.CourseIsActive == true)
                 .Include(c => c.CourseCategories)
                     .ThenInclude(cc => cc.Category)
-                        .ThenInclude(cat => cat.FieldCategories)
                 .Include(c => c.Account)
                 .ToListAsync();
 
             var filteredCourses = courses
                 .Where(c =>
                 {
-                    // Lấy fieldId qua Category
-                    var fieldIds = c.CourseCategories
-                        .SelectMany(cc => cc.Category.FieldCategories)
-                        .Select(fc => fc.FieldId)
-                        .Distinct()
-                        .ToList();
-
-                    // Kiểm tra field trùng
-                    bool sameField = fieldIds.Contains(latestResult.FieldId);
+                    // Kiểm tra category trùng
+                    bool sameCategory = c.CourseCategories.Any(cc => cc.CategoryId == latestResult.CategoryId);
 
                     // Kiểm tra cấp độ khóa học <= cấp độ user
                     int courseLevelNumeric = 0;
@@ -418,33 +317,11 @@ namespace LMSystem.Repository.Repositories
 
                     bool sameOrLowerLevel = courseLevelNumeric <= levelValue || levelValue == 0;
 
-                    return sameField || sameOrLowerLevel;
+                    return sameCategory || sameOrLowerLevel;
                 })
-                .Select(course =>
+                .Select(course => new CourseShortViewModel
                 {
-                    // Ánh xạ CourseLevel (1,2,3 → Fresher, Junior, Master)
-                    string courseLevelDisplay = "";
-                    if (!string.IsNullOrEmpty(course.CourseLevel))
-                    {
-                        var levels = course.CourseLevel.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                            .Select(l => l.Trim())
-                            .Select(l =>
-                            {
-                                return l switch
-                                {
-                                    "1" => "Fresher",
-                                    "2" => "Junior",
-                                    "3" => "Master",
-                                    _ => "Unknown"
-                                };
-                            });
-                        courseLevelDisplay = string.Join(", ", levels);
-                    }
-
-                    return new CourseShortViewModel
-                    {
-                        CourseId = course.CourseId
-                    };
+                    CourseId = course.CourseId
                 })
                 .ToList();
 
@@ -452,8 +329,8 @@ namespace LMSystem.Repository.Repositories
             return new PlacementResultWithCoursesViewModel
             {
                 ResultId = latestResult.ResultId,
-                FieldId = latestResult.FieldId,
-                FieldName = latestResult.FieldName,
+                CategoryId = latestResult.CategoryId,
+                CategoryName = latestResult.CategoryName,
                 Level = latestResult.Level,
                 Score = latestResult.Score,
                 CompletedAt = latestResult.CompletedAt,
@@ -465,7 +342,7 @@ namespace LMSystem.Repository.Repositories
         {
             return await _context.PlacementResults
                 .Include(r => r.PlacementTest)
-                .ThenInclude(t => t.Field)
+                .ThenInclude(t => t.Category)
                 .Where(r => r.AccountId == accountId)
                 .OrderByDescending(r => r.CompletedAt)
                 .Select(r => new PlacementResultViewModel
@@ -477,19 +354,20 @@ namespace LMSystem.Repository.Repositories
                     PlacementTestId = r.PlacementTestId,
                     Title = r.PlacementTest.Title,
                     Description = r.PlacementTest.Description,
-                    FieldId = r.PlacementTest.Field.FieldId,
-                    FieldName = r.PlacementTest.Field.Name
+                    CategoryId = r.PlacementTest.Category.CatgoryId,
+                    CategoryName = r.PlacementTest.Category.Name
                 })
                 .ToListAsync();
         }
 
 
     }
+
     public class PlacementResultWithCoursesViewModel
     {
         public int ResultId { get; set; }
-        public int FieldId { get; set; }
-        public string FieldName { get; set; } = null!;
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; } = null!;
         public string? Level { get; set; }
         public double Score { get; set; }
         public DateTime CompletedAt { get; set; }
@@ -520,15 +398,15 @@ namespace LMSystem.Repository.Repositories
         public string Title { get; set; } = null!;
         public string? Description { get; set; }
 
-        // Field
-        public int FieldId { get; set; }
-        public string FieldName { get; set; } = null!;
+        // Category
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; } = null!;
     }
 
 
     public class AddPlacementTestModel
     {
-        public int FieldId { get; set; }
+        public int CategoryId { get; set; }
         public string Title { get; set; } = null!;
         public string? Description { get; set; }
     }
@@ -536,7 +414,7 @@ namespace LMSystem.Repository.Repositories
     public class UpdatePlacementTestModel
     {
         public int PlacementTestId { get; set; }
-        public int? FieldId { get; set; }
+        public int? CategoryId { get; set; }
         public string? Title { get; set; }
         public string? Description { get; set; }
         public bool? IsActive { get; set; }
@@ -571,26 +449,13 @@ namespace LMSystem.Repository.Repositories
     public class PlacementTestListModel
     {
         public int PlacementTestId { get; set; }
-        public string FieldName { get; set; } = null!;
-        public int FieldId { get; set; }
+        public string CategoryName { get; set; } = null!;
+        public int CategoryId { get; set; }
         public string Title { get; set; } = null!;
         public string? Description { get; set; }
         public bool IsActive { get; set; }
         public int QuestionCount { get; set; }
         public DateTime CreatedAt { get; set; }
-    }
-
-    public class AddFieldModel
-    {
-        public string Name { get; set; } = null!;
-        public string? Description { get; set; }
-    }
-
-    public class UpdateFieldRequest
-    {
-        public int FieldId { get; set; }
-        public string Name { get; set; } = null!;
-        public string? Description { get; set; }
     }
 
 }

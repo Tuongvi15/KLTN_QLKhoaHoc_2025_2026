@@ -1,6 +1,5 @@
 ﻿using LMSystem.Repository.Interfaces;
 using LMSystem.Repository.Repositories;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LMSystem.API.Controllers
@@ -16,40 +15,8 @@ namespace LMSystem.API.Controllers
             _placementRepo = placementRepo;
         }
 
-        // ==================== FIELD ====================
-
-        [HttpGet("fields")]
-        public async Task<IActionResult> GetAllFields()
-        {
-            var result = await _placementRepo.GetAllFields();
-            return Ok(result);
-        }
-
-        [HttpPost("fields")]
-        public async Task<IActionResult> AddField([FromBody] AddFieldModel model)
-        {
-            if (string.IsNullOrEmpty(model.Name))
-                return BadRequest(new { message = "Field name is required" });
-
-            var result = await _placementRepo.AddField(model.Name, model.Description);
-            return Ok(result);
-        }
-        [HttpPut("UpdateField")]
-        public async Task<IActionResult> UpdateField([FromBody] UpdateFieldRequest model)
-        {
-            if (model == null || string.IsNullOrEmpty(model.Name))
-                return BadRequest("Invalid input");
-
-            var result = await _placementRepo.UpdateField(model.FieldId, model.Name, model.Description);
-            return Ok(result);
-        }
-
-        [HttpDelete("fields/{id}")]
-        public async Task<IActionResult> DeleteField(int id)
-        {
-            var result = await _placementRepo.DeleteField(id);
-            return Ok(result);
-        }
+        // ==================== REMOVED FIELD API ====================
+        // All field-related endpoints have been removed.
 
         // ==================== PLACEMENT TEST ====================
 
@@ -60,13 +27,12 @@ namespace LMSystem.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("tests/field/{fieldId}")]
-        public async Task<IActionResult> GetTestsByField(int fieldId, [FromQuery] string accountId)
+        [HttpGet("tests/category/{categoryId}")]
+        public async Task<IActionResult> GetTestsByCategory(int categoryId, [FromQuery] string accountId)
         {
-            var result = await _placementRepo.GetPlacementTestsByField(fieldId, accountId);
+            var result = await _placementRepo.GetPlacementTestsByCategory(categoryId, accountId);
             return Ok(result);
         }
-
 
         [HttpGet("tests/{testId}")]
         public async Task<IActionResult> GetTestById(int testId)
@@ -80,7 +46,7 @@ namespace LMSystem.API.Controllers
         [HttpPost("tests")]
         public async Task<IActionResult> AddPlacementTest([FromBody] AddPlacementTestModel model)
         {
-            if (string.IsNullOrEmpty(model.Title))
+            if (string.IsNullOrWhiteSpace(model.Title))
                 return BadRequest(new { message = "Test title is required" });
 
             var result = await _placementRepo.AddPlacementTest(model);
@@ -114,7 +80,7 @@ namespace LMSystem.API.Controllers
         [HttpPost("questions")]
         public async Task<IActionResult> AddPlacementQuestion([FromBody] AddPlacementQuestionModel model)
         {
-            if (model.PlacementTestId <= 0 || string.IsNullOrEmpty(model.QuestionText))
+            if (model.PlacementTestId <= 0 || string.IsNullOrWhiteSpace(model.QuestionText))
                 return BadRequest(new { message = "Invalid question data" });
 
             var result = await _placementRepo.AddPlacementQuestion(model);
@@ -140,17 +106,17 @@ namespace LMSystem.API.Controllers
         [HttpPost("results")]
         public async Task<IActionResult> SavePlacementResult([FromBody] SavePlacementResultModel model)
         {
-            if (model.PlacementTestId <= 0 || model.AccountId == null)
+            if (model.PlacementTestId <= 0 || string.IsNullOrWhiteSpace(model.AccountId))
                 return BadRequest(new { message = "Invalid placement result data" });
 
             var result = await _placementRepo.SavePlacementResult(model);
             return Ok(result);
         }
 
-        [HttpGet("results/latest/{accountId}/{fieldId}")]
-        public async Task<IActionResult> GetLatestResult(string accountId, int fieldId)
+        [HttpGet("results/latest/{accountId}/{categoryId}")]
+        public async Task<IActionResult> GetLatestResult(string accountId, int categoryId)
         {
-            var result = await _placementRepo.GetLatestResult(accountId, fieldId);
+            var result = await _placementRepo.GetLatestResult(accountId, categoryId);
             if (result == null)
                 return NotFound(new { message = "No result found" });
 

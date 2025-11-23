@@ -32,16 +32,6 @@ namespace LMSystem.Repository.Repositories
                 _context.Categories.Add(category);
                 await _context.SaveChangesAsync();
 
-                if (model.FieldId != null)
-                {
-                    var fieldCategory = new FieldCategory
-                    {
-                        FieldId = model.FieldId.Value,
-                        CategoryId = category.CatgoryId
-                    };
-                    _context.FieldCategories.Add(fieldCategory);
-                    await _context.SaveChangesAsync();
-                }
 
                 return new ResponeModel { Status = "Success", Message = "Added category successfully", DataObject = category };
             }
@@ -81,43 +71,6 @@ namespace LMSystem.Repository.Repositories
                 return new ResponeModel { Status = "Error", Message = "An error occurred while delete the category" };
             }
         }
-        public async Task<ResponeModel> GetCategoriesByFieldIdAsync(int fieldId)
-        {
-            try
-            {
-                var categories = await _context.FieldCategories
-                    .Where(fc => fc.FieldId == fieldId)
-                    .Include(fc => fc.Category)
-                    .Select(fc => fc.Category)
-                    .ToListAsync();
-
-                if (categories == null || !categories.Any())
-                {
-                    return new ResponeModel
-                    {
-                        Status = "Error",
-                        Message = "No categories found for this field"
-                    };
-                }
-
-                return new ResponeModel
-                {
-                    Status = "Success",
-                    Message = "Fetched categories by field successfully",
-                    DataObject = categories
-                };
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception: {ex.Message}");
-                return new ResponeModel
-                {
-                    Status = "Error",
-                    Message = "An error occurred while fetching categories by field"
-                };
-            }
-        }
-
 
         public async Task<PagedList<Category>> GetAllCategory(PaginationParameter paginationParameter)
         {
@@ -135,7 +88,7 @@ namespace LMSystem.Repository.Repositories
 
             return PagedList<Category>.ToPagedList(allCategories,
                 paginationParameter.PageNumber,
-                paginationParameter.PageSize);
+                100000);
         }
 
         public async Task<ResponeModel> UpdateCategory(UpdateCategoryModel model)
@@ -161,31 +114,6 @@ namespace LMSystem.Repository.Repositories
                 Console.WriteLine($"Exception: {ex.Message}");
                 return new ResponeModel { Status = "Error", Message = "An error occurred while update the course" };
             }
-        }
-
-        public async Task<ResponeModel> GetFieldsWithCategories()
-        {
-            var result = await _context.Fields
-                .Include(f => f.FieldCategories)
-                    .ThenInclude(fc => fc.Category)
-                .Select(f => new
-                {
-                    FieldId = f.FieldId,
-                    FieldName = f.Name,
-                    Categories = f.FieldCategories.Select(fc => new
-                    {
-                        fc.Category.CatgoryId,
-                        fc.Category.Name
-                    })
-                })
-                .ToListAsync();
-
-            return new ResponeModel
-            {
-                Status = "Success",
-                Message = "Fetched fields with categories successfully",
-                DataObject = result
-            };
         }
 
     }

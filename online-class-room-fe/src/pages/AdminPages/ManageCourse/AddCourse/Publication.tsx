@@ -228,6 +228,12 @@ const Publication: React.FC = () => {
                                             type="primary"
                                             icon={<CheckOutlined />}
                                             loading={isApproving}
+                                            style={{
+                                                backgroundColor: hasPending ? "#ffd666" : "#0c5ecf",
+                                                borderColor: hasPending ? "#ffa940" : "#0c5ecf",
+                                                color: hasPending ? "#000" : "#fff",
+                                                opacity: 1, // đảm bảo không bị mờ
+                                            }}
                                             onClick={async () => {
                                                 try {
                                                     await approveCourse({

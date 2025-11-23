@@ -1,16 +1,21 @@
-import { Card, Skeleton, Tag } from "antd";
+import { Card, Skeleton, Tag, Button } from "antd";
 import { useGetAllResultsByAccountQuery } from "../../../services/placementtest.services";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
+
+import QuizIcon from "@mui/icons-material/Quiz";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import QuizIcon from "@mui/icons-material/Quiz";
+import CategoryIcon from "@mui/icons-material/Category";
+import ReplayIcon from "@mui/icons-material/Replay";
+
+import { useNavigate } from "react-router-dom";
 
 const PlacementHistoryPage = () => {
   const userId = useSelector((state: RootState) => state.user.id);
+  const navigate = useNavigate();
 
-  // ✅ chỉ khai báo 1 lần
-  const { data: results, isLoading, refetch } = useGetAllResultsByAccountQuery(userId, {
+  const { data: results, isLoading } = useGetAllResultsByAccountQuery(userId, {
     refetchOnMountOrArgChange: true,
   });
 
@@ -20,44 +25,81 @@ const PlacementHistoryPage = () => {
         <h1 className="text-4xl text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-pink-600 mb-2">
           Lịch sử làm bài test
         </h1>
-        <p className="text-gray-600 text-lg">Xem lại các bài test bạn đã thực hiện 🎯</p>
+        <p className="text-gray-600 text-lg mt-3">
+          Xem lại những bài test bạn đã hoàn thành 🎯
+        </p>
       </div>
 
+      {/* MAIN LIST */}
       {isLoading ? (
         <Skeleton active />
       ) : results?.length ? (
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10">
+
           {results.map((r: any) => (
             <Card
               key={r.resultId}
-              className="rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border-none bg-white/90 backdrop-blur"
+              className="rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 border-none bg-white/95 backdrop-blur-sm"
+              bodyStyle={{ padding: "24px" }}
             >
-              <h2 className="text-xl font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                <QuizIcon className="text-purple-600" />
+              {/* TEST TITLE */}
+              <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <QuizIcon className="text-purple-600 text-3xl" />
                 {r.title}
               </h2>
-              <p className="text-gray-500 mb-4">{r.fieldName}</p>
 
-              <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center gap-2 text-gray-600">
+              {/* CATEGORY */}
+              <div className="flex items-center gap-2 text-gray-600 text-sm mb-4">
+                <CategoryIcon className="text-pink-500" />
+                <span className="font-medium">{r.categoryName}</span>
+              </div>
+
+              {/* DESCRIPTION */}
+              {r.description && (
+                <p className="text-gray-500 mb-4 text-sm italic">
+                  {r.description}
+                </p>
+              )}
+
+              {/* SCORE & TIME */}
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2 text-gray-700 font-medium">
                   <EmojiEventsIcon className="text-yellow-500" />
-                  <span>{r.score.toFixed(0)} Điểm – Level {r.level}</span>
+                  <span className="text-lg">
+                    {r.score}% • Level {r.level}
+                  </span>
                 </div>
+
                 <div className="flex items-center gap-2 text-gray-400 text-sm">
                   <AccessTimeIcon fontSize="small" />
-                  {new Date(r.completedAt).toLocaleString()}
+                  {new Date(r.completedAt).toLocaleString("vi-VN")}
                 </div>
               </div>
 
-              <Tag color="purple">Test #{r.placementTestId}</Tag>
+              {/* TAGS */}
+
+
+              {/* ACTION BUTTONS */}
+              <div className="flex justify-end gap-4 mt-3">
+                <Button
+                  onClick={() => navigate(`/placement-test/start/${r.placementTestId}`)}
+                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2.5 rounded-xl border-none hover:opacity-90 font-medium"
+                >
+                  <ReplayIcon style={{ fontSize: 18 }} />
+                  Làm lại bài test
+                </Button>
+
+              </div>
             </Card>
           ))}
+
         </div>
       ) : (
-        <p className="text-center text-gray-500 mt-10">
+        <p className="text-center text-gray-500 mt-14 text-lg italic">
           Bạn chưa có lịch sử làm bài test nào.
         </p>
       )}
+
     </div>
   );
 };

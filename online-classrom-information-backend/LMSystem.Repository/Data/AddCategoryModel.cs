@@ -12,6 +12,5 @@ namespace LMSystem.Repository.Data
         [Required(ErrorMessage = "CategoryName is required!")]
         public string CategoryName { get; set; }
         public string? CategoryDescription { get; set; }
-        public int? FieldId { get; set; }
     }
 }

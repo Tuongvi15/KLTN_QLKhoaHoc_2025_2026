@@ -231,15 +231,7 @@ const ViewCourseListPage = () => {
                                                                         <span className="font-bold text-gray-800">{course.accountName}</span>
                                                                     </p>
                                                                 )}
-                                                                {course.field && (
-                                                                    <p className="mb-3 flex items-center gap-2 text-sm text-gray-600">
-                                                                        <span className="font-semibold text-gray-700 flex items-center gap-1">
-                                                                            <CategoryIcon className="text-green-500" fontSize="small" />
-                                                                            Lĩnh vực:
-                                                                        </span>
-                                                                        <span className="font-medium text-gray-800">{course.field.name}</span>
-                                                                    </p>
-                                                                )}
+                                                                
 
                                                                 {/* Categories */}
                                                                 <div className="mb-3 flex flex-wrap gap-2">

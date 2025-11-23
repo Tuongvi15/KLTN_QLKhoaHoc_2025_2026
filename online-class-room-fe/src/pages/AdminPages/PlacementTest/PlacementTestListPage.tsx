@@ -39,8 +39,8 @@ const PlacementTestListPage = () => {
       width: 80,
     },
     {
-      title: "Lĩnh vực",
-      dataIndex: "fieldName",
+      title: "Danh mục",
+      dataIndex: "categoryName",
       render: (name: string) => name || <i>Không xác định</i>,
     },
     {
@@ -66,7 +66,6 @@ const PlacementTestListPage = () => {
       title: "Hành động",
       render: (_: unknown, record: PlacementTest) => (
         <Space>
-          {/* ✅ Nút Sửa */}
           <Button
             type="primary"
             size="small"
@@ -76,7 +75,6 @@ const PlacementTestListPage = () => {
             Sửa
           </Button>
 
-          {/* ✅ Nút Thêm/Chỉnh sửa câu hỏi */}
           <Button
             size="small"
             type="default"
@@ -89,7 +87,6 @@ const PlacementTestListPage = () => {
               : "Thêm câu hỏi"}
           </Button>
 
-          {/* ✅ Nút Xóa (chỉ khi chưa hoạt động) */}
           {!record.isActive && (
             <Popconfirm
               title="Xóa bài test?"
@@ -134,7 +131,6 @@ const PlacementTestListPage = () => {
         pagination={{ pageSize: 10 }}
       />
 
-      {/* Drawer thêm/sửa bài test */}
       {selectedTest && (
         <AddPlacementTestPage
           test={selectedTest}

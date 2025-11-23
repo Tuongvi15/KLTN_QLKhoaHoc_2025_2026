@@ -15,7 +15,5 @@ namespace LMSystem.Services.Interfaces
         Task<ResponeModel> UpdateCategory(UpdateCategoryModel model);
         Task<ResponeModel> DeleteCategory(int categoryId);
         Task<PagedList<Category>> GetAllCategory(PaginationParameter paginationParameter);
-        Task<ResponeModel> GetCategoriesByFieldIdAsync(int fieldId);
-        Task<ResponeModel> GetFieldsWithCategories();
     }
 }

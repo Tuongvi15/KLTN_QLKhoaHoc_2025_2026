@@ -14,10 +14,8 @@ namespace LMSystem.Repository.Interfaces
     {
         Task<ResponeModel> AddCategory(AddCategoryModel model);
         Task<ResponeModel> UpdateCategory(UpdateCategoryModel model);
-        Task<ResponeModel> GetFieldsWithCategories();
         Task<ResponeModel> DeleteCategory(int categoryId);
         Task<PagedList<Category>> GetAllCategory(PaginationParameter paginationParameter);
-        public Task<ResponeModel> GetCategoriesByFieldIdAsync(int fieldId);
 
     }
 }

@@ -60,7 +60,6 @@ export default function MySider() {
 
       // ✅ Thêm nhóm “Quản lý bài test đầu vào”
       getItem('Quản lý bài test đầu vào', 'sub3', <ExperimentOutlined />, [
-        getItem('Lĩnh vực', 'fieldManager', <AppstoreOutlined />),
         getItem('Bài test đầu vào', 'placementTest', <FileTextOutlined />),
       ]),
     ];

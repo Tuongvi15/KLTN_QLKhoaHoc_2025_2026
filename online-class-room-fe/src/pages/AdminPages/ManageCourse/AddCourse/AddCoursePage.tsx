@@ -25,10 +25,6 @@ import {
     CourseCategory,
     UpdateCourseRequest,
 } from '../../../../types/Course.type'; import { Button as AntButton } from 'antd';
-import {
-    useGetAllFieldsQuery,
-    useGetCategoriesByFieldIdQuery,
-} from '../../../../services/placementtest.services';
 
 const totalSteps: StepProps[] = [
     { title: 'Tiêu đề' },
@@ -59,9 +55,9 @@ const AddCoursePage = () => {
     const [currentStep, setCurrentStep] = useState(addCourseStep);
     const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
     const [selectedFieldId, setSelectedFieldId] = useState<number | null>(null);
-    const { data: fieldsData, isLoading: isFieldsLoading } = useGetAllFieldsQuery();
-    const { data: categoriesData, isFetching: isFetchingCategories, refetch } =
-        useGetCategoriesByFieldIdQuery(selectedFieldId!, { skip: !selectedFieldId });
+    // const { data: fieldsData, isLoading: isFieldsLoading } = useGetAllFieldsQuery();
+    // const { data: categoriesData, isFetching: isFetchingCategories, refetch } =
+    //     useGetCategoriesByFieldIdQuery(selectedFieldId!, { skip: !selectedFieldId });
     const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
     useEffect(() => {
@@ -142,7 +138,7 @@ const AddCoursePage = () => {
 
             message.success("Thêm thể loại thành công!");
             setNewCategoryName("");
-            refetch();
+            //refetch();
         } catch {
             message.error("Thêm thể loại thất bại!");
         }
@@ -212,7 +208,7 @@ const AddCoursePage = () => {
                                 </p>
 
                                 {/* Select Field */}
-                                <div className="mt-6 flex flex-col items-center">
+                                {/* <div className="mt-6 flex flex-col items-center">
                                     <Select
                                         placeholder="Chọn lĩnh vực..."
                                         loading={isFieldsLoading}
@@ -229,17 +225,17 @@ const AddCoursePage = () => {
                                             );
                                         }}
                                         style={{ width: 400 }}
-                                        options={
-                                            fieldsData?.map((f: any) => ({
-                                                label: f.name,
-                                                value: f.fieldId,
-                                            })) || []
-                                        }
+                                        // options={
+                                        //     fieldsData?.map((f: any) => ({
+                                        //         label: f.name,
+                                        //         value: f.fieldId,
+                                        //     })) || []
+                                        // }
                                     />
-                                </div>
+                                </div> */}
 
                                 {/* Hiển thị categories thuộc field */}
-                                {selectedFieldId && (
+                                {/* {selectedFieldId && (
                                     <div className="m-auto mt-8 flex max-w-[700px] flex-wrap gap-3 justify-center">
                                         {isFetchingCategories ? (
                                             <Skeleton active />
@@ -258,7 +254,7 @@ const AddCoursePage = () => {
                                             <p className="text-gray-500">Không có thể loại nào trong lĩnh vực này</p>
                                         )}
                                     </div>
-                                )}
+                                )} */}
 
                                 {/* Thêm thể loại mới */}
                                 {selectedFieldId && (

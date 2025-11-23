@@ -85,32 +85,5 @@ namespace LMSystem.API.Controllers
 
             return Ok(response);
         }
-
-        [HttpGet("by-field/{fieldId}")]
-        public async Task<IActionResult> GetCategoriesByFieldId(int fieldId)
-        {
-            var response = await _categoryService.GetCategoriesByFieldIdAsync(fieldId);
-
-            // ✅ Nếu không có category, vẫn trả về 200 với mảng rỗng
-            if (response.DataObject == null)
-            {
-                response.DataObject = new List<object>();
-                response.Status = "Success";
-                response.Message = "No categories found for this field";
-            }
-
-            return Ok(response);
-        }
-
-
-        [HttpGet("by-cate")]
-        public async Task<IActionResult> GetFieldsWithCategories()
-        {
-            var result = await _categoryService.GetFieldsWithCategories();
-            if (result.Status == "Error")
-                return NotFound(result);
-
-            return Ok(result);
-        }
     }
 }

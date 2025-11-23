@@ -1,7 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
-  Field,
-  AddFieldRequest,
   PlacementTest,
   AddPlacementTestRequest,
   UpdatePlacementTestRequest,
@@ -22,43 +20,22 @@ export const placementTestApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Field", "PlacementTest", "PlacementQuestion"],
+  tagTypes: ["Category", "PlacementTest", "PlacementQuestion"],
   endpoints: (build) => ({
-    // ---------- FIELD ----------
-    getAllFields: build.query<Field[], void>({
-      query: () => "api/PlacementTest/fields",
-      providesTags: ["Field"],
-    }),
-    addField: build.mutation<Field, AddFieldRequest>({
-      query: (body) => ({
-        url: "api/PlacementTest/fields",
-        method: "POST",
-        body,
-      }),
-      invalidatesTags: ["Field"],
-    }),
-    deleteField: build.mutation<void, number>({
-      query: (id) => ({
-        url: `api/PlacementTest/fields/${id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["Field"],
-    }),
-    updateField: build.mutation({
-      query: (body) => ({
-        url: 'api/PlacementTest/UpdateField',
-        method: 'PUT',
-        body,
-      }),
+
+    // ==================== CATEGORY ====================
+    getAllCategories: build.query<any[], void>({
+      query: () => "api/Category/GetAllCategory",
+      providesTags: ["Category"],
     }),
 
-
-    // ---------- PLACEMENT TEST ----------
+    // ==================== PLACEMENT TEST ====================
     getAllPlacementTests: build.query<PlacementTest[], void>({
       query: () => "api/PlacementTest/tests",
       providesTags: ["PlacementTest"],
     }),
-    addPlacementTest: build.mutation<PlacementTest, AddPlacementTestRequest>({
+
+    addPlacementTest: build.mutation<any, AddPlacementTestRequest>({
       query: (body) => ({
         url: "api/PlacementTest/tests",
         method: "POST",
@@ -66,7 +43,8 @@ export const placementTestApi = createApi({
       }),
       invalidatesTags: ["PlacementTest"],
     }),
-    updatePlacementTest: build.mutation<PlacementTest, UpdatePlacementTestRequest>({
+
+    updatePlacementTest: build.mutation<any, UpdatePlacementTestRequest>({
       query: (body) => ({
         url: `api/PlacementTest/tests/${body.placementTestId}`,
         method: "PUT",
@@ -74,6 +52,7 @@ export const placementTestApi = createApi({
       }),
       invalidatesTags: ["PlacementTest"],
     }),
+
     deletePlacementTest: build.mutation<void, number>({
       query: (id) => ({
         url: `api/PlacementTest/tests/${id}`,
@@ -81,18 +60,14 @@ export const placementTestApi = createApi({
       }),
       invalidatesTags: ["PlacementTest"],
     }),
-    getCategoriesByFieldId: build.query({
-      query: (fieldId: number) => ({
-        url: `api/Category/by-field/${fieldId}`,
-        method: "GET",
-      }),
+
+    // ---------- GET TESTS BY CATEGORY ----------
+    getTestsByCategory: build.query<any[], { categoryId: number; accountId: string }>({
+      query: ({ categoryId, accountId }) =>
+        `api/PlacementTest/tests/category/${categoryId}?accountId=${accountId}`,
     }),
 
-    getTestsByField: build.query<any[], { fieldId: number; accountId: string }>({
-      query: ({ fieldId, accountId }) =>
-        `api/PlacementTest/tests/field/${fieldId}?accountId=${accountId}`,
-    }),
-
+    // ==================== RESULT ====================
     savePlacementResult: build.mutation<any, any>({
       query: (body) => ({
         url: `api/PlacementTest/results`,
@@ -105,12 +80,12 @@ export const placementTestApi = createApi({
       query: (accountId) => `api/PlacementTest/results/history/${accountId}`,
     }),
 
-
-    // ---------- QUESTIONS ----------
+    // ==================== QUESTIONS ====================
     getQuestionsByTestId: build.query<PlacementQuestion[], number>({
       query: (id) => `api/PlacementTest/questions/${id}`,
       providesTags: ["PlacementQuestion"],
     }),
+
     addPlacementQuestion: build.mutation<PlacementQuestion, AddPlacementQuestionRequest>({
       query: (body) => ({
         url: "api/PlacementTest/questions",
@@ -119,6 +94,7 @@ export const placementTestApi = createApi({
       }),
       invalidatesTags: ["PlacementQuestion"],
     }),
+
     updatePlacementQuestion: build.mutation<
       PlacementQuestion,
       { questionId: number } & AddPlacementQuestionRequest
@@ -130,6 +106,7 @@ export const placementTestApi = createApi({
       }),
       invalidatesTags: ["PlacementQuestion"],
     }),
+
     deletePlacementQuestion: build.mutation<void, number>({
       query: (id) => ({
         url: `api/PlacementTest/questions/${id}`,
@@ -140,21 +117,18 @@ export const placementTestApi = createApi({
   }),
 });
 
+// Export hooks
 export const {
-  useGetAllFieldsQuery,
-  useAddFieldMutation,
-  useDeleteFieldMutation,
+  useGetAllCategoriesQuery,
   useGetAllPlacementTestsQuery,
   useAddPlacementTestMutation,
   useUpdatePlacementTestMutation,
   useDeletePlacementTestMutation,
+  useGetTestsByCategoryQuery,
+  useSavePlacementResultMutation,
+  useGetAllResultsByAccountQuery,
   useGetQuestionsByTestIdQuery,
   useAddPlacementQuestionMutation,
   useUpdatePlacementQuestionMutation,
   useDeletePlacementQuestionMutation,
-  useUpdateFieldMutation,
-  useGetCategoriesByFieldIdQuery,
-  useGetTestsByFieldQuery,
-  useSavePlacementResultMutation,
-  useGetAllResultsByAccountQuery ,
 } = placementTestApi;

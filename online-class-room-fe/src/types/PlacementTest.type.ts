@@ -1,43 +1,62 @@
+// ===============================
 // src/types/PlacementTest.type.ts
+// ===============================
 
-export interface Field {
-    fieldId: number;
+// ❌ Field đã bị xoá khỏi hệ thống, bỏ toàn bộ interface Field
+// ❌ Xóa luôn AddFieldRequest
+
+// ===============================
+// CATEGORY
+// ===============================
+export interface Category {
+    categoryId: number;
     name: string;
     description?: string;
-    placementTests?: PlacementTest[];
 }
 
-export interface AddFieldRequest {
-    name: string;
-    description?: string;
-}
-
+// ===============================
+// PLACEMENT TEST
+// ===============================
 export interface PlacementTest {
     placementTestId: number;
-    fieldId: number;
+
+    // ✔ fieldId → categoryId
+    categoryId: number;
+
+    // ✔ thêm categoryName để FE hiển thị list
+    categoryName?: string;
+
     title: string;
     description?: string;
     isActive: boolean;
     createdAt: string;
-    field?: Field;
+
     placementQuestions?: PlacementQuestion[];
     questionCount: number;
-
 }
 
 export interface AddPlacementTestRequest {
-    fieldId: number;
+    // ✔ dùng categoryId
+    categoryId: number;
+
     title: string;
     description?: string;
 }
 
 export interface UpdatePlacementTestRequest {
     placementTestId: number;
+
+    // ✔ categoryId cho phép sửa khi chưa active
+    categoryId?: number;
+
     title?: string;
     description?: string;
     isActive?: boolean;
 }
 
+// ===============================
+// PLACEMENT QUESTION
+// ===============================
 export interface PlacementQuestion {
     questionId: number;
     placementTestId: number;

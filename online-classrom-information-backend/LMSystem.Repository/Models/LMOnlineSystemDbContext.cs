@@ -49,9 +49,6 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
     public virtual DbSet<Question> Questions { get; set; }
 
     public virtual DbSet<AnswerHistory> AnswerHistories { get; set; }
-
-    public virtual DbSet<Field> Fields { get; set; }
-    public virtual DbSet<FieldCategory> FieldCategories { get; set; }
     public virtual DbSet<PlacementTest> PlacementTests { get; set; }
     public virtual DbSet<PlacementQuestion> PlacementQuestions { get; set; }
     public virtual DbSet<PlacementResult> PlacementResults { get; set; }
@@ -98,43 +95,22 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<Field>(entity =>
-        {
-            entity.HasKey(e => e.FieldId);
-            entity.ToTable("Field");
-            entity.Property(e => e.Name).HasMaxLength(150);
-            entity.Property(e => e.Description).HasMaxLength(300);
-        });
-        modelBuilder.Entity<FieldCategory>(entity =>
-        {
-            entity.HasKey(e => e.FieldCategoryId);
-            entity.ToTable("FieldCategory");
-
-            entity.HasOne(e => e.Field)
-                .WithMany(d => d.FieldCategories)
-                .HasForeignKey(e => e.FieldId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasOne(e => e.Category)
-                .WithMany(c => c.FieldCategories)
-                .HasForeignKey(e => e.CategoryId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
         modelBuilder.Entity<PlacementTest>(entity =>
         {
             entity.HasKey(e => e.PlacementTestId);
             entity.ToTable("PlacementTest");
 
+
             entity.Property(e => e.Title).HasMaxLength(200);
             entity.Property(e => e.Description).HasMaxLength(1000);
             entity.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
 
-            // ✅ SỬA: foreign key phải là FieldId, không phải Field
-            entity.HasOne(e => e.Field)
-                .WithMany(d => d.PlacementTests)
-                .HasForeignKey(e => e.FieldId)
-                .OnDelete(DeleteBehavior.Cascade);
+
+            // NEW — PlacementTest belongs to Category
+            entity.HasOne(e => e.Category)
+            .WithMany(c => c.PlacementTests)
+            .HasForeignKey(e => e.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<ApproveCourse>(entity =>

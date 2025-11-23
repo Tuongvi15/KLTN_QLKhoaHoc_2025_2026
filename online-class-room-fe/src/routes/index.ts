@@ -31,7 +31,6 @@ import ViewCourseListPage from '../pages/ClientPages/ViewCourseListPage';
 import CheckLearningProgress from '../pages/ParentPages/CheckLearningProgess/CheckLearningProgress';
 import ParentManageProfilePage from '../pages/ParentPages/ParentManageProfilePage';
 import PlacementTestListPage from '../pages/AdminPages/PlacementTest/PlacementTestListPage';
-import FieldManager from '../pages/AdminPages/PlacementTest/FieldManager';
 import PlacementQuestionPage from '../pages/AdminPages/PlacementTest/PlacementQuestionPage';
 import PlacementTestPage from '../pages/ClientPages/PlacementTestPage/PlacementTestPage';
 import PlacementTestStartPage from '../pages/ClientPages/PlacementTestPage/PlacementTestStartPag';
@@ -92,7 +91,6 @@ const adminRoutes: RouteProps[] = [
     { path: '/admin/getAllAccount', component: GetAllAccount, layout: DefaultLayoutAdmin },
     { path: '/admin/createAccount', component: CreateAccountAdmin, layout: DefaultLayoutAdmin },
     { path: '/admin/placement-tests', component: PlacementTestListPage, layout: DefaultLayoutAdmin },
-    { path: '/admin/fields', component: FieldManager, layout: DefaultLayoutAdmin },
     {
         path: '/admin/placement-test/:id/questions',
         component: PlacementQuestionPage,

@@ -8,10 +8,8 @@ import { CategoryRespone } from "../../../types/Course.type";
 import { useUpdateCourseMutation } from "../../../services/course.services";
 
 import { useAddNewCourseMutation } from "../../../services/course.services";
-import {
-    useGetAllFieldsQuery,
-    useGetCategoriesByFieldIdQuery
-} from "../../../services/placementtest.services";
+import { useGetAllCategoriesQuery } from "../../../services/placementtest.services";
+
 
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store";
@@ -47,9 +45,10 @@ export default function CreateCourseModal({ open, onClose }: CreateCourseModalPr
             setCurrent(0);
 
             // load field
-            setSelectedFieldId(
-                addCourseState.courseCategories?.[0]?.category?.fieldCategories?.[0]?.field?.fieldId ?? null
+            setSelectedCategoryId(
+                addCourseState.courseCategories?.[0]?.categoryId ?? null
             );
+
 
 
             // load level
@@ -58,28 +57,22 @@ export default function CreateCourseModal({ open, onClose }: CreateCourseModalPr
     }, [open]);
 
     // FIELD + CATEGORY
-    const { data: fieldList = [] } = useGetAllFieldsQuery();
-    const [selectedFieldId, setSelectedFieldId] = useState<number | null>(null);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+    const { data: categoryList = [] } = useGetAllCategoriesQuery();
 
-    const {
-        data: categoriesResp,
-        refetch: refetchCategories = () => { }
-    } = useGetCategoriesByFieldIdQuery(selectedFieldId!, {
-        skip: !selectedFieldId
-    });
-
-    const categories: CategoryRespone[] = categoriesResp?.dataObject || [];
+    const categories: CategoryRespone[] = categoryList || [];
 
     // LEVEL
     const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
 
-    // SYNC FIELD
+    // SYNC CATEGORY
     useEffect(() => {
         dispatch(setCourseCreatedData({
             ...addCourseState,
         } as any));
-        // eslint-disable-next-line
-    }, [selectedFieldId]);
+    }, [selectedCategoryId]);
+
+
 
     // SYNC LEVEL ("1|2|3")
     useEffect(() => {
@@ -96,14 +89,12 @@ export default function CreateCourseModal({ open, onClose }: CreateCourseModalPr
             content: (
                 <Step1_BasicInfo
                     mode={mode}
-                    fieldList={fieldList}
-                    selectedFieldId={selectedFieldId}
-                    setSelectedFieldId={setSelectedFieldId}
-                    categories={categories}
-                    refetchCategories={refetchCategories}
+                    categoryList={categories}
                     selectedLevels={selectedLevels}
                     setSelectedLevels={setSelectedLevels}
                 />
+
+
             )
         },
         { title: "Hình ảnh & video", content: <Step2_MediaUpload /> },
@@ -113,7 +104,6 @@ export default function CreateCourseModal({ open, onClose }: CreateCourseModalPr
 
     const handleNext = () => {
         if (current === 0) {
-            if (!selectedFieldId) return message.warning("Vui lòng chọn lĩnh vực!");
             if (!addCourseState.title?.trim()) return message.warning("Vui lòng nhập tiêu đề!");
             if (!addCourseState.courseCategories?.length)
                 return message.warning("Chọn ít nhất 1 category!");

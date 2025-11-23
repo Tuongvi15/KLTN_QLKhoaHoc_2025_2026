@@ -12,5 +12,5 @@ public partial class Category
     public string? Description { get; set; }
 
     public virtual ICollection<CourseCategory> CourseCategories { get; set; } = new List<CourseCategory>();
-    public virtual ICollection<FieldCategory> FieldCategories { get; set; } = new List<FieldCategory>();
+    public virtual ICollection<PlacementTest> PlacementTests { get; set; } = new List<PlacementTest>();
 }

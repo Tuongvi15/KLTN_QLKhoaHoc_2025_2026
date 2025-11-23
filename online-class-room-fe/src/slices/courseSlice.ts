@@ -306,7 +306,11 @@ export const courseSlice = createSlice({
         },
 
         updateCourseCategory: (state, action: PayloadAction<CourseCategory[]>) => {
-            state.addCourse.courseCreatedData.courseCategories = action.payload;
+            state.addCourse.courseCreatedData.courseCategories = action.payload.map(c => ({
+                ...c,
+                category: { ...c.category }
+            }));
+
         },
         setCourseDescription: (state, action: PayloadAction<string>) => {
             state.addCourse.courseCreatedData.description = action.payload;
