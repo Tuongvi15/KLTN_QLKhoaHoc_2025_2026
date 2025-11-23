@@ -20,7 +20,10 @@ namespace LMSystem.Repository.Interfaces
         public Task<ResponeModel> CountOrderByStatusGroupByMonth(string status, int year);
         Task<List<TeacherCourseReportDto>> GetTeacherCoursesReport(
     string teacherId, string? search, DateTime? fromDate, DateTime? toDate);
-
+        Task<List<CourseRevenueDetailDto>> GetCourseRevenueDetail(
+     string? teacherId,
+     int? month,
+     int? year);
         public Task<ResponeModel> GetYearList();
         public Task<ResponeModel> CountTotalIncome();
         public Task<ResponeModel> CountTotalIncomeUpToDate(DateTime to);

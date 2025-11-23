@@ -714,6 +714,63 @@ namespace LMSystem.Repository.Repositories
                 return false;
             }
         }
+        public async Task<List<CourseRevenueDetailDto>> GetCourseRevenueDetail(
+     string? teacherId,
+     int? month,
+     int? year)
+        {
+            var query =
+                from order in _context.Orders
+                join course in _context.Courses on order.CourseId equals course.CourseId
+                join teacher in _context.Account on course.AccountId equals teacher.Id
+                where order.Status == "Completed"
+                select new { order, course, teacher };
+
+            if (!string.IsNullOrEmpty(teacherId))
+                query = query.Where(x => x.teacher.Id == teacherId);
+
+            if (month.HasValue)
+                query = query.Where(x => x.order.PaymentDate.Value.Month == month.Value);
+
+            if (year.HasValue)
+                query = query.Where(x => x.order.PaymentDate.Value.Year == year.Value);
+
+            return await query
+                .GroupBy(x => new
+                {
+                    x.course.CourseId,
+                    x.course.Title,
+                    x.teacher.Id,
+                    x.teacher.FirstName,
+                    x.teacher.LastName,
+                    x.course.Price,
+                    x.course.SalesCampaign
+                })
+                .Select(g => new CourseRevenueDetailDto
+                {
+                    CourseId = g.Key.CourseId,
+                    CourseTitle = g.Key.Title,
+
+                    TeacherId = g.Key.Id,
+                    TeacherName = g.Key.FirstName + " " + g.Key.LastName,
+
+                    OriginalPrice = g.Key.Price ?? 0,
+                    SalesCampaign = g.Key.SalesCampaign ?? 0,
+
+                    TotalOrders = g.Count(),
+                    TotalStudents = g.Count(), // = số order Completed
+
+                    RevenuePerStudent = (g.Key.Price ?? 0) - (g.Key.Price ?? 0) * (g.Key.SalesCampaign ?? 0) / 100,
+
+                    TotalRevenue = g.Sum(x => x.order.TotalPrice ?? 0),
+
+                    TeacherIncome = g.Sum(x => x.order.TotalPrice ?? 0) * 0.70,
+                    PlatformIncome = g.Sum(x => x.order.TotalPrice ?? 0) * 0.30
+                })
+                .OrderByDescending(x => x.TotalRevenue)
+                .ToListAsync();
+        }
+
 
     }
     public class TeacherRevenueReportDto
@@ -750,6 +807,27 @@ namespace LMSystem.Repository.Repositories
         public int RatingCount { get; set; }
         public string Status { get; set; }
     }
+    public class CourseRevenueDetailDto
+    {
+        public int CourseId { get; set; }
+        public string CourseTitle { get; set; }
+
+        public string TeacherId { get; set; }
+        public string TeacherName { get; set; }
+
+        public double OriginalPrice { get; set; }
+        public double SalesCampaign { get; set; }
+
+        public int TotalStudents { get; set; }
+        public int TotalOrders { get; set; }
+
+        public double RevenuePerStudent { get; set; }
+        public double TotalRevenue { get; set; }
+
+        public double TeacherIncome { get; set; }
+        public double PlatformIncome { get; set; }
+    }
+
 
 }
 

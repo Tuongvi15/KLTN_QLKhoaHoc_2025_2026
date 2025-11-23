@@ -55,7 +55,7 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
     public virtual DbSet<PlacementAnswer> PlacementAnswers { get; set; }
     public virtual DbSet<BankAccount> BankAccounts { get; set; }
     public virtual DbSet<ApproveCourse> ApproveCourses { get; set; }
-
+    public DbSet<TeacherPayout> TeacherPayouts { get; set; }
 
 
 
@@ -83,6 +83,45 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
                 .HasMaxLength(40)
                 .IsFixedLength();
         });
+
+        modelBuilder.Entity<TeacherPayout>(entity =>
+        {
+            entity.HasKey(e => e.PayoutId).HasName("PK_TeacherPayout");
+
+            entity.ToTable("TeacherPayouts");
+
+            entity.Property(e => e.TeacherId)
+                .IsRequired();
+
+            entity.Property(e => e.TotalIncome)
+                .HasColumnType("decimal(18,2)");
+
+            entity.Property(e => e.TaxAmount)
+                .HasColumnType("decimal(18,2)");
+
+            entity.Property(e => e.NetIncome)
+                .HasColumnType("decimal(18,2)");
+
+            entity.Property(e => e.BankName)
+                .HasMaxLength(155);
+
+            entity.Property(e => e.BankAccountNumber)
+                .HasMaxLength(155);
+
+            entity.Property(e => e.Status)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            // Quan hệ 1-N: 1 giáo viên có nhiều payout
+            entity.HasOne(e => e.Teacher)
+                .WithMany()
+                .HasForeignKey(e => e.TeacherId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+
         modelBuilder.Entity<BankAccount>(entity =>
         {
             entity.HasKey(e => e.BankAccountId);

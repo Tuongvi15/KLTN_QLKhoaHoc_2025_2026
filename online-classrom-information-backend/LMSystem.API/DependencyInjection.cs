@@ -64,6 +64,9 @@ namespace LMSystem.API
             services.AddScoped<IPlacementTestRepository, PlacementTestRepository>();
             services.AddScoped<IBankAccountRepository, BankAccountRepository>();
 
+            services.AddScoped<ITeacherPayoutRepository, TeacherPayoutRepository>();
+            services.AddScoped<ITeacherPayoutService, TeacherPayoutService>();
+
             return services;
         }
     }

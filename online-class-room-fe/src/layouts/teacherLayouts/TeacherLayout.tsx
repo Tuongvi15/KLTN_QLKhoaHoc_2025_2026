@@ -59,6 +59,12 @@ const TeacherLayout = ({
       icon: <BookOutlined />,
       label: <Link to="/teacher/getAllCourse">Khóa học</Link>,
     },
+    {
+      key: '/teacher/revenue',
+      icon: <WalletOutlined />,
+      label: <Link to="/teacher/revenue">Doanh thu</Link>,
+    },
+
     // --- Mục mới: Tài khoản ngân hàng ---
     {
       key: '/teacher/bank-accounts',
@@ -190,11 +196,11 @@ const TeacherLayout = ({
                 }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <Text 
-                  strong 
-                  style={{ 
-                    fontSize: 13, 
-                    color: '#0f172a', 
+                <Text
+                  strong
+                  style={{
+                    fontSize: 13,
+                    color: '#0f172a',
                     display: 'block',
                     lineHeight: 1.2,
                     overflow: 'hidden',
@@ -204,10 +210,10 @@ const TeacherLayout = ({
                 >
                   {userName}
                 </Text>
-                <Text 
-                  type="secondary" 
-                  style={{ 
-                    fontSize: 11, 
+                <Text
+                  type="secondary"
+                  style={{
+                    fontSize: 11,
                     lineHeight: 1.2,
                   }}
                 >
@@ -221,8 +227,8 @@ const TeacherLayout = ({
       </Sider>
 
       {/* Main Layout */}
-      <Layout 
-        style={{ 
+      <Layout
+        style={{
           marginLeft: collapsed ? 0 : 240,
           transition: 'margin-left 0.2s',
           background: '#fafbfc',

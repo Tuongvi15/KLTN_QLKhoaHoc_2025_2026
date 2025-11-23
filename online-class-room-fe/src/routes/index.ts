@@ -41,6 +41,8 @@ import { SearchPage } from '../pages/ClientPages/SearchPage';
 import TeacherDashboard from '../pages/TeacherPages/index';
 import ReviewCourseTeacher from '../pages/TeacherPages/ReviewCourseTeacher';
 import TeacherBankAccounts from '../pages/TeacherPages/TeacherBankAccounts';
+import AdminCourseRevenuePage from '../pages/AdminPages/ManageCourse/CourseRevenue/AdminCourseRevenuePage';
+import TeacherRevenuePage from '../pages/TeacherPages/TeacherRevenuePage';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -96,6 +98,11 @@ const adminRoutes: RouteProps[] = [
         component: PlacementQuestionPage,
         layout: DefaultLayoutAdmin
     },
+    {
+        path: '/admin/course-revenue',
+        component: AdminCourseRevenuePage,
+        layout: DefaultLayoutAdmin
+    },
 
 
 ];
@@ -147,6 +154,12 @@ const teacherRoutes: RouteProps[] = [
         component: TeacherBankAccounts,
         layout: TeacherLayout
     },
+    {
+        path: '/teacher/revenue',
+        component: TeacherRevenuePage,
+        layout: TeacherLayout
+    },
+
 ];
 
 
