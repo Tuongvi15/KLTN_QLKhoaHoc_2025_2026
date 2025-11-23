@@ -3,46 +3,68 @@ using LMSystem.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LMSystem.API.Controllers
+[ApiController]
+[Route("api/payout")]
+public class PayoutController : ControllerBase
 {
-    [ApiController]
-    [Route("api/payout")]
-    public class PayoutController : ControllerBase
+    private readonly ITeacherPayoutService _service;
+    private readonly ITeacherPayoutRepository _repo;
+
+    public PayoutController(ITeacherPayoutService service, ITeacherPayoutRepository repo)
     {
-        private readonly ITeacherPayoutService _service;
-        private readonly ITeacherPayoutRepository _repo;
+        _service = service;
+        _repo = repo;
+    }
 
-        public PayoutController(
-            ITeacherPayoutService service,
-            ITeacherPayoutRepository repo)
-        {
-            _service = service;
-            _repo = repo;
-        }
+    // Generate payout entries for month/year (Admin triggers)
+    [HttpPost("generate")]
+    public async Task<IActionResult> Generate([FromQuery] int month, [FromQuery] int year)
+    {
+        await _service.GeneratePayoutForMonthAsync(month, year);
+        return Ok(new { message = "Danh sách chi trả đã được tạo." });
+    }
 
-        // Admin nhấn nút để tính
-        [HttpPost("generate")]
-        public async Task<IActionResult> Generate(int month, int year)
-        {
-            await _service.GeneratePayout(month, year);
-            return Ok("Đã tạo danh sách trả nhuận bút.");
-        }
+    // List payouts for month
+    [HttpGet("list")]
+    public async Task<IActionResult> List([FromQuery] int month, [FromQuery] int year)
+    {
+        var list = await _service.GetPayoutListAsync(month, year);
+        return Ok(list);
+    }
 
-        // Admin đánh dấu đã trả
-        [HttpPut("mark-paid/{id}")]
-        public async Task<IActionResult> MarkPaid(int id)
-        {
-            var ok = await _repo.MarkPaid(id);
-            return ok ? Ok("Đã thanh toán") : NotFound();
-        }
+    // Detail for popup
+    [HttpGet("detail/{id}")]
+    public async Task<IActionResult> Detail(int id)
+    {
+        var dto = await _service.GetPayoutDetailAsync(id);
+        if (dto == null) return NotFound();
+        return Ok(dto);
+    }
 
-        // Lấy danh sách payout theo tháng
-        [HttpGet("list")]
-        public async Task<IActionResult> List(int month, int year)
-        {
-            var list = await _repo.GetByMonth(month, year);
-            return Ok(list);
-        }
+    // Mark as paid
+    [HttpPut("mark-paid/{id}")]
+    public async Task<IActionResult> MarkPaid(int id)
+    {
+        var ok = await _service.MarkPaidAsync(id);
+        if (!ok) return BadRequest(new { message = "Không thể đánh dấu đã trả (kiểm tra trạng thái/available/age/bank)." });
+        return Ok(new { message = "Đã thanh toán." });
+    }
+
+    // Giảng viên xem danh sách payout của chính mình
+    [HttpGet("teacher/{teacherId}")]
+    public async Task<IActionResult> GetByTeacher(string teacherId)
+    {
+        var payouts = await _repo.GetByTeacherIdAsync(teacherId);
+        return Ok(payouts);
+    }
+
+    // Giảng viên xem chi tiết payout
+    [HttpGet("teacher/detail/{payoutId}")]
+    public async Task<IActionResult> GetTeacherDetail(int payoutId)
+    {
+        var dto = await _service.GetPayoutDetailAsync(payoutId);
+        if (dto == null) return NotFound();
+        return Ok(dto);
     }
 
 }

@@ -164,9 +164,10 @@ namespace LMSystem.API.Controllers
             header.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(0, 102, 204));
 
             int row = 2;
+            int stt = 1;
             foreach (var c in data)
             {
-                sheet.Cells[row, 1].Value = c.CourseId;
+                sheet.Cells[row, 1].Value = stt;
                 sheet.Cells[row, 2].Value = c.Title;
                 sheet.Cells[row, 3].Value = c.TeacherName;
                 sheet.Cells[row, 4].Value = c.CategoryNames;
@@ -185,6 +186,7 @@ namespace LMSystem.API.Controllers
                 };
 
                 row++;
+                stt++;
             }
 
             sheet.Cells.AutoFitColumns();

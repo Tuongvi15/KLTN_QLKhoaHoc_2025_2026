@@ -11,21 +11,36 @@ namespace LMSystem.Repository.Models
         public int PayoutId { get; set; }
         public string TeacherId { get; set; } = string.Empty;
 
-        public decimal TotalIncome { get; set; }     // Tổng thu nhập
-        public decimal TaxAmount { get; set; }       // Thuế 10%
-        public decimal NetIncome { get; set; }       // Thực nhận
+        // gross amount = sum of teacher share for orders in the target month
+        public decimal TotalGross { get; set; }
+
+        // pending portion (orders not yet 30 days old)
+        public decimal PendingAmount { get; set; }
+
+        // available portion (orders > 30 days)
+        public decimal AvailableAmount { get; set; }
+
+        // tax applied on AvailableAmount
+        public decimal TaxAmount { get; set; }
+
+        // net to pay = AvailableAmount - TaxAmount
+        public decimal NetAmount { get; set; }
 
         public int Month { get; set; }
         public int Year { get; set; }
 
         public string BankName { get; set; } = string.Empty;
         public string BankAccountNumber { get; set; } = string.Empty;
+        public string BankAccountHolder { get; set; } = string.Empty;
+        public string BankBranch { get; set; } = string.Empty;
 
-        public string Status { get; set; } = "Pending"; // Pending | Paid
+        // Pending | Available | Withdrawn | Locked
+        public string Status { get; set; } = "Pending";
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? PaidAt { get; set; }
 
+        // Navigation
         public virtual Account? Teacher { get; set; }
     }
-
-
 }

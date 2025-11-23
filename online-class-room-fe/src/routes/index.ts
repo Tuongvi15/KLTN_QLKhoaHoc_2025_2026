@@ -43,6 +43,9 @@ import ReviewCourseTeacher from '../pages/TeacherPages/ReviewCourseTeacher';
 import TeacherBankAccounts from '../pages/TeacherPages/TeacherBankAccounts';
 import AdminCourseRevenuePage from '../pages/AdminPages/ManageCourse/CourseRevenue/AdminCourseRevenuePage';
 import TeacherRevenuePage from '../pages/TeacherPages/TeacherRevenuePage';
+import AdminPayoutPage from '../pages/AdminPages/Payout/AdminPayoutPage';
+import TeacherPayoutPage from '../pages/TeacherPages/TeacherPayoutPage';
+
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -103,6 +106,12 @@ const adminRoutes: RouteProps[] = [
         component: AdminCourseRevenuePage,
         layout: DefaultLayoutAdmin
     },
+    {
+        path: '/admin/payout',
+        component: AdminPayoutPage,
+        layout: DefaultLayoutAdmin
+    },
+
 
 
 ];
@@ -157,6 +166,11 @@ const teacherRoutes: RouteProps[] = [
     {
         path: '/teacher/revenue',
         component: TeacherRevenuePage,
+        layout: TeacherLayout
+    },
+    {
+        path: '/teacher/payout',
+        component: TeacherPayoutPage,
         layout: TeacherLayout
     },
 

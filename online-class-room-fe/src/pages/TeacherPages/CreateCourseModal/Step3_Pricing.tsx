@@ -74,8 +74,7 @@ export default function Step3_Pricing() {
                                     0: '0%',
                                     30: '30%',
                                     50: '50%',
-                                    70: '70%',
-                                    90: '90%'
+                                    70: '70%'
                                 }}
                             />
                             {discount >= 70 && (

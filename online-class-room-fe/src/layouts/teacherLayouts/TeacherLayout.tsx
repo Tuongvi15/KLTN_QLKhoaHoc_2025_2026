@@ -64,6 +64,11 @@ const TeacherLayout = ({
       icon: <WalletOutlined />,
       label: <Link to="/teacher/revenue">Doanh thu</Link>,
     },
+    {
+      key: '/teacher/payout',
+      icon: <WalletOutlined />,
+      label: <Link to="/teacher/payout">Chi trả</Link>,
+    },
 
     // --- Mục mới: Tài khoản ngân hàng ---
     {

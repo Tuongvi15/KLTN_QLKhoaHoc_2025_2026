@@ -87,34 +87,24 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
         modelBuilder.Entity<TeacherPayout>(entity =>
         {
             entity.HasKey(e => e.PayoutId).HasName("PK_TeacherPayout");
-
             entity.ToTable("TeacherPayouts");
 
-            entity.Property(e => e.TeacherId)
-                .IsRequired();
+            entity.Property(e => e.TeacherId).IsRequired();
+            entity.Property(e => e.TotalGross).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.PendingAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.AvailableAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.TaxAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.NetAmount).HasColumnType("decimal(18,2)");
 
-            entity.Property(e => e.TotalIncome)
-                .HasColumnType("decimal(18,2)");
+            entity.Property(e => e.BankName).HasMaxLength(155);
+            entity.Property(e => e.BankAccountNumber).HasMaxLength(155);
+            entity.Property(e => e.BankAccountHolder).HasMaxLength(155);
+            entity.Property(e => e.BankBranch).HasMaxLength(155);
 
-            entity.Property(e => e.TaxAmount)
-                .HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
+            entity.Property(e => e.PaidAt).HasColumnType("timestamp with time zone");
 
-            entity.Property(e => e.NetIncome)
-                .HasColumnType("decimal(18,2)");
-
-            entity.Property(e => e.BankName)
-                .HasMaxLength(155);
-
-            entity.Property(e => e.BankAccountNumber)
-                .HasMaxLength(155);
-
-            entity.Property(e => e.Status)
-                .HasMaxLength(50);
-
-            entity.Property(e => e.CreatedAt)
-                .HasColumnType("timestamp with time zone");
-
-            // Quan hệ 1-N: 1 giáo viên có nhiều payout
             entity.HasOne(e => e.Teacher)
                 .WithMany()
                 .HasForeignKey(e => e.TeacherId)

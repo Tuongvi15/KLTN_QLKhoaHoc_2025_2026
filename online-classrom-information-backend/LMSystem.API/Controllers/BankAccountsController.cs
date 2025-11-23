@@ -38,7 +38,7 @@ namespace LMSystem.API.Controllers
             {
                 i.BankAccountId,
                 i.BankName,
-                AccountNumberMasked = Mask(i.AccountNumber),
+                AccountNumberMasked = (i.AccountNumber),
                 i.AccountHolderName,
                 i.Branch,
                 i.IsPrimary,
@@ -61,7 +61,7 @@ namespace LMSystem.API.Controllers
             {
                 ent.BankAccountId,
                 ent.BankName,
-                AccountNumberMasked = Mask(ent.AccountNumber),
+                AccountNumberMasked = (ent.AccountNumber),
                 ent.AccountHolderName,
                 ent.Branch,
                 ent.IsPrimary,
@@ -102,7 +102,7 @@ namespace LMSystem.API.Controllers
             {
                 created.BankAccountId,
                 created.BankName,
-                AccountNumberMasked = Mask(created.AccountNumber),
+                AccountNumberMasked = (created.AccountNumber),
                 created.AccountHolderName,
                 created.Branch,
                 created.IsPrimary,
@@ -143,7 +143,7 @@ namespace LMSystem.API.Controllers
             {
                 updated.BankAccountId,
                 updated.BankName,
-                AccountNumberMasked = Mask(updated.AccountNumber),
+                AccountNumberMasked = (updated.AccountNumber),
                 updated.AccountHolderName,
                 updated.Branch,
                 updated.IsPrimary,

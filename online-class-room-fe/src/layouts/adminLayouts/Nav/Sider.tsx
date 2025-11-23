@@ -5,6 +5,7 @@ import {
   ExperimentOutlined,
   AppstoreOutlined,
   FileTextOutlined,
+  WalletOutlined ,
 } from '@ant-design/icons';
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
 import StreetviewOutlinedIcon from '@mui/icons-material/StreetviewOutlined';
@@ -57,6 +58,9 @@ export default function MySider() {
         getItem('Xem tất cả tài khoản', 'accountAll', <StreetviewOutlinedIcon />),
         getItem('Tạo tài khoản', 'createAccount', <PersonAddAlt1OutlinedIcon />),
       ]),
+      getItem('Chi trả giảng viên', 'subPayout', <WalletOutlined />, [
+        getItem('Chi trả giảng viên', 'payout', <WalletOutlined />),
+      ]),
 
       // ✅ Thêm nhóm “Quản lý bài test đầu vào”
       getItem('Quản lý bài test đầu vào', 'sub3', <ExperimentOutlined />, [
@@ -75,7 +79,9 @@ export default function MySider() {
     .set('createAccount', '/admin/createAccount')
     .set('fieldManager', '/admin/fields')
     .set('placementTest', '/admin/placement-tests')
-    .set('courseRevenue', '/admin/course-revenue');
+    .set('courseRevenue', '/admin/course-revenue')
+    .set('payout', '/admin/payout');
+;
 
   return (
     <Sider
