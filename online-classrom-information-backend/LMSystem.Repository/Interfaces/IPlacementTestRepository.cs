@@ -39,7 +39,8 @@ namespace LMSystem.Repository.Interfaces
         Task<PlacementResult?> GetLatestResult(string accountId, int categoryId);
 
         Task<PlacementResultWithCoursesViewModel?> GetLatestResultByAccount(string accountId);
-
         Task<IEnumerable<PlacementResultViewModel>> GetAllResultsByAccount(string accountId);
+        Task<PlacementResultWithCoursesViewModel?> GetLatestResultSuggestions(string accountId);
+        Task<PlacementResultWithCoursesViewModel?> GetSuggestionByResult(int resultId);
     }
 }

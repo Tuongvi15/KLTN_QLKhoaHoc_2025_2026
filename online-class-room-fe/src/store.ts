@@ -36,6 +36,7 @@ import learningCourseSlice from './slices/learningCourseSlice';
 import parentSlice from './slices/parentSlice';
 import { ratingCourseApi } from './services/ratingCourse.services';
 import { bankAccountApi } from './services/bankAccount.service';
+import { communityApi } from './services/community.services';
 
 export const persistConfig = {
     key: 'root',
@@ -79,6 +80,7 @@ const rootReducer = combineReducers({
     [ratingCourseApi.reducerPath]: ratingCourseApi.reducer,
     [placementTestApi.reducerPath]: placementTestApi.reducer,
     [bankAccountApi.reducerPath]: bankAccountApi.reducer,
+    [communityApi.reducerPath]: communityApi.reducer,
 
 });
 
@@ -106,7 +108,9 @@ export const store = configureStore({
             .concat(registrationCourseApi.middleware)
             .concat(orderApi.middleware)
             .concat(ratingCourseApi.middleware)
-            .concat(bankAccountApi.middleware),
+            .concat(bankAccountApi.middleware)
+            .concat(communityApi.middleware),
+
 
 });
 

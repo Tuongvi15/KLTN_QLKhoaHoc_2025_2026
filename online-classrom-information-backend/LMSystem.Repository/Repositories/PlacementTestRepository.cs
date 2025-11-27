@@ -264,6 +264,123 @@ namespace LMSystem.Repository.Repositories
                 .OrderByDescending(r => r.CompletedAt)
                 .FirstOrDefaultAsync();
         }
+        public async Task<PlacementResultWithCoursesViewModel?> GetLatestResultSuggestions(string accountId)
+        {
+            // 1️⃣ Lấy kết quả gần nhất của user
+            var latest = await _context.PlacementResults
+                .Include(r => r.PlacementTest)
+                .ThenInclude(t => t.Category)
+                .Where(r => r.AccountId == accountId)
+                .OrderByDescending(r => r.CompletedAt)
+                .FirstOrDefaultAsync();
+
+            if (latest == null)
+                return null;
+
+            int userLevel = 0;
+            int.TryParse(latest.Level, out userLevel);
+
+            int categoryId = latest.PlacementTest.Category.CatgoryId;
+
+            // 2️⃣ Tìm khóa học theo cùng Category và cùng Level
+            var courses = await _context.Courses
+                .Where(c => c.IsPublic == true && c.CourseIsActive == true)
+                .Include(c => c.CourseCategories)
+                .ToListAsync();
+
+            var filtered = courses
+                .Where(c =>
+                {
+                    bool sameCategory = c.CourseCategories.Any(cc => cc.CategoryId == categoryId);
+
+                    int minCourseLevel = 0;
+                    if (!string.IsNullOrEmpty(c.CourseLevel))
+                    {
+                        var levels = c.CourseLevel
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(x => x.Trim())
+                            .Select(x => int.TryParse(x, out int lv) ? lv : 0);
+
+                        minCourseLevel = levels.Min();
+                    }
+
+                    return sameCategory && minCourseLevel == userLevel;
+                })
+                .Take(5)
+                .Select(course => new CourseShortViewModel
+                {
+                    CourseId = course.CourseId,
+                    Title = course.Title,
+                    ImageUrl = course.ImageUrl,
+                    Description = course.Description,
+                    CourseLevel = course.CourseLevel
+                }).ToList();
+
+            return new PlacementResultWithCoursesViewModel
+            {
+                ResultId = latest.ResultId,
+                CategoryId = categoryId,
+                CategoryName = latest.PlacementTest.Category.Name,
+                Level = latest.Level,
+                Score = latest.Score,
+                CompletedAt = latest.CompletedAt,
+                RecommendedCourses = filtered
+            };
+        }
+
+        public async Task<PlacementResultWithCoursesViewModel?> GetSuggestionByResult(int resultId)
+        {
+            var result = await _context.PlacementResults
+                .Where(r => r.ResultId == resultId)
+                .Select(r => new
+                {
+                    r.ResultId,
+                    r.Score,
+                    r.Level,
+                    r.CompletedAt,
+                    PlacementTestId = r.PlacementTest.PlacementTestId,
+                    Title = r.PlacementTest.Title,
+                    Description = r.PlacementTest.Description,
+                    CategoryId = r.PlacementTest.Category.CatgoryId,
+                    CategoryName = r.PlacementTest.Category.Name
+                })
+                .FirstOrDefaultAsync();
+
+            if (result == null)
+                return null;
+
+            int levelValue = int.TryParse(result.Level, out var val) ? val : 0;
+
+            var courses = await _context.Courses
+                .Where(c => c.IsPublic == true && c.CourseIsActive == true)
+                .Include(c => c.CourseCategories)
+                .ToListAsync();
+
+            var filtered = courses
+                .Where(c =>
+                    c.CourseCategories.Any(cc => cc.CategoryId == result.CategoryId)
+                )
+                .Select(c => new CourseShortViewModel
+                {
+                    CourseId = c.CourseId,
+                    Title = c.Title,
+                    ImageUrl = c.ImageUrl,
+                    Description = c.Description
+                })
+                .ToList();
+
+            return new PlacementResultWithCoursesViewModel
+            {
+                ResultId = result.ResultId,
+                CategoryId = result.CategoryId,
+                CategoryName = result.CategoryName,
+                Level = result.Level,
+                Score = result.Score,
+                CompletedAt = result.CompletedAt,
+                RecommendedCourses = filtered
+            };
+        }
+
 
         public async Task<PlacementResultWithCoursesViewModel?> GetLatestResultByAccount(string accountId)
         {
@@ -377,8 +494,12 @@ namespace LMSystem.Repository.Repositories
     public class CourseShortViewModel
     {
         public int CourseId { get; set; }
-
+        public string? Title { get; set; }
+        public string? ImageUrl { get; set; }
+        public string? Description { get; set; }
+        public string? CourseLevel { get; set; }
     }
+
 
     public class PlacementResultWithCourseIdsViewModel
     {

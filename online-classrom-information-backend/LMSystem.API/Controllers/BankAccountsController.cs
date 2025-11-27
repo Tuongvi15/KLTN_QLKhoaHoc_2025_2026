@@ -2,6 +2,7 @@
 using LMSystem.Repository.Models;
 using LMSystem.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace LMSystem.API.Controllers
@@ -12,11 +13,12 @@ namespace LMSystem.API.Controllers
     {
         private readonly IBankAccountRepository _repo;
         private readonly IAccountService _account;
-
-        public BankAccountsController(IBankAccountRepository repo, IAccountService accountService)
+        private readonly LMOnlineSystemDbContext _db;
+        public BankAccountsController(IBankAccountRepository repo, IAccountService accountService, LMOnlineSystemDbContext db)
         {
             _repo = repo;
             _account = accountService; // FIXED
+            _db = db;
         }
 
         private async Task<string> GetUserIdAsync()
@@ -88,6 +90,7 @@ namespace LMSystem.API.Controllers
 
             if (dto.IsPrimary)
             {
+                // Hủy primary cũ
                 var others = (await _repo.GetByAccountIdAsync(userId))
                     .Where(x => x.BankAccountId != created.BankAccountId && x.IsPrimary);
 
@@ -96,7 +99,11 @@ namespace LMSystem.API.Controllers
                     o.IsPrimary = false;
                     await _repo.UpdateAsync(o);
                 }
+
+                // ⭐ Update payout bank info
+                await UpdatePayoutBankInfoAsync(userId, created);
             }
+
 
             return CreatedAtAction(nameof(Get), new { id = created.BankAccountId }, new
             {
@@ -137,7 +144,11 @@ namespace LMSystem.API.Controllers
                     o.IsPrimary = false;
                     await _repo.UpdateAsync(o);
                 }
+
+                // ⭐ Update payout bank info
+                await UpdatePayoutBankInfoAsync(userId, updated);
             }
+
 
             return Ok(new
             {
@@ -176,5 +187,22 @@ namespace LMSystem.API.Controllers
             var last4 = clean[^4..];
             return new string('*', clean.Length - 4) + last4;
         }
+        private async Task UpdatePayoutBankInfoAsync(string accountId, BankAccount newPrimary)
+        {
+            var payouts = await _db.TeacherPayouts
+                .Where(p => p.TeacherId == accountId && p.Status != "Withdrawn")
+                .ToListAsync();
+
+            foreach (var p in payouts)
+            {
+                p.BankName = newPrimary.BankName;
+                p.BankAccountNumber = newPrimary.AccountNumber;
+                p.BankAccountHolder = newPrimary.AccountHolderName;
+                p.BankBranch = newPrimary.Branch ?? "";
+            }
+
+            await _db.SaveChangesAsync();
+        }
+
     }
 }

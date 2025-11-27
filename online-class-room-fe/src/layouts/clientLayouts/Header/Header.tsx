@@ -156,12 +156,7 @@ const Header: React.FC = () => {
                                         <SchoolIcon className="text-white text-2xl" />
                                     </div>
                                 </div>
-                                <div className="ml-3 hidden md:block">
-                                    <h1 className="text-2xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                        StudyHub
-                                    </h1>
-                                    <p className="text-xs text-gray-500 font-semibold -mt-1">Learning Platform</p>
-                                </div>
+                                
                             </div>
                         </Link>
 
@@ -198,6 +193,15 @@ const Header: React.FC = () => {
                                 <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-green-500 to-emerald-500 group-hover:w-full transition-all duration-300" />
                             </Link>
                         </div>
+                        <Link to={'/community'} className="group relative">
+                            <div className="flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50">
+                                <ExploreIcon className="text-gray-600 group-hover:text-purple-600 transition-colors duration-300" />
+                                <span className="text-lg font-semibold text-gray-700 group-hover:text-purple-600 transition-colors duration-300">
+                                    Cộng đồng
+                                </span>
+                            </div>
+                            <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300" />
+                        </Link>
 
                         {/* Search Bar */}
                         <StyledSearch className="flex-1 max-w-md lg:max-w-lg xl:max-w-2xl">

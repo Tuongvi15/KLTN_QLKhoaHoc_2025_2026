@@ -43,6 +43,9 @@ export const placementTestApi = createApi({
       }),
       invalidatesTags: ["PlacementTest"],
     }),
+    getPlacementSuggestion: build.query<any, string>({
+      query: (accountId) => `api/PlacementTest/results/suggestion/${accountId}`,
+    }),
 
     updatePlacementTest: build.mutation<any, UpdatePlacementTestRequest>({
       query: (body) => ({
@@ -94,6 +97,10 @@ export const placementTestApi = createApi({
       }),
       invalidatesTags: ["PlacementQuestion"],
     }),
+    getSuggestionByResult: build.query<any, number>({
+      query: (resultId) =>
+        `api/PlacementTest/results/suggestion-by-result/${resultId}`,
+    }),
 
     updatePlacementQuestion: build.mutation<
       PlacementQuestion,
@@ -131,4 +138,6 @@ export const {
   useAddPlacementQuestionMutation,
   useUpdatePlacementQuestionMutation,
   useDeletePlacementQuestionMutation,
+  useGetPlacementSuggestionQuery,
+  useGetSuggestionByResultQuery,
 } = placementTestApi;

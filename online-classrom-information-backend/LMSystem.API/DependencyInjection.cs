@@ -66,6 +66,7 @@ namespace LMSystem.API
 
             services.AddScoped<ITeacherPayoutRepository, TeacherPayoutRepository>();
             services.AddScoped<ITeacherPayoutService, TeacherPayoutService>();
+            services.AddScoped<ICommunityRepository, CommunityRepository>();
 
             return services;
         }

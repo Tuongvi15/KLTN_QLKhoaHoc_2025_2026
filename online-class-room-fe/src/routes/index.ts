@@ -45,6 +45,12 @@ import AdminCourseRevenuePage from '../pages/AdminPages/ManageCourse/CourseReven
 import TeacherRevenuePage from '../pages/TeacherPages/TeacherRevenuePage';
 import AdminPayoutPage from '../pages/AdminPages/Payout/AdminPayoutPage';
 import TeacherPayoutPage from '../pages/TeacherPages/TeacherPayoutPage';
+import CommunityListPage from '../pages/Community/CommunityListPage';
+import ArticleDetailPage from '../pages/Community/ArticleDetailPage';
+import WriteArticlePage from '../pages/Community/WriteArticlePage';
+import EditDraftPage from '../pages/Community/EditDraftPage';
+import MyDraftsPage from '../pages/Community/MyDraftsPage';
+
 
 
 interface LayoutProps {
@@ -72,6 +78,9 @@ const publicRoutes: RouteProps[] = [
     { path: '/placement-test/history', component: PlacementHistoryPage, layout: DefaultLayout },
     { path: '*', component: NotFoundPage, layout: DefaultLayout },
     { path: '/courses/', component: ViewCourseListPage, layout: DefaultLayout },
+    { path: '/community', component: CommunityListPage, layout: DefaultLayout },
+    { path: '/community/article/:id', component: ArticleDetailPage, layout: DefaultLayout },
+
 ];
 
 const privateRoutes: RouteProps[] = [
@@ -80,6 +89,10 @@ const privateRoutes: RouteProps[] = [
     { path: '/checkout', component: PaymentPage, layout: DefaultLayout },
     { path: '/payment/success', component: PaymentSuccessPage, layout: DefaultLayout },
     { path: '/payment/failed', component: PaymentFailedPage, layout: DefaultLayout },
+    { path: '/community/write', component: WriteArticlePage, layout: DefaultLayout },
+    { path: '/community/edit/:id', component: EditDraftPage, layout: DefaultLayout },
+    { path: '/community/my-drafts', component: MyDraftsPage, layout: DefaultLayout },
+
 ];
 
 
@@ -111,6 +124,7 @@ const adminRoutes: RouteProps[] = [
         component: AdminPayoutPage,
         layout: DefaultLayoutAdmin
     },
+//{ path: '/admin/community/blocked', component: BlockedArticleAdminPage, layout: DefaultLayoutAdmin },
 
 
 

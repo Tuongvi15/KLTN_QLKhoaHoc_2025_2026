@@ -1,7 +1,8 @@
-import { Card, Skeleton, Tag, Button } from "antd";
+import { Card, Skeleton, Modal, Button } from "antd";
 import { useGetAllResultsByAccountQuery } from "../../../services/placementtest.services";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
+import { useState } from "react";
 
 import QuizIcon from "@mui/icons-material/Quiz";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
@@ -15,9 +16,23 @@ const PlacementHistoryPage = () => {
   const userId = useSelector((state: RootState) => state.user.id);
   const navigate = useNavigate();
 
+  const [showSuggest, setShowSuggest] = useState(false);
+  const [suggestData, setSuggestData] = useState<any>(null);
+
+  // ----- CHỈ CÓ 1 isLoading -----
   const { data: results, isLoading } = useGetAllResultsByAccountQuery(userId, {
     refetchOnMountOrArgChange: true,
   });
+
+  // ----- FETCH API GỢI Ý KHI CLICK NÚT -----
+  const handleOpenSuggest = async (resultId: number) => {
+    const res = await fetch(
+      `https://localhost:7005/api/PlacementTest/results/suggestion-by-result/${resultId}`
+    ).then(r => r.json());
+
+    setSuggestData(res);
+    setShowSuggest(true);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50 py-10 px-4">
@@ -30,7 +45,6 @@ const PlacementHistoryPage = () => {
         </p>
       </div>
 
-      {/* MAIN LIST */}
       {isLoading ? (
         <Skeleton active />
       ) : results?.length ? (
@@ -42,26 +56,22 @@ const PlacementHistoryPage = () => {
               className="rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 border-none bg-white/95 backdrop-blur-sm"
               bodyStyle={{ padding: "24px" }}
             >
-              {/* TEST TITLE */}
               <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
                 <QuizIcon className="text-purple-600 text-3xl" />
                 {r.title}
               </h2>
 
-              {/* CATEGORY */}
               <div className="flex items-center gap-2 text-gray-600 text-sm mb-4">
                 <CategoryIcon className="text-pink-500" />
                 <span className="font-medium">{r.categoryName}</span>
               </div>
 
-              {/* DESCRIPTION */}
               {r.description && (
                 <p className="text-gray-500 mb-4 text-sm italic">
                   {r.description}
                 </p>
               )}
 
-              {/* SCORE & TIME */}
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2 text-gray-700 font-medium">
                   <EmojiEventsIcon className="text-yellow-500" />
@@ -76,19 +86,23 @@ const PlacementHistoryPage = () => {
                 </div>
               </div>
 
-              {/* TAGS */}
-
-
-              {/* ACTION BUTTONS */}
               <div className="flex justify-end gap-4 mt-3">
                 <Button
-                  onClick={() => navigate(`/placement-test/start/${r.placementTestId}`)}
+                  onClick={() =>
+                    navigate(`/placement-test/start/${r.placementTestId}`)
+                  }
                   className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2.5 rounded-xl border-none hover:opacity-90 font-medium"
                 >
                   <ReplayIcon style={{ fontSize: 18 }} />
                   Làm lại bài test
                 </Button>
 
+                <Button
+                  onClick={() => handleOpenSuggest(r.resultId)}
+                  className="flex items-center justify-center gap-2 bg-blue-500 text-white px-5 py-2.5 rounded-xl border-none hover:opacity-90 font-medium"
+                >
+                  Gợi ý khóa học
+                </Button>
               </div>
             </Card>
           ))}
@@ -100,6 +114,42 @@ const PlacementHistoryPage = () => {
         </p>
       )}
 
+      {/* POPUP GỢI Ý */}
+      <Modal
+        open={showSuggest}
+        onCancel={() => setShowSuggest(false)}
+        footer={null}
+        centered
+        width={600}
+      >
+        {suggestData && (
+          <div>
+            <h2 className="text-2xl font-bold text-center mb-3">
+              🎯 Gợi ý khóa học phù hợp
+            </h2>
+
+            <p className="text-center text-gray-700 mb-4">
+              Level: <b>{suggestData.level}</b> • Điểm: <b>{suggestData.score}%</b>
+            </p>
+
+            {suggestData.recommendedCourses?.length ? (
+              <div className="grid grid-cols-1 gap-3">
+                {suggestData.recommendedCourses.map((c: any) => (
+                  <Button
+                    key={c.courseId}
+                    className="w-full h-12 bg-blue-500 text-white rounded-xl"
+                    onClick={() => navigate(`/course/${c.courseId}`)}
+                  >
+                    Xem khóa học: {c.title}
+                  </Button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-500">Không có khóa học phù hợp.</p>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

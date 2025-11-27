@@ -55,8 +55,11 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
     public virtual DbSet<PlacementAnswer> PlacementAnswers { get; set; }
     public virtual DbSet<BankAccount> BankAccounts { get; set; }
     public virtual DbSet<ApproveCourse> ApproveCourses { get; set; }
-    public DbSet<TeacherPayout> TeacherPayouts { get; set; }
+    public virtual DbSet<TeacherPayout> TeacherPayouts { get; set; }
 
+    public virtual DbSet<ArticlePost> ArticlePosts { get; set; }
+    public virtual DbSet<ArticleComment> ArticleComments { get; set; }
+    public virtual DbSet<ArticleLike> ArticleLikes { get; set; }
 
 
     //    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -108,6 +111,108 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
             entity.HasOne(e => e.Teacher)
                 .WithMany()
                 .HasForeignKey(e => e.TeacherId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<ArticlePost>(entity =>
+        {
+            entity.HasKey(e => e.ArticleId).HasName("PK_ArticlePost");
+            entity.ToTable("ArticlePosts");
+
+            entity.Property(e => e.ArticleId)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.AccountId)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            entity.Property(e => e.Title)
+                .IsRequired()
+                .HasMaxLength(500);
+
+            entity.Property(e => e.ContentHtml)
+                .HasColumnType("text");
+
+            entity.Property(e => e.CoverImageUrl)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.TotalLikes)
+                .HasDefaultValue(0);
+
+            entity.Property(e => e.TotalComments)
+                .HasDefaultValue(0);
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false);
+
+            entity.HasOne(e => e.Account)
+                .WithMany()
+                .HasForeignKey(e => e.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<ArticleComment>(entity =>
+        {
+            entity.HasKey(e => e.CommentId).HasName("PK_ArticleComment");
+            entity.ToTable("ArticleComments");
+
+            entity.Property(e => e.CommentId)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.ArticleId)
+                .IsRequired();
+
+            entity.Property(e => e.AccountId)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            entity.Property(e => e.Content)
+                .IsRequired()
+                .HasColumnType("text");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            entity.HasOne(e => e.Article)
+                .WithMany(a => a.Comments)
+                .HasForeignKey(e => e.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Account)
+                .WithMany()
+                .HasForeignKey(e => e.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<ArticleLike>(entity =>
+        {
+            entity.HasKey(e => e.LikeId).HasName("PK_ArticleLike");
+            entity.ToTable("ArticleLikes");
+
+            entity.Property(e => e.LikeId)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.ArticleId)
+                .IsRequired();
+
+            entity.Property(e => e.AccountId)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            entity.HasOne(e => e.Article)
+                .WithMany(a => a.Likes)
+                .HasForeignKey(e => e.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Account)
+                .WithMany()
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

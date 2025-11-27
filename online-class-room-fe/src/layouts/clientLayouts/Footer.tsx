@@ -21,8 +21,6 @@ const Footer = () => {
         { icon: InstagramIcon, href: '#', color: 'hover:text-pink-500', bg: 'hover:bg-pink-500/20' },
         { icon: TwitterIcon, href: '#', color: 'hover:text-sky-500', bg: 'hover:bg-sky-500/20' },
         { icon: YouTubeIcon, href: '#', color: 'hover:text-red-500', bg: 'hover:bg-red-500/20' },
-        { icon: LinkedInIcon, href: '#', color: 'hover:text-blue-600', bg: 'hover:bg-blue-600/20' },
-        { icon: TelegramIcon, href: '#', color: 'hover:text-sky-400', bg: 'hover:bg-sky-400/20' },
     ];
 
     const footerSections = [
@@ -69,75 +67,53 @@ const Footer = () => {
     ];
 
     return (
-        <footer className="relative mt-16 overflow-hidden">
-            {/* Background with gradients */}
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-slate-900 to-black" />
-            
-            {/* Floating Elements */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-20 left-20 w-64 h-64 bg-purple-500/10 rounded-full filter blur-3xl" />
-                <div className="absolute bottom-32 right-32 w-80 h-80 bg-blue-500/10 rounded-full filter blur-3xl" />
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500/5 rounded-full filter blur-3xl" />
-            </div>
-
-            <Container maxWidth="xl" className="relative">
-                {/* Main Footer Content */}
-                <div className="py-16">
-                    {/* Top Section with Logo and CTA */}
-                    <div className="text-center mb-16">
-                        <div className="flex items-center justify-center mb-8">
-                            <div className="relative group">
-                                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300" />
-                                <div className="relative bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-2xl">
-                                    <SchoolIcon className="text-white text-3xl" />
+        <footer className="relative mt-16 bg-gray-900 border-t border-gray-800">
+            <Container maxWidth="xl">
+                <div className="py-12">
+                    {/* Main Footer Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
+                        {/* Brand Section */}
+                        <div className="lg:col-span-1">
+                            <div className="flex items-center mb-4">
+                                <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 rounded-lg">
+                                    <SchoolIcon className="text-white text-2xl" />
                                 </div>
+                                <h2 className="ml-2 text-2xl font-bold text-white">StudyHub</h2>
                             </div>
-                            <div className="ml-4">
-                                <h2 className="text-4xl font-black bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
-                                    StudyHub
-                                </h2>
-                                <p className="text-gray-400 font-semibold -mt-1">Learning Platform</p>
+                            <p className="text-sm text-gray-400 mb-4">
+                                Nền tảng học tập trực tuyến hàng đầu
+                            </p>
+                            
+                            {/* Social Links */}
+                            <div className="flex space-x-2">
+                                {socialLinks.map((social, index) => {
+                                    const IconComponent = social.icon;
+                                    return (
+                                        <a
+                                            key={index}
+                                            href={social.href}
+                                            className={`w-9 h-9 rounded-lg bg-gray-800 flex items-center justify-center text-gray-400 ${social.color} hover:bg-gray-700 transition-all duration-200`}
+                                        >
+                                            <IconComponent className="text-lg" />
+                                        </a>
+                                    );
+                                })}
                             </div>
                         </div>
-                        
-                        <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
-                            Nền tảng học tập trực tuyến hàng đầu với hàng nghìn khóa học chất lượng cao. 
-                            Cùng chúng tôi khám phá kiến thức và phát triển kỹ năng cho tương lai.
-                        </p>
 
-                        {/* Social Media Links */}
-                        <div className="flex justify-center space-x-4 mb-12">
-                            {socialLinks.map((social, index) => {
-                                const IconComponent = social.icon;
-                                return (
-                                    <a
-                                        key={index}
-                                        href={social.href}
-                                        className={`w-14 h-14 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center text-gray-400 ${social.color} ${social.bg} transition-all duration-300 hover:scale-110 hover:shadow-lg group`}
-                                    >
-                                        <IconComponent className="text-2xl group-hover:scale-110 transition-transform duration-300" />
-                                    </a>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Links Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+                        {/* Links Sections */}
                         {footerSections.map((section, index) => (
-                            <div key={index} className="space-y-6">
-                                <h3 className="text-xl font-bold text-white mb-4 relative">
+                            <div key={index}>
+                                <h3 className="text-sm font-semibold text-white mb-3">
                                     {section.title}
-                                    <div className="absolute -bottom-2 left-0 w-12 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
                                 </h3>
-                                <ul className="space-y-3">
+                                <ul className="space-y-2">
                                     {section.links.map((link, linkIndex) => (
                                         <li key={linkIndex}>
                                             <a
                                                 href="#"
-                                                className="text-gray-400 hover:text-white transition-all duration-300 hover:pl-2 relative group"
+                                                className="text-sm text-gray-400 hover:text-purple-400 transition-colors duration-200"
                                             >
-                                                <span className="absolute left-0 top-1/2 transform -translate-y-1/2 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-4 transition-all duration-300" />
                                                 {link}
                                             </a>
                                         </li>
@@ -146,11 +122,20 @@ const Footer = () => {
                             </div>
                         ))}
                     </div>
+
+                    {/* Bottom Bar */}
+                    <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                        <p className="text-sm text-gray-500">
+                            © 2024 StudyHub. All rights reserved.
+                        </p>
+                        <div className="flex space-x-6 text-sm text-gray-500">
+                            <a href="#" className="hover:text-purple-400 transition-colors">Privacy Policy</a>
+                            <a href="#" className="hover:text-purple-400 transition-colors">Terms of Service</a>
+                            <a href="#" className="hover:text-purple-400 transition-colors">Contact</a>
+                        </div>
+                    </div>
                 </div>
             </Container>
-
-            {/* Animated Bottom Border */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500" />
         </footer>
     );
 };

@@ -20,6 +20,28 @@ namespace LMSystem.API.Controllers
 
         // ==================== PLACEMENT TEST ====================
 
+        [HttpGet("results/suggestion/{accountId}")]
+        public async Task<IActionResult> GetPlacementSuggestion(string accountId)
+        {
+            var result = await _placementRepo.GetLatestResultByAccount(accountId);
+            if (result == null)
+                return NotFound(new { message = "No result found" });
+
+            return Ok(result);
+        }
+
+        [HttpGet("results/suggestion-by-result/{resultId}")]
+        public async Task<IActionResult> GetSuggestionByResult(int resultId)
+        {
+            var data = await _placementRepo.GetSuggestionByResult(resultId);
+
+            if (data == null)
+                return NotFound();
+
+            return Ok(data);
+        }
+
+
         [HttpGet("tests")]
         public async Task<IActionResult> GetAllPlacementTests()
         {

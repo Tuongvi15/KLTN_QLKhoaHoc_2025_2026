@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
-import { Button, Radio, Card, Progress, message } from "antd";
+import { Button, Radio, Card, Progress, message, Modal } from "antd";
 import {
     useGetQuestionsByTestIdQuery,
     useSavePlacementResultMutation,
@@ -18,6 +18,9 @@ const PlacementTestStartPage = () => {
     const [saveResult] = useSavePlacementResultMutation();
     const [answers, setAnswers] = useState<{ [key: number]: string }>({});
     const [timeLeft, setTimeLeft] = useState(TEST_DURATION);
+    const [showResultPopup, setShowResultPopup] = useState(false);
+    const [latestResult, setLatestResult] = useState<any>(null);
+
     const navigate = useNavigate();
     useEffect(() => {
         window.scrollTo(0, 0); // đảm bảo cuộn về đầu trang
@@ -83,13 +86,31 @@ const PlacementTestStartPage = () => {
             answers: answerList,
         };
 
+        // try {
+        //     await saveResult(resultData).unwrap();
+        //     message.success(`Hoàn thành bài test! Điểm của bạn: ${score.toFixed(0)}%`);
+        //     navigate("/placement-test/history");
+        // } catch {
+        //     message.error("Lỗi khi lưu kết quả!");
+        // }
         try {
-            await saveResult(resultData).unwrap();
-            message.success(`Hoàn thành bài test! Điểm của bạn: ${score.toFixed(0)}%`);
-            navigate("/placement-test/history");
-        } catch {
-            message.error("Lỗi khi lưu kết quả!");
-        }
+    const saved = await saveResult(resultData).unwrap();
+
+    // lấy resultId từ backend trả về
+    const resultId = saved.dataObject?.resultId;
+
+    const res = await fetch(
+        `https://localhost:7005/api/PlacementTest/results/suggestion-by-result/${resultId}`
+    ).then(r => r.json());
+
+    setLatestResult(res);
+    setShowResultPopup(true);
+
+} catch {
+    message.error("Lỗi khi lưu kết quả!");
+}
+
+
     };
 
     // Tính % tiến độ
@@ -181,7 +202,54 @@ const PlacementTestStartPage = () => {
                     )}
                 </div>
             </div>
+            <Modal
+                open={showResultPopup}
+                onCancel={() => navigate("/placement-test/history")}
+                footer={null}
+                centered
+                width={600}
+            >
+                {latestResult && (
+                    <div>
+                        <h2 className="text-2xl font-bold text-center mb-3">
+                            🎉 Kết quả bài test của bạn
+                        </h2>
+
+                        <p className="text-center text-gray-700 mb-4">
+                            Điểm: <b>{latestResult.score}%</b> – Level: <b>{latestResult.level}</b>
+                        </p>
+
+                        <h3 className="text-lg font-semibold mb-2">Gợi ý khóa học phù hợp</h3>
+
+                        {latestResult.recommendedCourses?.length ? (
+                            <div className="grid grid-cols-1 gap-3">
+                                {latestResult.recommendedCourses.map((c: any) => (
+                                    <Button
+                                        key={c.courseId}
+                                        className="w-full h-12 bg-blue-500 text-white rounded-xl"
+                                        onClick={() => navigate(`/course/${c.courseId}`)}
+                                    >
+                                        Khoá học #{c.title}
+                                    </Button>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500">Không có khóa học phù hợp.</p>
+                        )}
+
+                        <Button
+                            block
+                            className="mt-6 bg-purple-600 text-white h-12 rounded-xl"
+                            onClick={() => navigate("/placement-test/history")}
+                        >
+                            Xem lịch sử bài test
+                        </Button>
+                    </div>
+                )}
+            </Modal>
+
         </div>
+
     );
 };
 
