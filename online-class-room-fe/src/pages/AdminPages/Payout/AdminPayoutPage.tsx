@@ -34,36 +34,53 @@ export default function AdminPayoutPage() {
   useEffect(() => {
     fetchData();
   }, []);
+  useEffect(() => {
+    autoGenerateOnLoad();
+  }, []);
+  const autoGenerateOnLoad = async () => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/payout/generate`,
+        {},
+        { params: { month, year } }
+      );
+      console.log("🔄 Đã tính lại payout khi vào trang");
+    } catch (err) {
+      console.warn("Không thể auto-generate payout:", err);
+    }
+
+    fetchData(); // luôn load lại danh sách
+  };
 
   // Fetch payout list
   const fetchData = async (m = month, y = year) => {
-  if (!m || !y) return;
+    if (!m || !y) return;
 
-  setLoading(true);
-  try {
-    const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/payout/list`,
-      { params: { month: m, year: y } }
-    );
-    setPayoutList(res.data);
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/payout/list`,
+        { params: { month: m, year: y } }
+      );
+      setPayoutList(res.data);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   const onMonthChange = (v: any) => {
-  if (!v) return;
+    if (!v) return;
 
-  const newMonth = v.month() + 1;
-  const newYear = v.year();
+    const newMonth = v.month() + 1;
+    const newYear = v.year();
 
-  setMonth(newMonth);
-  setYear(newYear);
+    setMonth(newMonth);
+    setYear(newYear);
 
-  // GỌI API NGAY SAU KHI CHỌN
-  fetchData(newMonth, newYear);
-};
+    // GỌI API NGAY SAU KHI CHỌN
+    fetchData(newMonth, newYear);
+  };
 
 
 
