@@ -100,9 +100,10 @@ export default function ArticleDetailPage() {
         message.success("Đã sao chép liên kết");
     };
 
-    const comments = Array.isArray(commentsResp?.data)
-        ? commentsResp.data
+    const comments = Array.isArray(commentsResp?.items)
+        ? commentsResp.items
         : [];
+
 
     const formatDate = (dateStr?: string) => {
         if (!dateStr) return "—";
@@ -209,8 +210,8 @@ export default function ArticleDetailPage() {
                         <button
                             onClick={handleLike}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${isLiked
-                                    ? "bg-red-50 text-red-600"
-                                    : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                                ? "bg-red-50 text-red-600"
+                                : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                                 }`}
                         >
                             {isLiked ? (
