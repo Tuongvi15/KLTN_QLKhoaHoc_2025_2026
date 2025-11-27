@@ -108,7 +108,7 @@ export default function ArticleDetailPage() {
         if (!dateStr) return "—";
         const date = new Date(dateStr);
         if (isNaN(date.getTime())) return "—";
-        
+
         const now = new Date();
         const diff = now.getTime() - date.getTime();
         const minutes = Math.floor(diff / 60000);
@@ -119,11 +119,11 @@ export default function ArticleDetailPage() {
         if (minutes < 60) return `${minutes} phút trước`;
         if (hours < 24) return `${hours} giờ trước`;
         if (days < 7) return `${days} ngày trước`;
-        
-        return date.toLocaleDateString("vi-VN", { 
-            day: "2-digit", 
-            month: "2-digit", 
-            year: "numeric" 
+
+        return date.toLocaleDateString("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric"
         });
     };
 
@@ -183,8 +183,8 @@ export default function ArticleDetailPage() {
                     {/* Author Info */}
                     <div className="flex items-center justify-between pb-6 border-b border-gray-100">
                         <div className="flex items-center gap-4">
-                            <Avatar 
-                                size={48} 
+                            <Avatar
+                                size={48}
                                 src={article.authorAvatar}
                                 className="border-2 border-purple-100"
                             >
@@ -201,18 +201,17 @@ export default function ArticleDetailPage() {
                             </div>
                         </div>
 
-                       
+
                     </div>
 
                     {/* Engagement Stats */}
                     <div className="flex items-center gap-6 mt-6">
                         <button
                             onClick={handleLike}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                                isLiked
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${isLiked
                                     ? "bg-red-50 text-red-600"
                                     : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-                            }`}
+                                }`}
                         >
                             {isLiked ? (
                                 <FavoriteIcon className="text-xl" />
@@ -288,45 +287,26 @@ export default function ArticleDetailPage() {
                     {comments.length > 0 ? (
                         <div className="space-y-4">
                             {comments.map((item: any) => (
-                                <div
-                                    key={item.commentId}
-                                    className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all"
-                                >
+                                <div key={item.commentId} className="p-4 bg-gray-50 rounded-xl">
                                     <div className="flex gap-3">
-                                        <Avatar 
-                                            size={40} 
-                                            src={item.authorAvatar}
-                                            className="flex-shrink-0"
-                                        >
+                                        <Avatar src={item.authorAvatar}>
                                             {!item.authorAvatar && item.authorName?.charAt(0)}
                                         </Avatar>
-                                        <div className="flex-1">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <span className="font-semibold text-gray-900">
-                                                    {item.authorName}
-                                                </span>
-                                                <span className="text-xs text-gray-500">
-                                                    {formatDate(item.createdAt)}
-                                                </span>
+                                        <div>
+                                            <div className="font-semibold">{item.authorName}</div>
+                                            <div className="text-xs text-gray-400">
+                                                {formatDate(item.createdAt)}
                                             </div>
-                                            <p className="text-gray-700 text-sm leading-relaxed">
-                                                {item.content}
-                                            </p>
+                                            <p className="text-gray-700 mt-1">{item.content}</p>
                                         </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-12">
-                            <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <ChatBubbleOutlineIcon className="text-3xl text-purple-600" />
-                            </div>
-                            <p className="text-gray-600 text-sm">
-                                Chưa có bình luận nào. Hãy là người đầu tiên!
-                            </p>
-                        </div>
+                        <p className="text-gray-500 text-center">Chưa có bình luận nào.</p>
                     )}
+
                 </div>
             </article>
         </div>
