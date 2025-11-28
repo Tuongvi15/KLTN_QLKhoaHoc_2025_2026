@@ -50,10 +50,15 @@ const ViewCourseListPage = () => {
         setCourselistPaginationRequest((prev) => ({
             ...prev,
             sort: sortParam,
+            isPublished: true,
             pageNumber: 1,
             pageSize: 10,
         }));
     }, [sortBy]);
+    const [priceRange, setPriceRange] = useState<{ min: number; max: number | null }>({
+        min: 0,
+        max: null
+    });
 
     const { data, isSuccess, isLoading, refetch } = useGetCourselistPaginationQuery(
         courselistPaginationRequest,
@@ -71,12 +76,15 @@ const ViewCourseListPage = () => {
     };
 
     const onFilterClick = () => {
-        setCourselistPaginationRequest({
+        setCourselistPaginationRequest(prev => ({
+            ...prev,
             categoryIds: category.length > 0 ? category : undefined,
             pageNumber: 1,
-            pageSize: 10, // thêm để backend phân trang
-        });
+            pageSize: 10,
+            isPublished: true,
+        }));
     };
+
 
 
     // Helper function để tính giá sale
@@ -87,7 +95,15 @@ const ViewCourseListPage = () => {
         return price;
     };
 
-    const filteredCourses = coursesRepsone?.courses.filter((course) => course.isPublic) || [];
+    const filteredCourses = (coursesRepsone?.courses || [])
+        .filter(course => {
+            const salePrice = calculateSalePrice(course.price, course.salesCampaign);
+
+            const aboveMin = salePrice >= priceRange.min;
+            const belowMax = priceRange.max ? salePrice <= priceRange.max : true;
+
+            return aboveMin && belowMax;
+        });
     const itemsPerPage = 5;
     const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
     const paginatedCourses = filteredCourses.slice(
@@ -126,6 +142,7 @@ const ViewCourseListPage = () => {
                                         Thể loại
                                     </Typography.Title>
                                 </div>
+
                                 <div className="max-h-[400px] overflow-y-auto">
                                     <Checkbox.Group
                                         className="flex flex-col gap-3"
@@ -141,6 +158,34 @@ const ViewCourseListPage = () => {
                                         value={category}
                                     />
                                 </div>
+
+                                {/* Price Filter */}
+                                <div className="mb-6">
+                                    <Typography.Title level={4} className="!mb-4 flex items-center gap-2">
+                                        💰 Giá
+                                    </Typography.Title>
+
+                                    <Select
+                                        placeholder="Chọn mức giá"
+                                        className="!w-full"
+                                        onChange={(value) => {
+                                            const [min, max] = value.split('-').map(Number);
+                                            setPriceRange({
+                                                min,
+                                                max: max === 0 ? null : max
+                                            });
+                                        }}
+
+                                        options={[
+                                            { label: "Tất cả", value: "0-0" },
+                                            { label: "Dưới 200,000", value: "0-200000" },
+                                            { label: "200,000 - 500,000", value: "200000-500000" },
+                                            { label: "500,000 - 1,000,000", value: "500000-1000000" },
+                                            { label: "Trên 1,000,000", value: "1000000-0" },
+                                        ]}
+                                    />
+                                </div>
+
                             </div>
 
                             <Button
@@ -231,7 +276,7 @@ const ViewCourseListPage = () => {
                                                                         <span className="font-bold text-gray-800">{course.accountName}</span>
                                                                     </p>
                                                                 )}
-                                                                
+
 
                                                                 {/* Categories */}
                                                                 <div className="mb-3 flex flex-wrap gap-2">

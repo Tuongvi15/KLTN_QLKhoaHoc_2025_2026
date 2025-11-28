@@ -8,6 +8,7 @@ import {
 import { RootState } from "../../../store";
 import { useSelector } from "react-redux";
 import { ClockCircleOutlined } from "@ant-design/icons";
+import CourseSuggestCard from "../../../components/CourseSuggestCard/CourseSuggestCard";
 
 const TEST_DURATION = 15 * 60; // 15 phút
 
@@ -94,21 +95,21 @@ const PlacementTestStartPage = () => {
         //     message.error("Lỗi khi lưu kết quả!");
         // }
         try {
-    const saved = await saveResult(resultData).unwrap();
+            const saved = await saveResult(resultData).unwrap();
 
-    // lấy resultId từ backend trả về
-    const resultId = saved.dataObject?.resultId;
+            // lấy resultId từ backend trả về
+            const resultId = saved.dataObject?.resultId;
 
-    const res = await fetch(
-        `https://localhost:7005/api/PlacementTest/results/suggestion-by-result/${resultId}`
-    ).then(r => r.json());
+            const res = await fetch(
+                `https://localhost:7005/api/PlacementTest/results/suggestion-by-result/${resultId}`
+            ).then(r => r.json());
 
-    setLatestResult(res);
-    setShowResultPopup(true);
+            setLatestResult(res);
+            setShowResultPopup(true);
 
-} catch {
-    message.error("Lỗi khi lưu kết quả!");
-}
+        } catch {
+            message.error("Lỗi khi lưu kết quả!");
+        }
 
 
     };
@@ -221,21 +222,12 @@ const PlacementTestStartPage = () => {
 
                         <h3 className="text-lg font-semibold mb-2">Gợi ý khóa học phù hợp</h3>
 
-                        {latestResult.recommendedCourses?.length ? (
-                            <div className="grid grid-cols-1 gap-3">
-                                {latestResult.recommendedCourses.map((c: any) => (
-                                    <Button
-                                        key={c.courseId}
-                                        className="w-full h-12 bg-blue-500 text-white rounded-xl"
-                                        onClick={() => navigate(`/course/${c.courseId}`)}
-                                    >
-                                        Khoá học #{c.title}
-                                    </Button>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-gray-500">Không có khóa học phù hợp.</p>
-                        )}
+                        <div className="grid grid-cols-1 gap-4">
+                            {latestResult.recommendedCourses.map((c: any) => (
+                                <CourseSuggestCard key={c.courseId} course={c} />
+                            ))}
+                        </div>
+
 
                         <Button
                             block

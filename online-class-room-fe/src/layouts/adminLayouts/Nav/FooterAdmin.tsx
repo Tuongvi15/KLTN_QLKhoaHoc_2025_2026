@@ -6,7 +6,7 @@ export default function MyFooter() {
         //ORIGIAL CODE
         <Footer className="border-t-[1px] border-gray-200 bg-white text-center">
             {' '}
-            ©{new Date().getFullYear()} Created by EStudyHub
+            ©{new Date().getFullYear()} Created by eStudyHub
         </Footer>
     );
 }

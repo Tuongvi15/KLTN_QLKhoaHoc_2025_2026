@@ -101,7 +101,7 @@ const SearchPage = () => {
     }
 
     return (
-        <div>
+        <div className="min-h-[calc(100vh-100px)] flex flex-col">
             {/* Header kết quả tìm kiếm */}
             <div className="px-4 py-6 border-b bg-gray-50">
                 <h1 className="text-2xl font-semibold text-gray-800">

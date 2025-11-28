@@ -25,7 +25,7 @@ const Footer = () => {
 
     const footerSections = [
         {
-            title: 'Về StudyHub',
+            title: 'Về eStudyHub',
             links: [
                 'Mô tả khóa học',
                 'Quan hệ với nhà đầu tư',
@@ -75,15 +75,18 @@ const Footer = () => {
                         {/* Brand Section */}
                         <div className="lg:col-span-1">
                             <div className="flex items-center mb-4">
-                                <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 rounded-lg">
-                                    <SchoolIcon className="text-white text-2xl" />
+                                <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-2 rounded-lg">
+                                    <SchoolIcon
+                                        className="text-2xl"
+                                        style={{ color: "#00497cff" }}
+                                    />
                                 </div>
-                                <h2 className="ml-2 text-2xl font-bold text-white">StudyHub</h2>
+                                <h2 className="ml-2 text-2xl font-bold text-white">eStudyHub</h2>
                             </div>
                             <p className="text-sm text-gray-400 mb-4">
                                 Nền tảng học tập trực tuyến hàng đầu
                             </p>
-                            
+
                             {/* Social Links */}
                             <div className="flex space-x-2">
                                 {socialLinks.map((social, index) => {
@@ -126,7 +129,7 @@ const Footer = () => {
                     {/* Bottom Bar */}
                     <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                         <p className="text-sm text-gray-500">
-                            © 2024 StudyHub. All rights reserved.
+                            © 2025 eStudyHub. All rights reserved.
                         </p>
                         <div className="flex space-x-6 text-sm text-gray-500">
                             <a href="#" className="hover:text-purple-400 transition-colors">Privacy Policy</a>

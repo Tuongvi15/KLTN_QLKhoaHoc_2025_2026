@@ -344,6 +344,10 @@ namespace LMSystem.Repository.Repositories
             {
                 query = query.Where(c => c.CourseIsActive == filterParams.IsActive);
             }
+            if (filterParams.IsPublished is not null)
+            {
+                query = query.Where(c => c.IsPublic == filterParams.IsPublished);
+            }
 
             if (filterParams.MaxPrice is not null)
             {

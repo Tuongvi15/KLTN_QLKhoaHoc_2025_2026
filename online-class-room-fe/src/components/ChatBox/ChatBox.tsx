@@ -308,7 +308,7 @@ const ChatBox = () => {
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="chatbox-header-title">Trợ lý AI StudyHub</h3>
+                                    <h3 className="chatbox-header-title">Trợ lý AI eStudyHub</h3>
                                     <p className="chatbox-header-status">
                                         <span className="chatbox-status-dot"></span>
                                         Luôn sẵn sàng hỗ trợ

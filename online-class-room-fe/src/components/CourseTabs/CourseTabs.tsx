@@ -28,9 +28,12 @@ const CourseTabs = ({ courseList, tabsTitle, isLoading }: Props) => {
         '&.MuiTab-root': {
             color: 'inherit',
             '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                backgroundColor: 'transparent !important',   // FIX CHUẨN
+                boxShadow: 'none !important',
+                transform: 'none !important',
             },
         },
+
     });
 
     // Hàm lấy phần trăm giảm giá từ salesCampaign
@@ -156,10 +159,10 @@ const CourseTabs = ({ courseList, tabsTitle, isLoading }: Props) => {
                         >
                             {courseList.map((course, index) => {
                                 const discount = getDiscountPercent(course);
-                                
+
                                 return (
-                                    <StylingTab 
-                                        key={course.courseId || index} 
+                                    <StylingTab
+                                        key={course.courseId || index}
                                         label={
                                             <div className="course-wrapper">
                                                 {discount && (

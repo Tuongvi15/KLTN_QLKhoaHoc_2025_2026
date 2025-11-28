@@ -243,7 +243,7 @@ const HomePage = () => {
                         </p>
                     </div>
 
-                    <div className="hover-lift bg-white rounded-3xl shadow-xl border border-blue-100 p-8 lg:p-12 backdrop-blur-lg bg-opacity-80">
+                    <div className="bg-white rounded-3xl shadow-xl border border-blue-100 p-8 lg:p-12 backdrop-blur-lg bg-opacity-80">
                         <CourseTabs
                             isLoading={coursesBaseJoinedIsFetching}
                             tabsTitle=""
@@ -270,7 +270,7 @@ const HomePage = () => {
                         </p>
                     </div>
 
-                    <div className="hover-lift bg-white rounded-3xl shadow-xl border border-emerald-100 p-8 lg:p-12 backdrop-blur-lg bg-opacity-80">
+                    <div className="bg-white rounded-3xl shadow-xl border border-emerald-100 p-8 lg:p-12 backdrop-blur-lg bg-opacity-80">
                         <CourseTabs
                             isLoading={coursesBaseRatingIsFetching}
                             tabsTitle=""
@@ -297,7 +297,7 @@ const HomePage = () => {
                         </p>
                     </div>
 
-                    <div className="hover-lift bg-white rounded-3xl shadow-xl border border-amber-100 p-8 lg:p-12 backdrop-blur-lg bg-opacity-80">
+                    <div className="bg-white rounded-3xl shadow-xl border border-amber-100 p-8 lg:p-12 backdrop-blur-lg bg-opacity-80">
                         <CourseTabs
                             isLoading={coursesBaseSalesIsFetching}
                             tabsTitle=""

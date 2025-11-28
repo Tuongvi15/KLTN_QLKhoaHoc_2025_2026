@@ -51,7 +51,11 @@ const CourseCard = ({ course }: Props) => {
         <>
             {course && (
                 <Popover content={<CourseCardHover course={course} />} trigger="hover">
-                    <div className="flex flex-col gap-2" onClick={handleOnCourseClick}>
+                    <div
+                        className="flex flex-col gap-2 rounded-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-lg cursor-pointer bg-white"
+                        onClick={handleOnCourseClick}
+                    >
+
                         <div className="flex max-h-[180px] items-center justify-center overflow-hidden">
                             <img className="w-max" src={course?.imageUrl} />
                         </div>

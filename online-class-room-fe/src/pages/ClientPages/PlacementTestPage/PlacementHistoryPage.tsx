@@ -11,6 +11,7 @@ import CategoryIcon from "@mui/icons-material/Category";
 import ReplayIcon from "@mui/icons-material/Replay";
 
 import { useNavigate } from "react-router-dom";
+import CourseSuggestCard from "../../../components/CourseSuggestCard/CourseSuggestCard";
 
 const PlacementHistoryPage = () => {
   const userId = useSelector((state: RootState) => state.user.id);
@@ -132,21 +133,12 @@ const PlacementHistoryPage = () => {
               Level: <b>{suggestData.level}</b> • Điểm: <b>{suggestData.score}%</b>
             </p>
 
-            {suggestData.recommendedCourses?.length ? (
-              <div className="grid grid-cols-1 gap-3">
-                {suggestData.recommendedCourses.map((c: any) => (
-                  <Button
-                    key={c.courseId}
-                    className="w-full h-12 bg-blue-500 text-white rounded-xl"
-                    onClick={() => navigate(`/course/${c.courseId}`)}
-                  >
-                    Xem khóa học: {c.title}
-                  </Button>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500">Không có khóa học phù hợp.</p>
-            )}
+            <div className="grid grid-cols-1 gap-4">
+              {suggestData.recommendedCourses.map((c: any) => (
+                <CourseSuggestCard key={c.courseId} course={c} />
+              ))}
+            </div>
+
           </div>
         )}
       </Modal>

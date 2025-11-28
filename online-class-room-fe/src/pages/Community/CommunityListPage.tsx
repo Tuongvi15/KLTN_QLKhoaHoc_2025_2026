@@ -71,7 +71,7 @@ export default function CommunityListPage() {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-200 border-t-gray-900 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600 mx-auto mb-4"></div>
                     <p className="text-sm text-gray-600">Đang tải...</p>
                 </div>
             </div>
@@ -79,13 +79,13 @@ export default function CommunityListPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50">
-            {/* Header - Modern & Vibrant */}
-            <div className="border-b border-gray-100 sticky top-0 z-10 bg-white/90 backdrop-blur-xl shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 py-5">
+        <div className="min-h-screen bg-white">
+            {/* Header - Udemy Style */}
+            <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+                <div className="max-w-7xl mx-auto px-4 py-4">
                     <div className="flex items-center justify-between gap-4 mb-4">
                         <div>
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                            <h1 className="text-3xl font-bold text-gray-900">
                                 Cộng đồng
                             </h1>
                             <p className="text-sm text-gray-600 mt-1">Chia sẻ kiến thức và kết nối cùng nhau</p>
@@ -93,93 +93,93 @@ export default function CommunityListPage() {
 
                         {/* Nút tạo bài viết */}
                         <Link to="/community/write">
-                            <button className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2.5 rounded-xl hover:shadow-lg hover:scale-105 transition-all text-sm font-semibold">
+                            <button 
+                                className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white transition-all"
+                                style={{ backgroundColor: '#00497c' }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#003d66'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#00497c'}
+                            >
                                 <AddCircleIcon className="text-xl" />
                                 <span>Viết bài</span>
                             </button>
                         </Link>
                     </div>
 
-                    {/* Search Bar */}
-                    <div className="relative max-w-2xl">
+                    {/* Search Bar - Udemy Style */}
+                    <div className="relative max-w-3xl">
                         <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl" />
                         <input
                             type="text"
                             placeholder="Tìm kiếm bài viết, chủ đề hoặc tác giả..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all shadow-sm"
+                            className="w-full pl-12 pr-4 py-3 border-2 border-gray-900 text-sm font-medium focus:outline-none focus:border-gray-900"
+                            style={{ borderRadius: '0' }}
                         />
                     </div>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 py-6">
-                <div className="flex gap-6">
-                    {/* Left Sidebar - Modern Card Style */}
+            <div className="max-w-7xl mx-auto px-4 py-8">
+                <div className="flex gap-8">
+                    {/* Left Sidebar - Udemy Style */}
                     <aside className="hidden lg:block w-64 flex-shrink-0">
-                        <div className="sticky top-28 space-y-4">
+                        <div className="sticky top-28 space-y-6">
                             {/* Filter Card */}
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                                        <FilterListIcon className="text-white text-lg" />
-                                    </div>
-                                    <h2 className="font-bold text-gray-900">Bộ lọc</h2>
+                            <div className="border border-gray-300">
+                                <div className="px-4 py-3 border-b border-gray-300" style={{ backgroundColor: '#f7f9fa' }}>
+                                    <h2 className="font-bold text-gray-900 text-sm">BỘ LỌC</h2>
                                 </div>
-                                <div className="space-y-2">
+                                <div className="p-2">
                                     {filterOptions.map(({ id, label, icon: Icon }) => (
                                         <button
                                             key={id}
                                             onClick={() => setFilter(id)}
-                                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium ${
+                                            className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors ${
                                                 filter === id
-                                                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md scale-[1.02]"
-                                                    : "text-gray-700 hover:bg-gray-50"
+                                                    ? "text-white font-bold"
+                                                    : "text-gray-700 hover:bg-gray-100"
                                             }`}
+                                            style={filter === id ? { backgroundColor: '#00497c' } : {}}
                                         >
-                                            <Icon className="text-xl" />
+                                            <Icon className="text-lg" />
                                             <span>{label}</span>
-                                            {filter === id && (
-                                                <div className="ml-auto w-2 h-2 rounded-full bg-white"></div>
-                                            )}
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
                             {/* Stats Card */}
-                            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-5 border border-purple-100">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-                                        <ArticleIcon className="text-purple-600 text-lg" />
-                                    </div>
-                                    <h3 className="font-bold text-gray-900">Thống kê</h3>
+                            <div className="border border-gray-300">
+                                <div className="px-4 py-3 border-b border-gray-300" style={{ backgroundColor: '#f7f9fa' }}>
+                                    <h3 className="font-bold text-gray-900 text-sm">THỐNG KÊ</h3>
                                 </div>
-                                <div className="space-y-3">
+                                <div className="p-4 space-y-4">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-sm text-gray-700">Tổng bài viết</span>
-                                        <span className="text-lg font-bold text-purple-600">{data?.totalCount || 0}</span>
+                                        <span className="text-sm text-gray-700 font-medium">Tổng bài viết</span>
+                                        <span className="text-2xl font-bold" style={{ color: '#00497c' }}>{data?.totalCount || 0}</span>
                                     </div>
-                                    <div className="h-px bg-purple-200"></div>
+                                    <div className="h-px bg-gray-300"></div>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-sm text-gray-700">Mới hôm nay</span>
-                                        <span className="text-lg font-bold text-pink-600">12</span>
+                                        <span className="text-sm text-gray-700 font-medium">Mới hôm nay</span>
+                                        <span className="text-2xl font-bold" style={{ color: '#00497c' }}>12</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Quick Actions */}
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                                <h3 className="font-bold text-gray-900 mb-3">Khám phá</h3>
-                                <div className="space-y-2">
-                                    <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-all">
+                            <div className="border border-gray-300">
+                                <div className="px-4 py-3 border-b border-gray-300" style={{ backgroundColor: '#f7f9fa' }}>
+                                    <h3 className="font-bold text-gray-900 text-sm">KHÁM PHÁ</h3>
+                                </div>
+                                <div className="p-2">
+                                    <button className="w-full text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
                                         🔥 Chủ đề hot
                                     </button>
-                                    <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-all">
+                                    <button className="w-full text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
                                         ⭐ Tác giả nổi bật
                                     </button>
-                                    <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-all">
+                                    <button className="w-full text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
                                         📚 Danh mục
                                     </button>
                                 </div>
@@ -190,16 +190,17 @@ export default function CommunityListPage() {
                     {/* Main Content */}
                     <main className="flex-1 min-w-0">
                         {/* Mobile Filter Pills */}
-                        <div className="lg:hidden flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+                        <div className="lg:hidden flex gap-2 mb-6 overflow-x-auto pb-2">
                             {filterOptions.map(({ id, label, icon: Icon }) => (
                                 <button
                                     key={id}
                                     onClick={() => setFilter(id)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all text-sm font-medium shadow-sm ${
+                                    className={`flex items-center gap-2 px-4 py-2 whitespace-nowrap transition-colors text-sm font-bold border-2 ${
                                         filter === id
-                                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white scale-105"
-                                            : "bg-white text-gray-700 border border-gray-200 hover:border-purple-300"
+                                            ? "text-white border-transparent"
+                                            : "bg-white text-gray-700 border-gray-900 hover:bg-gray-100"
                                     }`}
+                                    style={filter === id ? { backgroundColor: '#00497c' } : {}}
                                 >
                                     <Icon className="text-lg" />
                                     <span>{label}</span>
@@ -208,18 +209,18 @@ export default function CommunityListPage() {
                         </div>
 
                         {/* Filter Info Banner */}
-                        <div className="mb-6 flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
+                        <div className="mb-6 flex items-center justify-between bg-gray-50 border border-gray-300 p-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                                <div className="w-10 h-10 flex items-center justify-center" style={{ backgroundColor: '#00497c' }}>
                                     {filterOptions.find(f => f.id === filter)?.icon && 
                                         (() => {
                                             const Icon = filterOptions.find(f => f.id === filter)!.icon;
-                                            return <Icon className="text-purple-600 text-xl" />;
+                                            return <Icon className="text-white text-xl" />;
                                         })()
                                     }
                                 </div>
                                 <div>
-                                    <p className="text-sm font-semibold text-gray-900">
+                                    <p className="text-sm font-bold text-gray-900">
                                         {filterOptions.find(f => f.id === filter)?.label}
                                     </p>
                                     <p className="text-xs text-gray-600">
@@ -230,7 +231,8 @@ export default function CommunityListPage() {
                             {searchQuery && (
                                 <button 
                                     onClick={() => setSearchQuery("")}
-                                    className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                                    className="text-xs font-bold hover:underline"
+                                    style={{ color: '#00497c' }}
                                 >
                                     Xóa tìm kiếm
                                 </button>
@@ -245,12 +247,12 @@ export default function CommunityListPage() {
                                 ))}
                             </div>
                         ) : (
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+                            <div className="bg-white border-2 border-gray-200 p-12 text-center">
                                 <div className="max-w-md mx-auto">
-                                    <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                        <ArticleIcon className="text-4xl text-purple-600" />
+                                    <div className="w-20 h-20 bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                                        <ArticleIcon className="text-4xl text-gray-400" />
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
                                         {searchQuery ? "Không tìm thấy kết quả" : "Chưa có bài viết"}
                                     </h3>
                                     <p className="text-sm text-gray-600 mb-6">
@@ -261,7 +263,12 @@ export default function CommunityListPage() {
                                     </p>
 
                                     <Link to="/community/write">
-                                        <button className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl hover:shadow-lg hover:scale-105 transition-all text-sm font-semibold">
+                                        <button 
+                                            className="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-white transition-colors"
+                                            style={{ backgroundColor: '#00497c' }}
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#003d66'}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#00497c'}
+                                        >
                                             <AddCircleIcon className="text-xl" />
                                             <span>Viết bài đầu tiên</span>
                                         </button>
@@ -275,7 +282,7 @@ export default function CommunityListPage() {
                             <div className="mt-8 text-center">
                                 <button
                                     onClick={() => setPage(page + 1)}
-                                    className="px-8 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-700 font-semibold hover:border-purple-300 hover:bg-purple-50 transition-all text-sm shadow-sm"
+                                    className="px-8 py-3 border-2 border-gray-900 font-bold hover:bg-gray-100 transition-colors text-sm"
                                 >
                                     Xem thêm bài viết
                                 </button>

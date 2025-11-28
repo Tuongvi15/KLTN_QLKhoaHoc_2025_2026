@@ -4,4 +4,5 @@ export interface PagingParam {
     pageSize?: number;
     search?: string;
     isActive?: boolean;
+    isPublished?: boolean;
 }

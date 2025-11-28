@@ -278,12 +278,14 @@ const PlacementTestPage = () => {
                         type="primary"
                         size="large"
                         block
+                        className="!bg-[#00497cff] !border-[#00497cff] hover:!bg-[#00385ecc]"
                         onClick={() => {
                             navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
                         }}
                     >
                         Đăng nhập ngay
                     </Button>
+
                 </div>
             </Modal>
 

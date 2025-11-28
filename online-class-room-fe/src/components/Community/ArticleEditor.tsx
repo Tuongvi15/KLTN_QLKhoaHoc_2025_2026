@@ -1,129 +1,84 @@
-// src/components/Community/ArticleEditor.tsx
-import React, { useCallback, useEffect } from "react";
-import { EditorContent, useEditor, Editor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Image from "@tiptap/extension-image";
-import Link from "@tiptap/extension-link";
-import Underline from "@tiptap/extension-underline";
-import Placeholder from "@tiptap/extension-placeholder";
-import { Button } from "antd";
+import React, { useEffect, useCallback } from "react";
+import { useQuill } from "react-quilljs";
+import "quill/dist/quill.snow.css";
 
-type Props = {
+type ArticleEditorProps = {
     content?: string;
     onChange?: (html: string) => void;
-    uploadImage?: (file: File) => Promise<string>; // returns URL
+    uploadImage?: (file: File) => Promise<string>;
 };
 
 export default function ArticleEditor({
-    content = "<p></p>",
+    content = "",
     onChange,
     uploadImage,
-}: Props) {
-    const editor = useEditor({
-        extensions: [
-            StarterKit,
-            Image,
-            Link,
-            Underline,
-            Placeholder.configure({
-                placeholder: "Viết nội dung bài viết...",
-            }),
-        ],
-        content,
-        editorProps: {
-            attributes: {
-                class:
-                    "prose prose-lg max-w-none focus:outline-none min-h-[300px]",
+}: ArticleEditorProps) {
+    const { quill, quillRef } = useQuill({
+        theme: "snow",
+        placeholder: "Viết nội dung bài viết...",
+        modules: {
+            toolbar: {
+                container: [
+                    [{ header: [1, 2, false] }],
+                    ["bold", "italic", "underline"],
+                    [{ list: "ordered" }, { list: "bullet" }],
+                    ["code-block"],
+                    ["link", "image"],
+                ],
+                handlers: {
+                    image: async () => {
+                        if (!quill || !uploadImage) return;
+
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = "image/*";
+                        input.click();
+
+                        input.onchange = async () => {
+                            if (!input.files) return;
+
+                            const file = input.files[0];
+                            const url = await uploadImage(file);
+
+                            const range =
+                                quill.getSelection() || {
+                                    index: quill.getLength(),
+                                    length: 0,
+                                };
+
+                            quill.insertEmbed(range.index, "image", url);
+                            quill.setSelection(range.index + 1, 0);
+                        };
+                    },
+                },
             },
-        },
-        onUpdate: ({ editor }: { editor: Editor }) => {
-            if (onChange) onChange(editor.getHTML());
         },
     });
 
-    // Handle inline image upload
-    const handleImageUpload = useCallback(
-        async (e: React.ChangeEvent<HTMLInputElement>) => {
-            const file = e.target.files?.[0];
-            if (!file || !editor) return;
-
-            try {
-                if (uploadImage) {
-                    // Upload to server
-                    const url = await uploadImage(file);
-                    editor.chain().focus().setImage({ src: url }).run();
-                } else {
-                    // fallback: base64
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        const base64 = reader.result as string;
-                        editor.chain().focus().setImage({ src: base64 }).run();
-                    };
-                    reader.readAsDataURL(file);
-                }
-            } catch (err) {
-                console.error("Upload image failed:", err);
-            }
-
-            // reset input
-            e.target.value = "";
-        },
-        [editor, uploadImage]
-    );
-
+    // Set initial HTML content
     useEffect(() => {
-        return () => {
-            editor?.destroy();
-        };
-    }, [editor]);
+        if (quill && content) {
+            quill.clipboard.dangerouslyPasteHTML(content);
+        }
+    }, [quill, content]);
 
-    if (!editor) return null;
+    // Catch content changes
+    useEffect(() => {
+        if (!quill) return;
+
+        const handler = () => {
+            onChange?.(quill.root.innerHTML);
+        };
+
+        quill.on("text-change", handler);
+        return () => {
+            quill.off("text-change", handler);
+        };
+    }, [quill, onChange]);
 
     return (
-        <div>
-            {/* Toolbar */}
-            <div className="mb-3 flex gap-2 flex-wrap">
-                <Button size="small" onClick={() => editor.chain().focus().toggleBold().run()}>
-                    <b>B</b>
-                </Button>
-
-                <Button size="small" onClick={() => editor.chain().focus().toggleItalic().run()}>
-                    <i>I</i>
-                </Button>
-
-                <Button size="small" onClick={() => editor.chain().focus().toggleUnderline().run()}>
-                    <u>U</u>
-                </Button>
-
-                <Button
-                    size="small"
-                    onClick={() => editor.chain().focus().toggleBulletList().run()}
-                >
-                    • List
-                </Button>
-
-                <Button
-                    size="small"
-                    onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                >
-                    {"</>"}
-                </Button>
-
-                <label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        onChange={handleImageUpload}
-                    />
-                    <Button size="small">Ảnh</Button>
-                </label>
-            </div>
-
-            {/* Editor */}
-            <div className="border rounded-lg p-4 bg-white min-h-[300px]">
-                <EditorContent editor={editor} />
-            </div>
+        <div className="rounded-lg border border-gray-300">
+            <div ref={quillRef} />
         </div>
     );
 }

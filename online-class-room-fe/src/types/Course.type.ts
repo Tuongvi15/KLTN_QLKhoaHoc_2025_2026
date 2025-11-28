@@ -89,6 +89,7 @@ export type CourselistPaginationRequest = PagingParam & {
     minPrice?: number;
     maxPrice?: number;
     sort?: string;
+    isPublic?: boolean;
 };
 
 export interface CourseBase {

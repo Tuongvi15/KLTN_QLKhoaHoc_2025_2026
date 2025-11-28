@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Input, Button, Upload, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import ArticleEditor from "../../components/Community/ArticleEditor";
+import CkEditorCustom from "../../components/Community/CkEditorCustom";
 import { uploadImageCustom } from "../../utils/uploadImageCustom";
 import {
     useCreateArticleMutation,
@@ -72,57 +72,86 @@ export default function WriteArticlePage() {
     };
 
     return (
-        <div className="max-w-3xl mx-auto mt-10 pb-8">
-            <h1 className="text-3xl font-bold mb-4">Viết bài mới</h1>
+        <div className="min-h-screen bg-[#f7f7fb] pb-28">
+            {/* HEADER */}
+            <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+                <h1 className="text-xl font-semibold">✍️ Viết bài mới</h1>
 
-            <Input
-                placeholder="Tiêu đề bài viết..."
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="text-2xl font-bold mb-4"
-            />
+                <div className="flex gap-2">
+                    <Button onClick={handleSaveDraft} loading={creating}>
+                        Lưu nháp
+                    </Button>
 
-            <div className="mb-4">
-                <Upload
-                    accept="image/*"
-                    showUploadList={false}
-                    beforeUpload={(file) => {
-                        handleCoverChange(file as File);
-                        return false;
-                    }}
-                >
-                    <Button>Tải ảnh bìa</Button>
-                </Upload>
+                    <Button
+    loading={publishing}
+    onClick={handlePublish}
+    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
+>
+    Xuất bản
+</Button>
 
-                {cover && (
-                    <img
-                        src={cover}
-                        className="mt-3 w-full h-44 object-cover rounded-lg"
-                    />
-                )}
+                </div>
             </div>
 
-            <ArticleEditor
-                content={contentHtml}
-                onChange={setContentHtml}
-                uploadImage={(file) =>
-                    uploadImageCustom(file, "community/contentImages")
-                }
-            />
+            {/* FORM BODY */}
+            <div className="max-w-3xl mx-auto mt-6 p-4 bg-white rounded-xl shadow-sm border border-gray-200">
+                {/* TITLE */}
+                <Input
+                    placeholder="Tiêu đề bài viết..."
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="text-3xl font-bold mb-6 border-none shadow-none px-0"
+                />
 
-            <div className="flex gap-3 mt-6">
-                <Button loading={creating} onClick={handleSaveDraft}>
+                {/* COVER */}
+                <div className="mb-6">
+                    <Upload
+                        accept="image/*"
+                        showUploadList={false}
+                        beforeUpload={(file) => {
+                            handleCoverChange(file as File);
+                            return false;
+                        }}
+                    >
+                        <div className="w-full h-56 rounded-lg bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-purple-500 transition">
+                            {cover ? (
+                                <img
+                                    src={cover}
+                                    className="w-full h-full object-cover rounded-lg"
+                                />
+                            ) : (
+                                <p className="text-gray-500">Tải ảnh bìa</p>
+                            )}
+                        </div>
+                    </Upload>
+                </div>
+
+                {/* EDITOR */}
+                <CkEditorCustom
+                    value={contentHtml}
+                    onChange={setContentHtml}
+                    uploadImage={(file) =>
+                        uploadImageCustom(file, "community/contentImages")
+                    }
+                />
+
+            </div>
+
+            {/* FLOATING ACTION BAR (F8 STYLE)
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-3 shadow-lg flex justify-end gap-3">
+                <Button onClick={handleSaveDraft} loading={creating}>
                     Lưu nháp
                 </Button>
 
                 <Button
-                    type="primary"
-                    loading={publishing}
-                    onClick={handlePublish}
-                >
-                    Đăng bài
-                </Button>
-            </div>
+    loading={publishing}
+    onClick={handlePublish}
+    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
+>
+    Xuất bản
+</Button>
+
+            </div> */}
         </div>
     );
 }

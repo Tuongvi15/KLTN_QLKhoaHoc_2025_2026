@@ -1,6 +1,6 @@
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import { Button, IconButton, styled, Container, Avatar, Chip } from '@mui/material';
-import { Badge, Divider, Drawer, Input, Popover, Tooltip, Typography } from 'antd';
+import { Button, IconButton, styled, Container } from '@mui/material';
+import { Badge, Drawer, Popover, Tooltip } from 'antd';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FavoritePopover, MyLearningPopover, UserAvatar } from './Components';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -12,59 +12,44 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useCountWishListByAccountIDQuery } from '../../../services/wishlist.services';
 import { setWishListCount } from '../../../slices/courseSlice';
 import SearchIcon from '@mui/icons-material/Search';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import SchoolIcon from '@mui/icons-material/School';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ExploreIcon from '@mui/icons-material/Explore';
 
-// ĐI CHUYỂN STYLED COMPONENT RA NGOÀI - QUAN TRỌNG!
 const StyledSearch = styled('div')({
     position: 'relative',
+    width: '100%',
     '& .search-input': {
         width: '100%',
-        height: '56px',
-        borderRadius: '28px',
-        border: '2px solid transparent',
-        background: 'linear-gradient(white, white) padding-box, linear-gradient(135deg, #667eea 0%, #764ba2 100%) border-box',
+        height: '48px',
+        border: '1px solid #1c1d1f',
+        borderRadius: '50px',
         fontSize: '16px',
-        paddingLeft: '24px',
-        paddingRight: '60px',
+        paddingLeft: '48px',
+        paddingRight: '16px',
         outline: 'none',
-        transition: 'all 0.3s ease',
+        fontFamily: 'inherit',
         '&:focus': {
-            background: 'linear-gradient(white, white) padding-box, linear-gradient(135deg, #f093fb 0%, #f5576c 100%) border-box',
-            boxShadow: '0 0 20px rgba(240, 147, 251, 0.3)',
+            borderColor: '#5624d0',
+            borderWidth: '2px',
         },
         '&::placeholder': {
-            color: '#64748b',
-            fontWeight: '500',
+            color: '#6a6f73',
         }
     },
-    '& .search-button': {
+    '& .search-icon': {
         position: 'absolute',
-        right: '8px',
+        left: '16px',
         top: '50%',
         transform: 'translateY(-50%)',
-        width: '40px',
-        height: '40px',
-        borderRadius: '20px',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        border: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        transition: 'all 0.3s ease',
-        '&:hover': {
-            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-            transform: 'translateY(-50%) scale(1.1)',
-        }
+        color: '#1c1d1f',
+        pointerEvents: 'none',
     }
 });
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
-    const [isScrolled, setIsScrolled] = useState(false);
     const dispatch = useDispatch();
     const accid = useSelector((state: RootState) => state.user.id);
     const { isSuccess, data: countData } = useCountWishListByAccountIDQuery(accid ? accid : '');
@@ -86,15 +71,6 @@ const Header: React.FC = () => {
     };
 
     const location = useLocation();
-
-    // Scroll effect
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 20);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     useEffect(() => {
         if (isSuccess && countData) {
@@ -131,277 +107,275 @@ const Header: React.FC = () => {
 
     return (
         <>
-            <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled
-                ? 'bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-200/50'
-                : 'bg-white shadow-lg'
-                }`}>
+            <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.08)]">
                 <Container maxWidth="xl">
-                    <div className="flex h-20 items-center justify-between gap-4 md:gap-8">
+                    <div className="flex h-[72px] items-center gap-4">
                         {/* Mobile Menu */}
-                        <div className="md:hidden">
+                        <div className="lg:hidden">
                             <IconButton
                                 onClick={handleOpenMenuToggle}
-                                className="!w-12 !h-12 !bg-gradient-to-br !from-purple-500 !to-pink-500 !text-white hover:!from-pink-500 hover:!to-purple-500 !transition-all !duration-300"
+                                sx={{ 
+                                    color: '#1c1d1f',
+                                    '&:hover': { bgcolor: '#f7f9fa' }
+                                }}
                             >
                                 <MenuIcon />
                             </IconButton>
                         </div>
 
                         {/* Logo */}
-                        <Link to={'/'} className="flex items-center group">
-                            <div className="flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110">
-                                <div className="relative">
-                                    <div className="absolute inset-0 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300" />
-                                    <div className="relative bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-xl">
-                                        <SchoolIcon className="text-white text-2xl" />
-                                    </div>
-                                </div>
-                                
+                        <Link to={'/'} className="flex items-center">
+                            <div className="flex items-center">
+                                <SchoolIcon sx={{ fontSize: 40, color: '#00497cff' }} />
+                                <span className="ml-1 text-2xl font-bold text-[#1c1d1f] hidden sm:inline">eStudyHub</span>
                             </div>
                         </Link>
 
-                        {/* Navigation */}
-                        <div className="hidden md:flex items-center space-x-8">
-                            <Link to={'/courses/'} className="group relative">
-                                <div className="flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50">
-                                    <ExploreIcon className="text-gray-600 group-hover:text-purple-600 transition-colors duration-300" />
-                                    <span className="text-lg font-semibold text-gray-700 group-hover:text-purple-600 transition-colors duration-300">
-                                        Khám phá
-                                    </span>
-                                </div>
-                                <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300" />
+                        {/* Navigation - Desktop */}
+                        <div className="hidden lg:flex items-center gap-2">
+                            <Link to={'/courses/'}>
+                                <button className="px-3 py-2 text-[15px] font-medium text-[#1c1d1f] hover:text-[#5624d0] transition-colors whitespace-nowrap">
+                                    Khám phá
+                                </button>
                             </Link>
 
-                            <Popover content={<MyLearningPopover />} trigger="hover" placement="bottomLeft">
-                                <div className="group relative cursor-pointer">
-                                    <div className="flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50">
-                                        <SchoolIcon className="text-gray-600 group-hover:text-blue-600 transition-colors duration-300" />
-                                        <span className="text-lg font-semibold text-gray-700 group-hover:text-blue-600 transition-colors duration-300">
-                                            Khóa học của tôi
-                                        </span>
-                                    </div>
-                                    <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-full transition-all duration-300" />
-                                </div>
+                            <Popover content={<MyLearningPopover />} trigger="hover" placement="bottom">
+                                <button className="px-3 py-2 text-[15px] font-medium text-[#1c1d1f] hover:text-[#5624d0] transition-colors whitespace-nowrap">
+                                    Khóa học của tôi
+                                </button>
                             </Popover>
-                            <Link to={'/placement-test'} className="group relative">
-                                <div className="flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50">
-                                    <ExploreIcon className="text-gray-600 group-hover:text-green-600 transition-colors duration-300" />
-                                    <span className="text-lg font-semibold text-gray-700 group-hover:text-green-600 transition-colors duration-300">
-                                        Bài test đầu vào
-                                    </span>
-                                </div>
-                                <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-green-500 to-emerald-500 group-hover:w-full transition-all duration-300" />
+
+                            <Link to={'/placement-test'}>
+                                <button className="px-3 py-2 text-[15px] font-medium text-[#1c1d1f] hover:text-[#5624d0] transition-colors whitespace-nowrap">
+                                    Bài test đầu vào
+                                </button>
+                            </Link>
+
+                            <Link to={'/community'}>
+                                <button className="px-3 py-2 text-[15px] font-medium text-[#1c1d1f] hover:text-[#5624d0] transition-colors whitespace-nowrap">
+                                    Cộng đồng
+                                </button>
                             </Link>
                         </div>
-                        <Link to={'/community'} className="group relative">
-                            <div className="flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50">
-                                <ExploreIcon className="text-gray-600 group-hover:text-purple-600 transition-colors duration-300" />
-                                <span className="text-lg font-semibold text-gray-700 group-hover:text-purple-600 transition-colors duration-300">
-                                    Cộng đồng
-                                </span>
-                            </div>
-                            <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300" />
-                        </Link>
 
                         {/* Search Bar */}
-                        <StyledSearch className="flex-1 max-w-md lg:max-w-lg xl:max-w-2xl">
-                            <input
-                                type="text"
-                                className="search-input"
-                                placeholder="Tìm kiếm khóa học, giảng viên, chủ đề..."
-                                value={searchQuery}
-                                onChange={handleInputChange}
-                                onKeyDown={handleKeyPress}
-                            />
-                            <button
-                                type="button"
-                                className="search-button"
-                                onClick={handleSearch}
-                            >
-                                <SearchIcon className="text-white" />
-                            </button>
-                        </StyledSearch>
+                        <div className="flex-1 max-w-[750px] hidden md:block">
+                            <StyledSearch>
+                                <SearchIcon className="search-icon" />
+                                <input
+                                    type="text"
+                                    className="search-input"
+                                    placeholder="Tìm kiếm khóa học ..."
+                                    value={searchQuery}
+                                    onChange={handleInputChange}
+                                    onKeyDown={handleKeyPress}
+                                />
+                            </StyledSearch>
+                        </div>
 
-                        {/* Right Actions */}
-                        <div className="hidden md:flex items-center space-x-4">
+                        {/* Right Navigation */}
+                        <div className="flex items-center gap-2 ml-auto">
                             {/* Wishlist */}
                             <Popover content={<FavoritePopover />} trigger="hover" placement="bottomRight">
-                                <div className="relative group cursor-pointer">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center group-hover:from-pink-200 group-hover:to-purple-200 transition-all duration-300 group-hover:scale-110">
-                                        <Badge count={wishListCount} size="small" className="[&_.ant-badge-count]:!bg-gradient-to-r [&_.ant-badge-count]:!from-pink-500 [&_.ant-badge-count]:!to-purple-500 [&_.ant-badge-count]:!border-none">
-                                            <FavoriteBorderIcon className="text-purple-600 group-hover:text-pink-600 transition-colors duration-300" />
-                                        </Badge>
-                                    </div>
-                                </div>
+                                <IconButton 
+                                    sx={{ 
+                                        color: '#1c1d1f',
+                                        '&:hover': { bgcolor: '#f7f9fa', color: '#5624d0' }
+                                    }}
+                                >
+                                    <Badge 
+                                        count={wishListCount} 
+                                        size="small"
+                                        className="[&_.ant-badge-count]:!bg-[#ec5252] [&_.ant-badge-count]:!border-none [&_.ant-badge-count]:!min-w-[18px] [&_.ant-badge-count]:!h-[18px] [&_.ant-badge-count]:!text-[11px] [&_.ant-badge-count]:!leading-[18px]"
+                                    >
+                                        <FavoriteBorderIcon sx={{ fontSize: 24 }} />
+                                    </Badge>
+                                </IconButton>
                             </Popover>
 
                             {/* Notifications */}
-                            <div className="relative group cursor-pointer">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center group-hover:from-blue-200 group-hover:to-indigo-200 transition-all duration-300 group-hover:scale-110">
-                                    <Notification />
-                                </div>
-                            </div>
+                            <IconButton 
+                                sx={{ 
+                                    color: '#1c1d1f',
+                                    '&:hover': { bgcolor: '#f7f9fa', color: '#5624d0' }
+                                }}
+                            >
+                                <Notification />
+                            </IconButton>
 
                             {/* Auth Buttons or User Avatar */}
                             {!isLogin && !loginGoogle ? (
-                                <div className="flex items-center space-x-3">
-                                    <Link to={'/register'}>
-                                        <Button
-                                            variant="outlined"
-                                            className="!border-2 !border-gray-300 !text-gray-700 !font-semibold !px-6 !py-2 !rounded-full hover:!border-purple-500 hover:!text-purple-600 !transition-all !duration-300 hover:!shadow-lg hover:!scale-105"
-                                        >
-                                            Đăng ký
-                                        </Button>
-                                    </Link>
+                                <div className="hidden md:flex items-center gap-2">
                                     <Link to={'/login'}>
                                         <Button
-                                            variant="contained"
-                                            className="!bg-gradient-to-r !from-purple-600 !to-pink-600 !text-white !font-semibold !px-6 !py-2 !rounded-full !shadow-lg hover:!from-pink-600 hover:!to-purple-600 !transition-all !duration-300 hover:!shadow-xl hover:!scale-105"
+                                            variant="outlined"
+                                            sx={{
+                                                color: '#1c1d1f',
+                                                borderColor: '#1c1d1f',
+                                                textTransform: 'none',
+                                                fontWeight: 700,
+                                                fontSize: '14px',
+                                                padding: '10px 16px',
+                                                '&:hover': {
+                                                    borderColor: '#1c1d1f',
+                                                    bgcolor: '#f7f9fa'
+                                                }
+                                            }}
                                         >
                                             Đăng nhập
                                         </Button>
                                     </Link>
+                                    <Link to={'/register'}>
+                                        <Button
+                                            variant="contained"
+                                            sx={{
+                                                bgcolor: '#1c1d1f',
+                                                color: 'white',
+                                                textTransform: 'none',
+                                                fontWeight: 700,
+                                                fontSize: '14px',
+                                                padding: '10px 16px',
+                                                boxShadow: 'none',
+                                                '&:hover': {
+                                                    bgcolor: '#000000',
+                                                    boxShadow: 'none'
+                                                }
+                                            }}
+                                        >
+                                            Đăng ký
+                                        </Button>
+                                    </Link>
                                 </div>
                             ) : (
-                                <div className="relative group">
-                                    <Tooltip title="Quản lý tài khoản" placement="bottomRight">
-                                        <Link to={'/user/12'} className="block">
-                                            <div className="relative">
-                                                <div className="absolute inset-0 rounded-full blur opacity-75 group-hover:opacity-100 transition-opacity duration-300" />
-                                                <div className="relative">
-                                                    {isLogin ? (
-                                                        <UserAvatar className="!w-12 !h-12 cursor-pointer border-2 border-white shadow-lg group-hover:scale-110 transition-transform duration-300" />
-                                                    ) : (
-                                                        <img
-                                                            src={userAvatar}
-                                                            className="w-12 h-12 cursor-pointer rounded-full border-2 border-white shadow-lg group-hover:scale-110 transition-transform duration-300 object-cover"
-                                                            alt="User Avatar"
-                                                        />
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    </Tooltip>
-                                </div>
+                                <Tooltip title="Tài khoản" placement="bottom">
+                                    <Link to={'/user/12'}>
+                                        {isLogin ? (
+                                            <UserAvatar className="!w-10 !h-10 cursor-pointer" />
+                                        ) : (
+                                            <img
+                                                src={userAvatar}
+                                                className="w-10 h-10 cursor-pointer rounded-full object-cover"
+                                                alt="User Avatar"
+                                            />
+                                        )}
+                                    </Link>
+                                </Tooltip>
                             )}
                         </div>
                     </div>
                 </Container>
+                
+                {/* Mobile Search Bar */}
+                <div className="md:hidden border-t border-gray-200 px-4 py-2">
+                    <StyledSearch>
+                        <SearchIcon className="search-icon" />
+                        <input
+                            type="text"
+                            className="search-input"
+                            placeholder="Tìm kiếm khóa học ..."
+                            value={searchQuery}
+                            onChange={handleInputChange}
+                            onKeyDown={handleKeyPress}
+                        />
+                    </StyledSearch>
+                </div>
             </header>
 
-            {/* Spacer for fixed header */}
-            <div className="h-20" />
+            {/* Spacer */}
+            <div className="h-[72px] md:h-[72px]" />
 
             {/* Mobile Drawer */}
             <Drawer
                 placement="left"
                 title={
-                    <div className="flex items-center gap-3 p-2">
+                    <div className="flex items-center gap-3">
                         {isLogin || loginGoogle ? (
                             <>
-                                <div className="relative">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur opacity-75" />
-                                    <div className="relative">
-                                        {isLogin ? (
-                                            <UserAvatar className="!w-14 !h-14" />
-                                        ) : (
-                                            <img
-                                                src={userAvatar}
-                                                className="w-14 h-14 rounded-full border-2 border-white object-cover"
-                                                alt="User Avatar"
-                                            />
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="flex-1">
-                                    <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                        Xin chào, Long Nguyen
+                                {isLogin ? (
+                                    <UserAvatar className="!w-12 !h-12" />
+                                ) : (
+                                    <img
+                                        src={userAvatar}
+                                        className="w-12 h-12 rounded-full object-cover"
+                                        alt="User Avatar"
+                                    />
+                                )}
+                                <div>
+                                    <h2 className="text-lg font-bold text-[#1c1d1f]">
+                                        Long Nguyen
                                     </h2>
-                                    <p className="text-sm text-gray-500 font-medium">Chào mừng trở lại</p>
-                                </div>
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                                    <Notification />
+                                    <p className="text-sm text-[#6a6f73]">Chào mừng trở lại</p>
                                 </div>
                             </>
                         ) : (
-                            <div className="flex gap-3 w-full">
-                                <Link to={'/register'} className="flex-1">
-                                    <Button
-                                        variant="outlined"
-                                        className="!w-full !border-2 !border-purple-500 !text-purple-600 !font-semibold !rounded-full"
-                                    >
-                                        Đăng ký
-                                    </Button>
-                                </Link>
+                            <div className="flex gap-2 w-full">
                                 <Link to={'/login'} className="flex-1">
                                     <Button
-                                        variant="contained"
-                                        className="!w-full !bg-gradient-to-r !from-purple-600 !to-pink-600 !text-white !font-semibold !rounded-full"
+                                        variant="outlined"
+                                        className="!w-full !border-[#1c1d1f] !text-[#1c1d1f] !font-bold !normal-case"
                                     >
                                         Đăng nhập
+                                    </Button>
+                                </Link>
+                                <Link to={'/register'} className="flex-1">
+                                    <Button
+                                        variant="contained"
+                                        className="!w-full !bg-[#1c1d1f] !font-bold !normal-case !shadow-none"
+                                    >
+                                        Đăng ký
                                     </Button>
                                 </Link>
                             </div>
                         )}
                     </div>
                 }
-                closeIcon={<KeyboardDoubleArrowLeftIcon className="text-purple-600" />}
+                closeIcon={<KeyboardDoubleArrowLeftIcon />}
                 onClose={handleOpenMenuToggle}
                 open={open}
-                className="[&_.ant-drawer-header]:!bg-gradient-to-r [&_.ant-drawer-header]:!from-purple-50 [&_.ant-drawer-header]:!to-pink-50"
             >
                 <div className="flex flex-col gap-4">
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4">
-                        <h3 className="font-bold text-gray-800 mb-3 flex items-center">
-                            <SchoolIcon className="mr-2 text-purple-600" />
+                    <div className="border-b pb-3">
+                        <h3 className="font-semibold text-[#1c1d1f] mb-2 flex items-center">
+                            <SchoolIcon className="mr-2" sx={{ fontSize: 20 }} />
                             Của tôi
                         </h3>
-                        <div className="space-y-2 ml-6">
-                            <Link to="/my-courses" className="block">
-                                <Button
-                                    className="!w-full !justify-start !normal-case !text-gray-700 hover:!text-purple-600 hover:!bg-purple-50 !transition-all !duration-300"
-                                    variant="text"
-                                >
-                                    Khóa học của tôi
-                                </Button>
+                        <div className="ml-7 space-y-1">
+                            <Link to="/my-courses" className="block text-[15px] text-[#1c1d1f] hover:text-[#5624d0] py-2">
+                                Khóa học của tôi
                             </Link>
-                            <Link to="/wishlist" className="block">
-                                <Button
-                                    className="!w-full !justify-start !normal-case !text-gray-700 hover:!text-pink-600 hover:!bg-pink-50 !transition-all !duration-300"
-                                    variant="text"
-                                >
-                                    Khóa học yêu thích
-                                </Button>
+                            <Link to="/wishlist" className="block text-[15px] text-[#1c1d1f] hover:text-[#5624d0] py-2">
+                                Khóa học yêu thích
                             </Link>
                         </div>
                     </div>
 
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4">
-                        <h3 className="font-bold text-gray-800 mb-3 flex items-center">
-                            <ExploreIcon className="mr-2 text-blue-600" />
+                    <div className="border-b pb-3">
+                        <h3 className="font-semibold text-[#1c1d1f] mb-2 flex items-center">
+                            <ExploreIcon className="mr-2" sx={{ fontSize: 20 }} />
                             Khám phá
                         </h3>
-                        <div className="ml-6">
-                            <Link to="/courses" className="block">
-                                <Button
-                                    className="!w-full !justify-start !normal-case !text-gray-700 hover:!text-blue-600 hover:!bg-blue-50 !transition-all !duration-300"
-                                    variant="text"
-                                >
-                                    Tất cả khóa học
-                                </Button>
+                        <div className="ml-7 space-y-1">
+                            <Link to="/courses" className="block text-[15px] text-[#1c1d1f] hover:text-[#5624d0] py-2">
+                                Tất cả khóa học
+                            </Link>
+                            <Link to="/placement-test" className="block text-[15px] text-[#1c1d1f] hover:text-[#5624d0] py-2">
+                                Bài test đầu vào
+                            </Link>
+                            <Link to="/community" className="block text-[15px] text-[#1c1d1f] hover:text-[#5624d0] py-2">
+                                Cộng đồng
                             </Link>
                         </div>
                     </div>
 
                     {/* Quick Stats */}
-                    <div className="grid grid-cols-2 gap-3 mt-4">
-                        <div className="bg-gradient-to-br from-orange-50 to-yellow-50 p-4 rounded-xl text-center">
-                            <div className="text-2xl font-bold text-orange-600">1,200+</div>
-                            <div className="text-sm text-gray-600">Khóa học</div>
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                        <div className="bg-[#f7f9fa] p-4 rounded-lg text-center border border-gray-200">
+                            <div className="text-2xl font-bold text-[#1c1d1f]">1,200+</div>
+                            <div className="text-sm text-[#6a6f73]">Khóa học</div>
                         </div>
-                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl text-center">
-                            <div className="text-2xl font-bold text-green-600">50,000+</div>
-                            <div className="text-sm text-gray-600">Học viên</div>
+                        <div className="bg-[#f7f9fa] p-4 rounded-lg text-center border border-gray-200">
+                            <div className="text-2xl font-bold text-[#1c1d1f]">50,000+</div>
+                            <div className="text-sm text-[#6a6f73]">Học viên</div>
                         </div>
                     </div>
                 </div>

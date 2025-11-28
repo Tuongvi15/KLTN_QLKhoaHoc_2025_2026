@@ -168,6 +168,9 @@ export const coursesApi = createApi({
                 if (input.maxPrice) params.append('MaxPrice', input.maxPrice.toString());
                 if (input.pageNumber) params.append('PageNumber', input.pageNumber.toString());
                 if (input.pageSize) params.append('PageSize', input.pageSize.toString());
+                if (input.isPublished !== undefined) {
+                    params.append('IsPublished', input.isPublished.toString());
+                }
 
                 input.categoryIds?.forEach((id) => params.append('CategoryIds', id.toString()));
 

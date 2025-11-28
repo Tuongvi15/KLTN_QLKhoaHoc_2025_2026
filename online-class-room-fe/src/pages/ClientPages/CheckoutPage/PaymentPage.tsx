@@ -236,7 +236,7 @@ const PaymentPage = () => {
                                     className="!border-b"
                                 >
                                     <p className="text-gray-700">
-                                        Chứng chỉ của StudyHub được công nhận bởi nhiều doanh nghiệp trong ngành.
+                                        Chứng chỉ của eStudyHub.
                                         Bạn có thể thêm chứng chỉ vào CV hoặc LinkedIn profile.
                                     </p>
                                 </Panel>
@@ -331,7 +331,7 @@ const PaymentPage = () => {
                             <span className="text-blue-600 cursor-pointer hover:underline">
                                 Điều khoản sử dụng
                             </span>{" "}
-                            của StudyHub
+                            của eStudyHub
                         </p>
                     </div>
                 </div>
