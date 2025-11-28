@@ -31,6 +31,26 @@ namespace LMSystem.API.Controllers
             _notificationService = notificationService;
         }
 
+        [HttpGet("Admin/PendingTeachers")]
+        [Authorize]
+        public async Task<IActionResult> GetPendingTeachers()
+        {
+            var data = await _accountService.GetPendingTeachers();
+            return Ok(data);
+        }
+
+
+        [HttpGet("Admin/GetAccountDetail/{accountId}")]
+        [Authorize]
+        public async Task<IActionResult> GetAccountDetail(string accountId)
+        {
+            var account = await _accountService.GetAccountDetail(accountId);
+            if (account == null)
+                return NotFound();
+
+            return Ok(account);
+        }
+
         [HttpPost("SignUp")]
         public async Task<IActionResult> SignUp(SignUpModel signUpModel)
         {
@@ -87,23 +107,23 @@ namespace LMSystem.API.Controllers
 
                     if (result.Status.Equals("Success"))
                     {
-                        //var token = result.ConfirmEmailToken;
-                        //var url = Url.Action("ConfirmEmail", "Account", new { memberEmail = signUpModel.AccountEmail, tokenReset = token.Result }, Request.Scheme);
-                        //result.ConfirmEmailToken = null;
+                        var token = result.ConfirmEmailToken;
+                        var url = Url.Action("ConfirmEmail", "Account", new { memberEmail = signUpModel.AccountEmail, tokenReset = token.Result }, Request.Scheme);
+                        result.ConfirmEmailToken = null;
 
-                        //var messageRequest = new EmailRequest
-                        //{
-                        //    To = signUpModel.AccountEmail,
-                        //    Subject = "Xác thực email đã đăng ký",
-                        //    Content = MailTemplate.ConfirmTemplate(signUpModel.AccountEmail, url)
-                        //};
+                        var messageRequest = new EmailRequest
+                        {
+                            To = signUpModel.AccountEmail,
+                            Subject = "Đăng ký thành công",
+                            Content = MailTemplate.ConfirmTCTemplate()
+                        };
 
-                        //await _mailService.SendConFirmEmailAsync(messageRequest);
+                        await _mailService.SendConFirmEmailAsync(messageRequest);
 
 
 
                         //var body = await _emailTemplateReader.GetTemplate("Helper\\EmailTemplate.html");
-                        //body = string.Format(body, signUpModel.AccountEmail, url)
+                        //body = string.Format(body, signUpModel.AccountEmail, url);
                         return Ok(result);
                     }
                     return BadRequest(result);
@@ -116,7 +136,7 @@ namespace LMSystem.API.Controllers
             }
         }
 
-        [HttpPut("ConfirmTeacher")]
+        [HttpPut("Admin/ApproveTeacher")]
         public async Task<IActionResult> ConfirmCreateSchoolManagerAccount(string accountId, AccountStatusEnum accountStatus)
         {
             try
@@ -130,8 +150,8 @@ namespace LMSystem.API.Controllers
                         var messageRequest = new EmailRequest
                         {
                             To = account.Email,
-                            Subject = "Xác thực email đã đăng ký",
-                            Content = MailTemplate.ConfirmTCTemplate()
+                            Subject = "Xác thực tài khoản giảng viên",
+                            Content = MailTemplate.SignTCTemplate()
                         };
 
                         await _mailService.SendConFirmEmailAsync(messageRequest);

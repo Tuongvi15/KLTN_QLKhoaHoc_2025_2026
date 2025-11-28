@@ -42,6 +42,18 @@ namespace LMSystem.Services.Services
             return await _repo.GetAllTeachers();
         }
 
+        public async Task<AccountDetailDto?> GetAccountDetail(string accountId)
+        {
+            return await _repo.GetAccountDetail(accountId);
+        }
+
+        public async Task<List<AccountModelGetList>> GetPendingTeachers()
+        {
+            return await _repo.GetPendingTeachers();
+        }
+
+
+
         public async Task<AccountModel> GetAccountByEmail(string email)
         {
             var result = await _repo.GetAccountByEmail(email);

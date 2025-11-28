@@ -16,7 +16,8 @@ namespace LMSystem.Services.Interfaces
         public Task<AccountModel> GetAccountByEmail(string email);
         public Task<Account> GetAccountById(string id);
         Task<List<TeacherBasicDto>> GetAllTeachers();
-
+        Task<AccountDetailDto?> GetAccountDetail(string accountId);
+        Task<List<AccountModelGetList>> GetPendingTeachers();
         public Task<ResponeModel> GetAccountByParentAccountId(string accountId);
         public Task<AccountModel> UpdateAccountByEmail(AccountModel account);
         public Task<AuthenticationResponseModel> RefreshToken(TokenModel tokenModel);

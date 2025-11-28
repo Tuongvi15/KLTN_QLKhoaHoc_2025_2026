@@ -85,6 +85,7 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
             entity.Property(e => e.Status)
                 .HasMaxLength(40)
                 .IsFixedLength();
+            entity.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
         });
 
         modelBuilder.Entity<TeacherPayout>(entity =>

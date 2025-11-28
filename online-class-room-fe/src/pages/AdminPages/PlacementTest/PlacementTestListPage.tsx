@@ -34,10 +34,13 @@ const PlacementTestListPage = () => {
 
   const columns = [
     {
-      title: "ID",
-      dataIndex: "placementTestId",
-      width: 80,
+      title: "STT",
+      width: 70,
+      render: (_: any, __: any, index: number) => {
+        return index + 1;
+      },
     },
+
     {
       title: "Danh mục",
       dataIndex: "categoryName",

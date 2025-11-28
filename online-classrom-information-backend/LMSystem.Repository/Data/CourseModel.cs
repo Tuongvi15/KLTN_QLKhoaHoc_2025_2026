@@ -69,5 +69,6 @@ namespace LMSystem.Repository.Data
         public double? SalesCampaign { get; set; }
         public string? AccountId { get; set; }
         public string? AccountName { get; set; }
+        public DateTime? CreateAt { get; set; }
     }
 }

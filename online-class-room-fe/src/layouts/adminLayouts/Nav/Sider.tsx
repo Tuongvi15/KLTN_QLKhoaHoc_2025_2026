@@ -5,7 +5,7 @@ import {
   ExperimentOutlined,
   AppstoreOutlined,
   FileTextOutlined,
-  WalletOutlined ,
+  WalletOutlined,
 } from '@ant-design/icons';
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
 import StreetviewOutlinedIcon from '@mui/icons-material/StreetviewOutlined';
@@ -56,7 +56,7 @@ export default function MySider() {
       ]),
       getItem('Quản lý tài khoản', 'sub2', <ManageAccountsOutlinedIcon />, [
         getItem('Xem tất cả tài khoản', 'accountAll', <StreetviewOutlinedIcon />),
-        getItem('Tạo tài khoản', 'createAccount', <PersonAddAlt1OutlinedIcon />),
+        getItem('Duyệt giảng viên', 'approveTeacher', <PersonAddAlt1OutlinedIcon />),
       ]),
       getItem('Chi trả giảng viên', 'subPayout', <WalletOutlined />, [
         getItem('Chi trả giảng viên', 'payout', <WalletOutlined />),
@@ -80,8 +80,9 @@ export default function MySider() {
     .set('fieldManager', '/admin/fields')
     .set('placementTest', '/admin/placement-tests')
     .set('courseRevenue', '/admin/course-revenue')
-    .set('payout', '/admin/payout');
-;
+    .set('payout', '/admin/payout')
+    .set('approveTeacher', '/admin/approve-teacher');
+  ;
 
   return (
     <Sider
@@ -89,7 +90,7 @@ export default function MySider() {
       collapsible
       collapsed={collapsed}
       onCollapse={(value) => setCollapsed(value)}
-      className="overflow-hidden border-r-[1px]"
+      className="overflow-hidden border-r-[1px] h-screen fixed left-0 top-0"
       trigger={
         <div className="w-full border-r-[1px] border-t-[1px]">
           <MenuOutlined />
@@ -97,6 +98,7 @@ export default function MySider() {
       }
       width={256}
     >
+
       {/* 🔹 Logo */}
       <div className="demo-logo-vertical border-r-[1px] border-gray-200">
         <img

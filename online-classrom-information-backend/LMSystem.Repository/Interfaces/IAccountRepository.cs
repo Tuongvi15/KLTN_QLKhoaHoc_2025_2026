@@ -18,7 +18,8 @@ namespace LMSystem.Repository.Interfaces
         public Task<Account> GetAccountById(string id);
         public Task<List<string>> GetListAccountIds();
         Task<List<TeacherBasicDto>> GetAllTeachers();
-
+        Task<List<AccountModelGetList>> GetPendingTeachers();
+        Task<AccountDetailDto?> GetAccountDetail(string accountId);
         public Task<Account> GetAccountByIdV1(string id);
         public Task<ResponeModel> GetAccountByParentAccountId(string accountId);
         public Task<AccountModel> UpdateAccountByEmail(AccountModel account);

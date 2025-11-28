@@ -106,7 +106,18 @@ const columns = ({
             },
             width: '10%',
         },
-
+        {
+            title: 'Ngày tạo',
+            dataIndex: 'createAt',
+            render: (createAt) => {
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span>{createAt ? createAt.split('T')[0] : ''}</span>{' '}
+                    </div>
+                );
+            },
+            width: '10%',
+        },
         {
             title: 'Cập nhật gần nhất',
             dataIndex: 'updateAt',
@@ -135,24 +146,6 @@ const columns = ({
                 );
             },
             width: '10%',
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'courseIsActive',
-            render: (courseIsActive) => {
-                return (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span>
-                            {courseIsActive ? (
-                                <Tag color="green">Hoạt động</Tag>
-                            ) : (
-                                <Tag color="red">Không hoạt động</Tag>
-                            )}
-                        </span>
-                    </div>
-                );
-            },
-            width: '4%',
         },
         {
             title: 'Hành động',

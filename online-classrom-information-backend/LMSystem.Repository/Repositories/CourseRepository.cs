@@ -398,7 +398,8 @@ namespace LMSystem.Repository.Repositories
                     CourseIsActive = c.CourseIsActive,
                     SalesCampaign = c.SalesCampaign,
                     AccountId = c.AccountId,
-                    AccountName = c.Account.FirstName + " " + c.Account.LastName
+                    AccountName = c.Account.FirstName + " " + c.Account.LastName,
+                    CreateAt = c.CreateAt
                 })
                 .ToListAsync();
 

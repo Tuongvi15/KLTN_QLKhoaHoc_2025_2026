@@ -50,6 +50,7 @@ import ArticleDetailPage from '../pages/Community/ArticleDetailPage';
 import WriteArticlePage from '../pages/Community/WriteArticlePage';
 import EditDraftPage from '../pages/Community/EditDraftPage';
 import MyDraftsPage from '../pages/Community/MyDraftsPage';
+import ApproveTeacherPage from '../pages/AdminPages/Account/ApproveTeacherPage';
 
 
 
@@ -124,7 +125,9 @@ const adminRoutes: RouteProps[] = [
         component: AdminPayoutPage,
         layout: DefaultLayoutAdmin
     },
-//{ path: '/admin/community/blocked', component: BlockedArticleAdminPage, layout: DefaultLayoutAdmin },
+    { path: '/admin/approve-teacher', component: ApproveTeacherPage, layout: DefaultLayoutAdmin },
+
+    //{ path: '/admin/community/blocked', component: BlockedArticleAdminPage, layout: DefaultLayoutAdmin },
 
 
 

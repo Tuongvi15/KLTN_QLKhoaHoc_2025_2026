@@ -9,6 +9,7 @@ public partial class Account : IdentityUser
     public string? FirstName { get; set; }
 
     public string? LastName { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
     public string? Biography { get; set; }
 

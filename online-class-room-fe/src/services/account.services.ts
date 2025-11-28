@@ -38,8 +38,22 @@ export const accountApi = createApi({
                 method: 'delete',
             }),
         }),
+        getAccountDetail: build.query<any, string>({
+            query: (accountId: string) =>
+                `api/Account/Admin/GetAccountDetail/${accountId}`,
+        }),
+
         getAllTeachers: build.query<{ id: string; fullName: string }[], void>({
             query: () => `api/Account/GetAllTeachers`,
+        }),
+        getPendingTeachers: build.query<any[], void>({
+            query: () => `api/Account/Admin/PendingTeachers`,
+        }),
+        approveTeacher: build.mutation<any, { accountId: string; status: string }>({
+            query: ({ accountId, status }) => ({
+                url: `api/Account/Admin/ApproveTeacher?accountId=${accountId}&accountStatus=${status}`,
+                method: "PUT",
+            }),
         }),
 
         countTotalAccounts: build.query<number, void>({
@@ -59,4 +73,7 @@ export const {
     useDeleteAccountMutation,
     useCountTotalAccountsQuery,
     useGetAllTeachersQuery,
+    useGetAccountDetailQuery,
+    useGetPendingTeachersQuery,
+    useApproveTeacherMutation,
 } = accountApi;

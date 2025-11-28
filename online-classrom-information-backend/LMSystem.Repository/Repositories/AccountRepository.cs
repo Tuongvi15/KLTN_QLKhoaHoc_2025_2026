@@ -145,6 +145,67 @@ namespace LMSystem.Repository.Repositories
             }
         }
 
+        public async Task<AccountDetailDto?> GetAccountDetail(string accountId)
+        {
+            var acc = await _context.Account
+                .Where(a => a.Id == accountId)
+                .FirstOrDefaultAsync();
+
+            if (acc == null) return null;
+
+            // Lấy role
+            var roleName = await (
+                from ur in _context.UserRoles
+                join r in _context.Roles on ur.RoleId equals r.Id
+                where ur.UserId == acc.Id
+                select r.Name
+            ).FirstOrDefaultAsync();
+
+            var dto = new AccountDetailDto
+            {
+                Id = acc.Id,
+                FullName = $"{acc.FirstName} {acc.LastName}",
+                Email = acc.Email,
+                Role = roleName ?? "Unknown",
+                PhoneNumber = acc.PhoneNumber,
+                Sex = acc.Sex,
+                Biography = acc.Biography,
+                BirthDate = acc.BirthDate,
+                ProfileImg = acc.ProfileImg
+            };
+
+            // Nếu là giảng viên → lấy danh sách khóa học đang active
+            if (roleName == "Teacher")
+            {
+                dto.Courses = await _context.Courses
+                    .Where(c => c.AccountId == acc.Id && c.CourseIsActive == true)
+                    .Select(c => new CourseBasicDto
+                    {
+                        CourseId = c.CourseId,
+                        Title = c.Title,
+                        ImageUrl = c.ImageUrl,
+
+                        // Giá gốc
+                        OriginalPrice = c.Price ?? 0,
+
+                        // Giá sau giảm (SalesCampaign dạng 0.x)
+                        FinalPrice = (c.Price ?? 0) - (c.Price ?? 0) * (c.SalesCampaign ?? 0),
+
+                        IsPublic = c.IsPublic,
+
+                        // ⭐ Thêm ngày tạo & cập nhật
+                        CreateAt = c.CreateAt,
+                        UpdateAt = c.UpdateAt
+                    })
+                    .ToListAsync();
+            }
+
+            return dto;
+        }
+
+
+
+
         public async Task<AuthenticationResponseModel> RefreshToken(TokenModel tokenModel)
         {
             if (tokenModel is null)
@@ -241,6 +302,38 @@ namespace LMSystem.Repository.Repositories
             return principal;
         }
 
+        public async Task<List<AccountModelGetList>> GetPendingTeachers()
+        {
+            var teacherRoleId = await _context.Roles
+                .Where(r => r.Name == "Teacher")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            var teachers = await _context.UserRoles
+                .Where(ur => ur.RoleId == teacherRoleId)
+                .Join(
+                    _context.Account,
+                    ur => ur.UserId,
+                    a => a.Id,
+                    (ur, a) => a
+                )
+                .Where(a => a.Status == AccountStatusEnum.Pending.ToString())  // ⭐ chỉ lấy Pending
+                .Select(a => new AccountModelGetList
+                {
+                    Id = a.Id,
+                    FirstName = a.FirstName,
+                    LastName = a.LastName,
+                    Email = a.Email,
+                    Status = a.Status,
+                    ProfileImg = a.ProfileImg,
+                    Role = "Teacher"
+                })
+                .ToListAsync();
+
+            return teachers;
+        }
+
+
         public async Task<AuthenticationResponseModel> SignInAccountAsync(SignInModel model)
         {
             var result = await signInManager.PasswordSignInAsync(model.AccountEmail, model.AccountPassword, false, false);
@@ -249,6 +342,17 @@ namespace LMSystem.Repository.Repositories
             if (result.Succeeded)
             {
                 var user = _context.Account.Where(x => x.Email.ToLower() == model.AccountEmail.ToLower()).FirstOrDefault();
+                // ❌ Không cho Teacher login nếu Pending
+                var userRole = await userManager.GetRolesAsync(user);
+                if (userRole.Contains("Teacher") && user.Status == AccountStatusEnum.Pending.ToString())
+                {
+                    return new AuthenticationResponseModel
+                    {
+                        Status = false,
+                        Message = "Tài khoản giảng viên đang chờ duyệt. Vui lòng chờ Admin xác nhận!"
+                    };
+                }
+
                 //var validPass = await userManager.CheckPasswordAsync(user, model.AccountPassword);
                 if (user != null /*|| validPass*/)
                 {
@@ -258,7 +362,7 @@ namespace LMSystem.Repository.Repositories
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                     };
 
-                    var userRole = await userManager.GetRolesAsync(user);
+                    userRole = await userManager.GetRolesAsync(user);
                     foreach (var role in userRole)
                     {
                         authClaims.Add(new Claim(ClaimTypes.Role, role.ToString()));
@@ -382,7 +486,7 @@ namespace LMSystem.Repository.Repositories
                         FirstName = model.FirstName,
                         LastName = model.LastName,
                         BirthDate = model.BirthDate,
-                        Status = AccountStatusEnum.Active.ToString(),
+                        Status = AccountStatusEnum.Pending.ToString(),
                         UserName = model.AccountEmail,
                         Email = model.AccountEmail,
                         PhoneNumber = model.AccountPhone,
@@ -984,6 +1088,39 @@ namespace LMSystem.Repository.Repositories
             public string Id { get; set; }
             public string FullName { get; set; }
         }
+
+        public class AccountDetailDto
+        {
+            public string Id { get; set; }
+            public string FullName { get; set; }
+            public string Email { get; set; }
+            public string Role { get; set; }
+            public string PhoneNumber { get; set; }
+            public string Sex { get; set; }
+            public string Biography { get; set; }
+            public string ProfileImg { get; set; }
+            public DateTime? BirthDate { get; set; }
+
+            public List<CourseBasicDto> Courses { get; set; } = new();
+        }
+
+        public class CourseBasicDto
+        {
+            public int CourseId { get; set; }
+            public string Title { get; set; }
+            public string ImageUrl { get; set; }
+
+            public double OriginalPrice { get; set; }
+            public double FinalPrice { get; set; }
+
+            public bool? IsPublic { get; set; }
+
+            public DateTime? CreateAt { get; set; }     // ⭐ thêm
+            public DateTime? UpdateAt { get; set; }     // ⭐ thêm
+        }
+
+
+
 
     }
 }
