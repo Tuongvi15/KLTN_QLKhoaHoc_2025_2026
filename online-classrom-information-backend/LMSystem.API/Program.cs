@@ -28,7 +28,31 @@ builder.Services.AddSingleton(x =>
         builder.Configuration["PayPalOptions:Mode"]
     )
 );
+// get env
+var base64 = Environment.GetEnvironmentVariable("FIREBASE_CONFIG_BASE64");
+if (string.IsNullOrEmpty(base64))
+{
+    throw new Exception("FIREBASE_CONFIG_BASE64 is missing");
+}
 
+// Decode base64 -> json string
+var json = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
+
+// init GoogleCredential from JSON
+GoogleCredential credential;
+using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+{
+    credential = GoogleCredential.FromStream(stream);
+}
+
+// init FirebaseApp (if not create)
+if (FirebaseApp.DefaultInstance == null)
+{
+    FirebaseApp.Create(new AppOptions()
+    {
+        Credential = credential
+    });
+}
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -148,10 +172,10 @@ builder.Services.AddAutoMapper(typeof(AutomapperProfile).Assembly);
 //Add DJ
 builder.Services.AddApiWebService();
 
-FirebaseApp.Create(new AppOptions()
-{
-    Credential = GoogleCredential.FromFile("estudyhub-a1699-firebase-adminsdk-7vd3i-7c30c27294.json")
-});
+//FirebaseApp.Create(new AppOptions()
+//{
+//    Credential = GoogleCredential.FromFile("estudyhub-a1699-firebase-adminsdk-7vd3i-7c30c27294.json")
+//});
 builder.Services.AddSingleton(x =>
     new PayOSService(
         builder.Configuration["payOS:clientId"],
