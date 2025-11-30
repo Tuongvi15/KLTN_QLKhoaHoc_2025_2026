@@ -19,14 +19,14 @@ export const PaymentSuccessPage = () => {
         }
 
         // 1️⃣ Lấy thông tin đơn hàng từ PayOS
-        fetch(`https://localhost:7005/api/payos/GetOrderByPayOS?orderCode=${orderCode}`)
+        fetch(`https://qlkhtt-backend-production.up.railway.app/api/payos/GetOrderByPayOS?orderCode=${orderCode}`)
             .then((res) => res.json())
             .then(async (res) => {
                 console.log("Response từ PayOS:", res); // 🧠 debug thật dữ
                 // Nếu res có status hoặc orderCode -> coi như hợp lệ
                 if (res?.status === "PAID" || res?.orderCode) {
                     setPaymentData(res); // <---- sửa dòng này
-                    await fetch(`https://localhost:7005/api/payos/ConfirmPayment?orderCode=${orderCode}&status=Completed`, {
+                    await fetch(`https://qlkhtt-backend-production.up.railway.app/api/payos/ConfirmPayment?orderCode=${orderCode}&status=Completed`, {
                         method: "POST",
                     });
                 } else {

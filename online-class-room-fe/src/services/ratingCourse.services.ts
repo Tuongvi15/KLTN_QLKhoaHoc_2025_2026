@@ -4,7 +4,7 @@ import { AverageRating } from '../types/RatingCourse.type';
 export const ratingCourseApi = createApi({
     reducerPath: 'ratingCourseApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'https://localhost:7005/',
+        baseUrl: 'https://qlkhtt-backend-production.up.railway.app/',
         prepareHeaders: (headers) => {
             const user = localStorage.getItem('user');
             if (user) {

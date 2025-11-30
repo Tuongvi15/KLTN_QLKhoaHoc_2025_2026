@@ -13,7 +13,7 @@ import {
 export const registrationCourseApi = createApi({
     reducerPath: 'registrationCourseApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'https://localhost:7005/',
+        baseUrl: 'https://qlkhtt-backend-production.up.railway.app/',
         prepareHeaders: (headers) => {
             // Thêm logic để lấy accessToken từ localStorage và đặt vào header Authorization
             const user = localStorage.getItem('user');

@@ -107,7 +107,7 @@ const Publication: React.FC = () => {
         try {
             // 1. Kiểm tra học viên còn học
             const check = await fetch(
-                `https://localhost:7005/api/Course/CheckStudentStillLearning/${courseCreatedData.courseId}`
+                `https://qlkhtt-backend-production.up.railway.app/api/Course/CheckStudentStillLearning/${courseCreatedData.courseId}`
             ).then(r => r.json());
 
             if (check.hasStudent) {
@@ -120,7 +120,7 @@ const Publication: React.FC = () => {
             const token = user ? JSON.parse(user).accessToken : null;
 
             const res = await fetch(
-                `https://localhost:7005/api/Course/RequestUnpublishCourse/${courseCreatedData.courseId}`,
+                `https://qlkhtt-backend-production.up.railway.app/api/Course/RequestUnpublishCourse/${courseCreatedData.courseId}`,
                 {
                     method: "POST",
                     headers: {

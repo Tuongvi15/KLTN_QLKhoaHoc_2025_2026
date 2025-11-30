@@ -250,7 +250,7 @@ const GetAllCourseTeacher = () => {
                                         const token = user ? JSON.parse(user).accessToken : "";
 
                                         const res = await fetch(
-                                            `https://localhost:7005/api/Course/GetCourseDetailById/${record.courseId}`,
+                                            `https://qlkhtt-backend-production.up.railway.app/api/Course/GetCourseDetailById/${record.courseId}`,
                                             { headers: { Authorization: `Bearer ${token}` } }
                                         );
 

@@ -133,7 +133,6 @@ const AddCoursePage = () => {
             await addCategory({
                 categoryName: newCategoryName,
                 categoryDescription: "",
-                fieldId: selectedFieldId, // ✅ gửi fieldId lên API
             }).unwrap();
 
             message.success("Thêm thể loại thành công!");

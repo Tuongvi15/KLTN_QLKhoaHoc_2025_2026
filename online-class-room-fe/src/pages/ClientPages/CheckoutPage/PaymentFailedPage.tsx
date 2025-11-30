@@ -15,7 +15,7 @@ export const PaymentFailedPage = () => {
 
         // Gọi API cập nhật trạng thái đơn hàng là Cancelled
         if (orderCode) {
-            fetch(`https://localhost:7005/api/payos/ConfirmPayment?orderCode=${orderCode}&status=Cancelled`, {
+            fetch(`https://qlkhtt-backend-production.up.railway.app/api/payos/ConfirmPayment?orderCode=${orderCode}&status=Cancelled`, {
                 method: "POST",
             });
         }

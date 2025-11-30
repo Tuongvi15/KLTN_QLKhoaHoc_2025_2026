@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const communityApi = createApi({
     reducerPath: 'communityApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'https://localhost:7005/',
+        baseUrl: 'https://qlkhtt-backend-production.up.railway.app/',
         prepareHeaders: (headers) => {
             const user = localStorage.getItem('user');
             if (user) {

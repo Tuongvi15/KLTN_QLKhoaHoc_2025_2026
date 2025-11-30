@@ -43,6 +43,7 @@ const initialStep: Step = {
     videoUrl: '',
 };
 const initialCourse: Course = {
+    accountId: '',
     courseIsActive: false,
     description: '',
     imageUrl: 'string',

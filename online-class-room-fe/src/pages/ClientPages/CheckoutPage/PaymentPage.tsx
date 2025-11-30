@@ -31,7 +31,7 @@ const PaymentPage = () => {
         try {
             setLoading(true);
             const response = await fetch(
-                `https://localhost:7005/api/payos/CreatePaymentLink?orderId=${addOrderRespone.orderId}`,
+                `https://qlkhtt-backend-production.up.railway.app/api/payos/CreatePaymentLink?orderId=${addOrderRespone.orderId}`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },

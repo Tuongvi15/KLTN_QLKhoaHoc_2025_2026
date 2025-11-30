@@ -28,7 +28,7 @@ const PlacementHistoryPage = () => {
   // ----- FETCH API GỢI Ý KHI CLICK NÚT -----
   const handleOpenSuggest = async (resultId: number) => {
     const res = await fetch(
-      `https://localhost:7005/api/PlacementTest/results/suggestion-by-result/${resultId}`
+      `https://qlkhtt-backend-production.up.railway.app/api/PlacementTest/results/suggestion-by-result/${resultId}`
     ).then(r => r.json());
 
     setSuggestData(res);

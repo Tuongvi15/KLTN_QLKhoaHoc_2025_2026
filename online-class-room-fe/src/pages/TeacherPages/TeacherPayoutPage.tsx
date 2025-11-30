@@ -54,7 +54,7 @@ export default function TeacherPayoutPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`https://localhost:7005/api/payout/teacher/${teacherId}`);
+            const res = await axios.get(`https://qlkhtt-backend-production.up.railway.app/api/payout/teacher/${teacherId}`);
             setData(Array.isArray(res.data) ? res.data : []);
         } catch (e) {
             console.error(e);
@@ -67,7 +67,7 @@ export default function TeacherPayoutPage() {
     }, [month, year]);
 
     const fetchDetail = async (id: number) => {
-        const res = await axios.get(`https://localhost:7005/api/payout/teacher/detail/${id}`);
+        const res = await axios.get(`https://qlkhtt-backend-production.up.railway.app/api/payout/teacher/detail/${id}`);
         setDetail(res.data);
         setOpenDetail(true);
     };

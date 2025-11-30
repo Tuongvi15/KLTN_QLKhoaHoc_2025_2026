@@ -4,7 +4,7 @@ import { AddQuizRequest, QuizRespone, updateQuizRequest } from '../types/Quiz.ty
 export const quizApi = createApi({
     reducerPath: 'quizApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'https://localhost:7005/',
+        baseUrl: 'https://qlkhtt-backend-production.up.railway.app/',
         prepareHeaders: (headers, _) => {
             // Thêm logic để lấy accessToken từ localStorage và đặt vào header Authorization
             const user = localStorage.getItem('user');
