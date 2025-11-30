@@ -420,9 +420,9 @@ namespace LMSystem.Repository.Repositories
                 account.RefreshToken = refreshToken;
                 account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays);
 
-                _context.Account.Update(account);
                 NormalizeAccountDateTimes(account);
-                await _context.SaveChangesAsync(); // <-- thêm dòng này để lưu refresh token
+                _context.Account.Update(account);
+                await _context.SaveChangesAsync();
 
                 return new AuthenticationResponseModel
                 {
