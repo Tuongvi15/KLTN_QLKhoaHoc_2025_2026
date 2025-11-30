@@ -274,6 +274,17 @@ namespace LMSystem.Repository.Repositories
 
             return token;
         }
+        private void NormalizeAccountDateTimes(Account account)
+        {
+            if (account.BirthDate.HasValue)
+                account.BirthDate = DateTime.SpecifyKind(account.BirthDate.Value, DateTimeKind.Utc);
+
+            if (account.CreatedAt.HasValue)
+                account.CreatedAt = DateTime.SpecifyKind(account.CreatedAt.Value, DateTimeKind.Utc);
+
+            if (account.RefreshTokenExpiryTime.HasValue)
+                account.RefreshTokenExpiryTime = DateTime.SpecifyKind(account.RefreshTokenExpiryTime.Value, DateTimeKind.Utc);
+        }
 
         private string GenerateRefreshToken()
         {
@@ -410,6 +421,7 @@ namespace LMSystem.Repository.Repositories
                 account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays);
 
                 _context.Account.Update(account);
+                NormalizeAccountDateTimes(account);
                 await _context.SaveChangesAsync(); // <-- thêm dòng này để lưu refresh token
 
                 return new AuthenticationResponseModel
@@ -448,17 +460,20 @@ namespace LMSystem.Repository.Repositories
         {
             try
             {
-                var exsistAccount = await _context.Account.Where(x => x.Email.ToLower() ==  model.AccountEmail.ToLower()).FirstOrDefaultAsync();
+                var exsistAccount = await _context.Account.Where(x => x.Email.ToLower() == model.AccountEmail.ToLower()).FirstOrDefaultAsync();
                 if (exsistAccount == null)
                 {
+                    DateTime birthDateUtc = model.BirthDate == default(DateTime)
+            ? default(DateTime)
+            : DateTime.SpecifyKind(model.BirthDate, DateTimeKind.Utc);
+
                     var user = new Account
                     {
                         FirstName = model.FirstName,
                         LastName = model.LastName,
-                        BirthDate = model.BirthDate,
+                        BirthDate = birthDateUtc,
                         Status = AccountStatusEnum.Active.ToString(),
                         UserName = model.AccountEmail,
-                        //ParentEmail = model.ParentEmail,
                         Email = model.AccountEmail,
                         PhoneNumber = model.AccountPhone
                     };
@@ -619,7 +634,7 @@ namespace LMSystem.Repository.Repositories
 
             {
                 var account = _context.Account.FirstOrDefault(x => x.Id == accountId.ToString());
-                
+
 
                 account.Status = accountStatus.ToString();
 
