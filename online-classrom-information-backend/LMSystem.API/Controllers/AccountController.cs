@@ -10,7 +10,10 @@ using LMSystem.Services.Interfaces;
 using LMSystem.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
 
 namespace LMSystem.API.Controllers
 {
@@ -65,7 +68,11 @@ namespace LMSystem.API.Controllers
                     {
                         // account student
                         var token = result.ConfirmEmailToken;
-                        var url = Url.Action("ConfirmEmail", "Account", new { memberEmail = signUpModel.AccountEmail, tokenReset = token.Result }, Request.Scheme);
+                        var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+                        var url = Url.Action("ConfirmEmail", "Account",
+                            new { memberEmail = signUpModel.AccountEmail, tokenReset = encodedToken },
+                            Request.Scheme);
                         result.ConfirmEmailToken = null;
 
                         //var body = await _emailTemplateReader.GetTemplate("Helper\\EmailTemplate.html");
@@ -108,7 +115,7 @@ namespace LMSystem.API.Controllers
                     if (result.Status.Equals("Success"))
                     {
                         var token = result.ConfirmEmailToken;
-                        var url = Url.Action("ConfirmEmail", "Account", new { memberEmail = signUpModel.AccountEmail, tokenReset = token.Result }, Request.Scheme);
+                        var url = Url.Action("ConfirmEmail", "Account", new { memberEmail = signUpModel.AccountEmail, tokenReset = token }, Request.Scheme);
                         result.ConfirmEmailToken = null;
 
                         var messageRequest = new EmailRequest
@@ -286,7 +293,10 @@ namespace LMSystem.API.Controllers
         {
             try
             {
-                var result = await _accountService.ConfirmEmail(memberEmail, tokenReset);
+                var decodedBytes = WebEncoders.Base64UrlDecode(tokenReset);
+                var normalToken = Encoding.UTF8.GetString(decodedBytes);
+
+                var result = await _accountService.ConfirmEmail(memberEmail, normalToken);
                 if (result.Status.Equals(false))
                 {
                     return Unauthorized(result);
@@ -303,7 +313,7 @@ namespace LMSystem.API.Controllers
                         Message = "Cảm ơn bạn đã chọn eStudyHub để học tập. Hãy cùng nhau trải nghiệm các khóa học nhé!"
                     };
                     await _notificationService.AddNotificationByAccountId(account.Id, notification);
-                    return Redirect("http://localhost:5173/login");
+                    return Redirect("https://qlkhtt-fontend.vercel.app/login");
                 }
                 return Ok(result);
             }

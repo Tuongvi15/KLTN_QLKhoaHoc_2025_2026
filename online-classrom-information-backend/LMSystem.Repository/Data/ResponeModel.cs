@@ -17,7 +17,7 @@ namespace LMSystem.Repository.Data
 
         [IgnoreDataMember]
         [JsonIgnore]
-        public System.Threading.Tasks.Task<String>? ConfirmEmailToken { get; set; }
+        public string? ConfirmEmailToken { get; set; }
         public object DataObject { get; set; } = null;
     }
 }

@@ -336,15 +336,40 @@ namespace LMSystem.Repository.Repositories
 
         public async Task<AuthenticationResponseModel> SignInAccountAsync(SignInModel model)
         {
-            var result = await signInManager.PasswordSignInAsync(model.AccountEmail, model.AccountPassword, false, false);
-            var account = _context.Account.Where(x => x.Email.ToLower() == model.AccountEmail.ToLower()).FirstOrDefault();
+            // Tìm account theo email trước (giữ nguyên logic của bạn)
+            var account = await _context.Account
+                .Where(x => x.Email.ToLower() == model.AccountEmail.ToLower())
+                .FirstOrDefaultAsync();
+
+            // Nếu không tìm thấy thì trả về lỗi theo cấu trúc hiện tại
+            if (account == null)
+            {
+                return new AuthenticationResponseModel
+                {
+                    Status = false,
+                    Message = "Tài khoản không tồn tại!"
+                };
+            }
+
+            // IMPORTANT: lấy user object (Identity) bằng email
+            var user = await userManager.FindByEmailAsync(model.AccountEmail);
+            if (user == null)
+            {
+                return new AuthenticationResponseModel
+                {
+                    Status = false,
+                    Message = "Tài khoản không tồn tại!"
+                };
+            }
+
+            // Sử dụng UserName khi gọi PasswordSignInAsync (ít thay đổi nhất để hoạt động trên server)
+            var result = await signInManager.PasswordSignInAsync(user.UserName, model.AccountPassword, false, false);
 
             if (result.Succeeded)
             {
-                var user = _context.Account.Where(x => x.Email.ToLower() == model.AccountEmail.ToLower()).FirstOrDefault();
-                // ❌ Không cho Teacher login nếu Pending
+                // giữ nguyên logic: kiểm tra role Pending cho Teacher
                 var userRole = await userManager.GetRolesAsync(user);
-                if (userRole.Contains("Teacher") && user.Status == AccountStatusEnum.Pending.ToString())
+                if (userRole.Contains("Teacher") && account.Status == AccountStatusEnum.Pending.ToString())
                 {
                     return new AuthenticationResponseModel
                     {
@@ -353,57 +378,53 @@ namespace LMSystem.Repository.Repositories
                     };
                 }
 
-                //var validPass = await userManager.CheckPasswordAsync(user, model.AccountPassword);
-                if (user != null /*|| validPass*/)
+                // Tạo claim + token như hiện tại, dùng email làm ClaimTypes.Name (giữ nguyên)
+                var authClaims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, model.AccountEmail),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+                userRole = await userManager.GetRolesAsync(user);
+                foreach (var role in userRole)
                 {
-                    var authClaims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.Name, model.AccountEmail),
-                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                    };
-
-                    userRole = await userManager.GetRolesAsync(user);
-                    foreach (var role in userRole)
-                    {
-                        authClaims.Add(new Claim(ClaimTypes.Role, role.ToString()));
-                    }
-
-                    var authenKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]));
-
-                    var token = new JwtSecurityToken(
-                        issuer: configuration["JWT:ValidIssuer"],
-                        audience: configuration["JWT:ValidAudience"],
-                        expires: DateTime.Now.AddHours(2),
-                        claims: authClaims,
-                        signingCredentials: new SigningCredentials(authenKey, SecurityAlgorithms.HmacSha256)
-                    );
-
-                    var refreshToken = GenerateRefreshToken();
-
-                    _ = int.TryParse(configuration["JWT:RefreshTokenValidityInDays"], out int refreshTokenValidityInDays);
-
-                    account.RefreshToken = refreshToken;
-                    account.RefreshTokenExpiryTime = DateTime.Now.AddDays(refreshTokenValidityInDays);
-
-                    _context.Account.Update(account);
-
-                    return new AuthenticationResponseModel
-                    {
-                        Status = true,
-                        Message = "Login successfully!",
-                        JwtToken = new JwtSecurityTokenHandler().WriteToken(token),
-                        Expired = token.ValidTo,
-                        JwtRefreshToken = refreshToken,
-                    };
+                    authClaims.Add(new Claim(ClaimTypes.Role, role.ToString()));
                 }
-                else
+
+                var authenKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]));
+
+                var token = new JwtSecurityToken(
+                    issuer: configuration["JWT:ValidIssuer"],
+                    audience: configuration["JWT:ValidAudience"],
+                    expires: DateTime.Now.AddHours(2),
+                    claims: authClaims,
+                    signingCredentials: new SigningCredentials(authenKey, SecurityAlgorithms.HmacSha256)
+                );
+
+                var refreshToken = GenerateRefreshToken();
+
+                _ = int.TryParse(configuration["JWT:RefreshTokenValidityInDays"], out int refreshTokenValidityInDays);
+
+                // cập nhật vào account (DB) và save
+                account.RefreshToken = refreshToken;
+                account.RefreshTokenExpiryTime = DateTime.Now.AddDays(refreshTokenValidityInDays);
+
+                _context.Account.Update(account);
+                await _context.SaveChangesAsync(); // <-- thêm dòng này để lưu refresh token
+
+                return new AuthenticationResponseModel
                 {
-                    return null;
-                }
+                    Status = true,
+                    Message = "Login successfully!",
+                    JwtToken = new JwtSecurityTokenHandler().WriteToken(token),
+                    Expired = token.ValidTo,
+                    JwtRefreshToken = refreshToken,
+                };
             }
             else if (result.IsNotAllowed)
             {
-                var token = userManager.GenerateEmailConfirmationTokenAsync(account);
+                // await token thay vì trả Task<string>
+                var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
                 return new AuthenticationResponseModel
                 {
                     Status = false,
@@ -413,9 +434,15 @@ namespace LMSystem.Repository.Repositories
             }
             else
             {
-                return null;
+                // Không trả null nữa — trả AuthenticationResponseModel để controller xử lý như cũ
+                return new AuthenticationResponseModel
+                {
+                    Status = false,
+                    Message = "Email hoặc mật khẩu không chính xác!"
+                };
             }
         }
+
 
         public async Task<ResponeModel> SignUpAccountAsync(SignUpModel model)
         {
@@ -447,7 +474,7 @@ namespace LMSystem.Repository.Repositories
                         {
                             await userManager.AddToRoleAsync(user, RoleModel.Student.ToString());
                         }
-                        var token = userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
                         //token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
 
@@ -779,7 +806,7 @@ namespace LMSystem.Repository.Repositories
                         //{
                         //    await userManager.AddToRoleAsync(user, RoleModel.Parent.ToString());
                         //}
-                        var token = userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
                         //token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
 

@@ -17,7 +17,7 @@ namespace LMSystem.Repository.Data
         [Ignore]
         [IgnoreDataMember]
         [JsonIgnore]
-        public Task<String>? VerifyEmailToken { get; set; }
+        public string? VerifyEmailToken { get; set; }
         public DateTime? Expired { get; set; }
         public string JwtRefreshToken { get; set; }
     }
