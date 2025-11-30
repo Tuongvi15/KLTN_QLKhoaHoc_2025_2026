@@ -31,7 +31,7 @@ namespace LMSystem.API.Controllers
         {
             var fileBytes = await _courseService.ExportCoursesExcel(teacherId, fromDate, toDate);
 
-            string fileName = $"Courses_{DateTime.Now:yyyyMMddHHmm}.xlsx";
+            string fileName = $"Courses_{DateTime.UtcNow:yyyyMMddHHmm}.xlsx";
 
             // ⭐ BUỘC TRÌNH DUYỆT HỎI “SAVE AS”
             Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
@@ -119,7 +119,7 @@ namespace LMSystem.API.Controllers
 
             sheet.Cells.AutoFitColumns();
 
-            string fileName = $"RevenueReport_{DateTime.Now:yyyyMMddHHmm}.xlsx";
+            string fileName = $"RevenueReport_{DateTime.UtcNow:yyyyMMddHHmm}.xlsx";
             Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
 
             return File(
@@ -191,7 +191,7 @@ namespace LMSystem.API.Controllers
 
             sheet.Cells.AutoFitColumns();
 
-            string fileName = $"TeacherCourses_{DateTime.Now:yyyyMMddHHmm}.xlsx";
+            string fileName = $"TeacherCourses_{DateTime.UtcNow:yyyyMMddHHmm}.xlsx";
             Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
 
             return File(

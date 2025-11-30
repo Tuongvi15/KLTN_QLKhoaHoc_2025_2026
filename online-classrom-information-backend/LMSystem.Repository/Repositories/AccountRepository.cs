@@ -234,7 +234,7 @@ namespace LMSystem.Repository.Repositories
 
             var user = await userManager.FindByNameAsync(username);
 
-            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
+            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
                 return new AuthenticationResponseModel
                 {
@@ -267,7 +267,7 @@ namespace LMSystem.Repository.Repositories
             var token = new JwtSecurityToken(
                 issuer: configuration["JWT:ValidIssuer"],
                 audience: configuration["JWT:ValidAudience"],
-                expires: DateTime.Now.AddMinutes(tokenValidityInMinutes),
+                expires: DateTime.UtcNow.AddMinutes(tokenValidityInMinutes),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                 );
@@ -396,7 +396,7 @@ namespace LMSystem.Repository.Repositories
                 var token = new JwtSecurityToken(
                     issuer: configuration["JWT:ValidIssuer"],
                     audience: configuration["JWT:ValidAudience"],
-                    expires: DateTime.Now.AddHours(2),
+                    expires: DateTime.UtcNow.AddHours(2),
                     claims: authClaims,
                     signingCredentials: new SigningCredentials(authenKey, SecurityAlgorithms.HmacSha256)
                 );
@@ -407,7 +407,7 @@ namespace LMSystem.Repository.Repositories
 
                 // cập nhật vào account (DB) và save
                 account.RefreshToken = refreshToken;
-                account.RefreshTokenExpiryTime = DateTime.Now.AddDays(refreshTokenValidityInDays);
+                account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays);
 
                 _context.Account.Update(account);
                 await _context.SaveChangesAsync(); // <-- thêm dòng này để lưu refresh token
