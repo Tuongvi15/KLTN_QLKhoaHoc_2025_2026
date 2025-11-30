@@ -347,12 +347,11 @@ namespace LMSystem.Repository.Repositories
 
         public async Task<AuthenticationResponseModel> SignInAccountAsync(SignInModel model)
         {
-            // Tìm account theo email trước (giữ nguyên logic của bạn)
+            // 1) Tìm account theo email
             var account = await _context.Account
                 .Where(x => x.Email.ToLower() == model.AccountEmail.ToLower())
                 .FirstOrDefaultAsync();
 
-            // Nếu không tìm thấy thì trả về lỗi theo cấu trúc hiện tại
             if (account == null)
             {
                 return new AuthenticationResponseModel
@@ -362,7 +361,7 @@ namespace LMSystem.Repository.Repositories
                 };
             }
 
-            // IMPORTANT: lấy user object (Identity) bằng email
+            // 2) Lấy user từ Identity
             var user = await userManager.FindByEmailAsync(model.AccountEmail);
             if (user == null)
             {
@@ -373,14 +372,20 @@ namespace LMSystem.Repository.Repositories
                 };
             }
 
-            // Sử dụng UserName khi gọi PasswordSignInAsync (ít thay đổi nhất để hoạt động trên server)
-            var result = await signInManager.PasswordSignInAsync(user.UserName, model.AccountPassword, false, false);
+            // 3) Login bằng Identity
+            var result = await signInManager.PasswordSignInAsync(
+                user.UserName,
+                model.AccountPassword,
+                false,
+                false
+            );
 
             if (result.Succeeded)
             {
-                // giữ nguyên logic: kiểm tra role Pending cho Teacher
+                // 4) Kiểm tra giảng viên pending
                 var userRole = await userManager.GetRolesAsync(user);
-                if (userRole.Contains("Teacher") && account.Status == AccountStatusEnum.Pending.ToString())
+                if (userRole.Contains("Teacher") &&
+                    account.Status == AccountStatusEnum.Pending.ToString())
                 {
                     return new AuthenticationResponseModel
                     {
@@ -389,40 +394,39 @@ namespace LMSystem.Repository.Repositories
                     };
                 }
 
-                // Tạo claim + token như hiện tại, dùng email làm ClaimTypes.Name (giữ nguyên)
+                // 5) Claims cho JWT
                 var authClaims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, model.AccountEmail),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-                userRole = await userManager.GetRolesAsync(user);
                 foreach (var role in userRole)
                 {
-                    authClaims.Add(new Claim(ClaimTypes.Role, role.ToString()));
+                    authClaims.Add(new Claim(ClaimTypes.Role, role));
                 }
 
-                var authenKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]));
+                var authKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])
+                );
 
                 var token = new JwtSecurityToken(
                     issuer: configuration["JWT:ValidIssuer"],
                     audience: configuration["JWT:ValidAudience"],
                     expires: DateTime.UtcNow.AddHours(2),
                     claims: authClaims,
-                    signingCredentials: new SigningCredentials(authenKey, SecurityAlgorithms.HmacSha256)
+                    signingCredentials: new SigningCredentials(authKey, SecurityAlgorithms.HmacSha256)
                 );
 
+                // 6) Generate Refresh Token
                 var refreshToken = GenerateRefreshToken();
+                _ = int.TryParse(configuration["JWT:RefreshTokenValidityInDays"], out int refreshDays);
 
-                _ = int.TryParse(configuration["JWT:RefreshTokenValidityInDays"], out int refreshTokenValidityInDays);
+                // 7) Cập nhật refresh token bằng Identity (KHÔNG DÙNG DbContext.Update!)
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshDays);
 
-                // cập nhật vào account (DB) và save
-                account.RefreshToken = refreshToken;
-                account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays);
-
-                NormalizeAccountDateTimes(account);
-                _context.Account.Update(account);
-                await _context.SaveChangesAsync();
+                await userManager.UpdateAsync(user);  // <--- PATCH QUAN TRỌNG NHẤT
 
                 return new AuthenticationResponseModel
                 {
@@ -433,26 +437,26 @@ namespace LMSystem.Repository.Repositories
                     JwtRefreshToken = refreshToken,
                 };
             }
-            else if (result.IsNotAllowed)
+
+            // 8) Trường hợp email chưa xác minh
+            if (result.IsNotAllowed)
             {
-                // await token thay vì trả Task<string>
                 var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+
                 return new AuthenticationResponseModel
                 {
                     Status = false,
-                    Message = "Email xác nhận đã được gửi đến tài khoản email bạn đã đăng ký, vui lòng xác thực tài khoản để đăng nhập!",
+                    Message = "Email xác nhận đã được gửi. Vui lòng xác thực tài khoản!",
                     VerifyEmailToken = token
                 };
             }
-            else
+
+            // 9) Sai mật khẩu
+            return new AuthenticationResponseModel
             {
-                // Không trả null nữa — trả AuthenticationResponseModel để controller xử lý như cũ
-                return new AuthenticationResponseModel
-                {
-                    Status = false,
-                    Message = "Email hoặc mật khẩu không chính xác!"
-                };
-            }
+                Status = false,
+                Message = "Email hoặc mật khẩu không chính xác!"
+            };
         }
 
 
