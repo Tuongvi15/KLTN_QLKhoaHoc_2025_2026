@@ -27,8 +27,8 @@ namespace LMSystem.API
 
             services.AddScoped<IEmailTemplateReader, EmailTemplateReader>();
 
-            services.AddScoped<IMailService, MailService>();
-            services.AddTransient<IMailService, MailService>();
+            //services.AddScoped<IMailService, MailService>();
+            //services.AddTransient<IMailService, MailService>();
 
             services.AddScoped<IRatingCourseRepository, RatingCourseRepository>();
             services.AddScoped<IRatingCourseService, RatingCourseService>();
@@ -67,6 +67,7 @@ namespace LMSystem.API
             services.AddScoped<ITeacherPayoutRepository, TeacherPayoutRepository>();
             services.AddScoped<ITeacherPayoutService, TeacherPayoutService>();
             services.AddScoped<ICommunityRepository, CommunityRepository>();
+            services.AddScoped<IMailService, ResendMailService>();
 
             return services;
         }

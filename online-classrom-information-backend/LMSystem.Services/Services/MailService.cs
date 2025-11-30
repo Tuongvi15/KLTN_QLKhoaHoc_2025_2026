@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace LMSystem.Services.Services
 {
-    public class MailService(IOptions<EmailConfig> emailConfig) : IMailService
+    public class MailService(IOptions<EmailConfig> emailConfig)
     {
         readonly EmailConfig _emailConfig = emailConfig.Value;
 

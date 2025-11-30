@@ -54,6 +54,7 @@ namespace LMSystem.API.Controllers
             return Ok(account);
         }
 
+
         [HttpPost("SignUp")]
         public async Task<IActionResult> SignUp(SignUpModel signUpModel)
         {
