@@ -1,4 +1,4 @@
-using LMSystem.API;
+﻿using LMSystem.API;
 using LMSystem.Repository.Helpers;
 using LMSystem.Repository.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -28,32 +28,37 @@ builder.Services.AddSingleton(x =>
         builder.Configuration["PayPalOptions:Mode"]
     )
 );
-// get env
-var base64 = Environment.GetEnvironmentVariable("FIREBASE_CONFIG_BASE64");
-if (string.IsNullOrEmpty(base64))
-{
-    throw new Exception("FIREBASE_CONFIG_BASE64 is missing");
-}
+bool isEfMigration =
+    AppDomain.CurrentDomain.FriendlyName.Contains("ef", StringComparison.OrdinalIgnoreCase) ||
+    Environment.GetCommandLineArgs().Any(a => a.Contains("ef", StringComparison.OrdinalIgnoreCase));
 
-// Decode base64 -> json string
-var json = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
-
-// init GoogleCredential from JSON
-GoogleCredential credential;
-using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+// -----------------------------
+//     FIREBASE INIT (SKIPPED WHEN MIGRATION)
+// -----------------------------
+if (!isEfMigration)
 {
-    credential = GoogleCredential.FromStream(stream);
-}
-
-// init FirebaseApp (if not create)
-if (FirebaseApp.DefaultInstance == null)
-{
-    FirebaseApp.Create(new AppOptions()
+    var base64 = Environment.GetEnvironmentVariable("FIREBASE_CONFIG_BASE64");
+    if (string.IsNullOrEmpty(base64))
     {
-        Credential = credential
-    });
-}
+        throw new Exception("FIREBASE_CONFIG_BASE64 is missing");
+    }
 
+    var json = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
+
+    GoogleCredential credential;
+    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+    {
+        credential = GoogleCredential.FromStream(stream);
+    }
+
+    if (FirebaseApp.DefaultInstance == null)
+    {
+        FirebaseApp.Create(new AppOptions()
+        {
+            Credential = credential
+        });
+    }
+}
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 

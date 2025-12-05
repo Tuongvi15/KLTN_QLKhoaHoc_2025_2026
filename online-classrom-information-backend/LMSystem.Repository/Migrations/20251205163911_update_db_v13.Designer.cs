@@ -3,6 +3,7 @@ using System;
 using LMSystem.Repository.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LMSystem.Repository.Migrations
 {
     [DbContext(typeof(LMOnlineSystemDbContext))]
-    partial class LMOnlineSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251205163911_update_db_v13")]
+    partial class update_db_v13
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
