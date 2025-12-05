@@ -54,7 +54,7 @@ namespace LMSystem.Repository.Data
 
         [Display(Name = "Date of Birth")]
         public DateTime? BirthDate { get; set; }
-
+        public DateTime? CreatedAt { get; set; }
         public string? Biography { get; set; }
 
         public string? ProfileImg { get; set; }

@@ -12,6 +12,7 @@ export interface CheckRegistrationCourseRespone {
 }
 
 export interface RegistrationCourse {
+    progress: number;
     registrationId: number;
     courseId: number;
     accountId: string;

@@ -1,12 +1,12 @@
 import { Account } from '../../../../types/Account.type';
 import Table, { ColumnType } from 'antd/es/table';
-import { Button, Input, Modal, Pagination, Tag, Tooltip, message } from 'antd';
+import { Button, Input, Modal, Pagination, Tag, Tooltip, message, Badge, Space } from 'antd';
 import { Link } from 'react-router-dom';
 import { DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { PagingParam } from '../../../../types/TableParam';
 import { useAccountAll } from '../../../../hooks/useAccountAll';
 import { useEffect, useState } from 'react';
-import { useDeleteAccountMutation, useGetAccountDetailQuery } from '../../../../services/account.services';
+import { useDeleteAccountMutation, useGetAccountDetailQuery, useRestoreAccountMutation } from '../../../../services/account.services';
 
 type GetAllAccountProps = {
     pagination: { current: number; total: number };
@@ -22,16 +22,27 @@ const getRoleVietnamese = (role: string): string => {
         default: return 'Không xác định';
     }
 };
-
+const getRoleColor = (role: string): string => {
+    switch (role) {
+        case 'Admin': return 'red';
+        case 'Staff': return 'orange';
+        case 'Student': return 'blue';
+        case 'Teacher': return 'green';
+        default: return 'default';
+    }
+};
 const columns = ({
     pagination,
     displayData,
     handleDelete,
-    handleView
+    handleView,
+    openRestoreModal
 }: GetAllAccountProps & {
     handleDelete: (id: string) => void,
-    handleView: (id: string) => void
+    handleView: (id: string) => void,
+    openRestoreModal: (id: string) => void
 }): ColumnType<Account>[] => [
+
 
         {
             title: 'STT',
@@ -62,15 +73,23 @@ const columns = ({
         {
             title: 'Hình đại diện',
             dataIndex: 'profileImg',
-            render: (profileImg) => (
-                <img
-                    src={profileImg}
-                    alt="Avatar"
-                    style={{ width: 50, height: 50, borderRadius: '50%' }}
-                />
-            ),
+            render: (profileImg) => {
+                const fallback =
+                    profileImg && profileImg !== ""
+                        ? profileImg
+                        : "https://cdn-icons-png.flaticon.com/512/149/149071.png"; // ảnh default
+
+                return (
+                    <img
+                        src={fallback}
+                        alt="Avatar"
+                        style={{ width: 50, height: 50, borderRadius: '50%', objectFit: "cover" }}
+                    />
+                );
+            },
             width: '8%',
-        },
+        }
+        ,
         {
             title: 'Email',
             dataIndex: 'email',
@@ -82,12 +101,20 @@ const columns = ({
             width: '8%',
         },
         {
-            title: 'Vai trò',
+            title: 'Ngày tạo',
+            dataIndex: 'createdAt',
+            width: '8%',
+        },
+        {
+            title: <div className="font-semibold">Vai trò</div>,
             dataIndex: 'role',
             render: (role) => (
-                <Tag color="blue">{getRoleVietnamese(role)}</Tag>
+                <Tag color={getRoleColor(role)} className="font-medium px-3 py-1">
+                    {getRoleVietnamese(role)}
+                </Tag>
             ),
-            width: '7%',
+            width: '130px',
+            align: 'center',
         },
         {
             title: 'Giới tính',
@@ -100,36 +127,46 @@ const columns = ({
             width: '5%',
         },
         {
-            title: 'Trạng thái',
+            title: <div className="font-semibold">Trạng thái</div>,
             dataIndex: 'status',
             render: (status) => (
                 <Tag color={status.trim() === 'Active' ? 'green' : 'red'}>
                     {status.trim() === 'Active' ? 'Hoạt động' : 'Không hoạt động'}
                 </Tag>
             ),
-            width: '7%',
+            width: '140px',
         },
         {
+
             title: 'Hành động',
             dataIndex: 'id',
-            width: '7%',
-            render: (id) => (
-                <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
-
-                    {/* 👁 Xem chi tiết */}
+            render: (_, record) => (
+                <Space align="center" size="middle" style={{ justifyContent: "left", width: "100%" }}>
                     <Tooltip title="Xem chi tiết">
-                        <Button type="link" onClick={() => handleView(id)}>
+                        <Button type="link" onClick={() => handleView(record.id)}>
                             <EyeOutlined style={{ fontSize: 20 }} />
                         </Button>
                     </Tooltip>
 
-                    {/* ❌ Xóa */}
-                    <Tooltip title="Xóa tài khoản" color="red">
-                        <Button danger type="link" onClick={() => handleDelete(id)}>
-                            <DeleteOutlined style={{ fontSize: 20 }} />
-                        </Button>
-                    </Tooltip>
-                </div>
+                    {record.status.trim() === "Active" ? (
+                        <Tooltip title="Hủy hoạt động">
+                            <Button danger type="link" onClick={() => handleDelete(record.id)}>
+                                <DeleteOutlined style={{ fontSize: 20 }} />
+                            </Button>
+                        </Tooltip>
+                    ) : (
+                        <Tooltip title="Khôi phục tài khoản">
+                            <Button
+                                type="primary"
+                                onClick={() => openRestoreModal(record.id)}
+                                className="bg-[#1664a3] text-white"
+                                size="small"
+                            >
+                                Kích hoạt
+                            </Button>
+                        </Tooltip>
+                    )}
+                </Space>
             ),
         },
     ];
@@ -141,12 +178,15 @@ const AccountDetailModalContent = ({ accountId }: { accountId: string }) => {
 
     if (isLoading) return <p>Đang tải...</p>;
     if (!data) return <p>Không có dữ liệu</p>;
-
+    const avatar =
+        data.profileImg && data.profileImg !== ""
+            ? data.profileImg
+            : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
     return (
         <div className="space-y-3">
             <div className="flex gap-4 items-center">
                 <img
-                    src={data.profileImg}
+                    src={avatar}
                     className="w-20 h-20 rounded-full object-cover"
                 />
                 <div>
@@ -260,6 +300,39 @@ const GetAllAccount = () => {
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
     const [deleteAccount] = useDeleteAccountMutation();
+    const [restoreAccount] = useRestoreAccountMutation();
+    // Modal KHÔI PHỤC
+    const [restoreModalVisible, setRestoreModalVisible] = useState(false);
+    const [restoringId, setRestoringId] = useState<string | null>(null);
+
+    const openRestoreModal = (accountId: string) => {
+        setRestoringId(accountId);
+        setRestoreModalVisible(true);
+    };
+
+    const confirmRestore = async () => {
+        if (!restoringId) return;
+
+        try {
+            await restoreAccount({ accountId: restoringId }).unwrap();
+
+            message.success("Tài khoản đã được kích hoạt!");
+
+            // cập nhật UI
+            const updated = database.map(acc =>
+                acc.id === restoringId ? { ...acc, status: "Active" } : acc
+            );
+            setDatabase(updated);
+
+        } catch (err) {
+            message.error("Khôi phục tài khoản thất bại!");
+        }
+
+        setRestoreModalVisible(false);
+    };
+
+    const cancelRestore = () => setRestoreModalVisible(false);
+
 
     // Modal XEM CHI TIẾT
     const [viewModalVisible, setViewModalVisible] = useState(false);
@@ -338,16 +411,18 @@ const GetAllAccount = () => {
         displayData,
         handleDelete,
         handleView,
+        openRestoreModal,
     });
+
 
     return (
         <div className="mx-auto w-[99%] space-y-4">
 
             <div className="flex items-center justify-between">
                 <h1 className="mb-5 text-2xl font-bold text-gray-800">Danh sách các tài khoản:</h1>
-                <Button type="primary" className="bg-blue-500">
+                {/* <Button type="primary" className="bg-blue-500">
                     <Link to={'/admin/createAccount/'}>Thêm tài khoản STAFF</Link>
-                </Button>
+                </Button> */}
             </div>
 
             <Search
@@ -376,7 +451,7 @@ const GetAllAccount = () => {
 
             {/* MODAL XÓA */}
             <Modal
-                title="Xác nhận xóa"
+                title="Xác nhận hủy hoạt động tài khoản"
                 open={deleteModalVisible}
                 onOk={confirmDelete}
                 onCancel={cancelDelete}
@@ -385,7 +460,20 @@ const GetAllAccount = () => {
                 okText="Xác nhận"
                 cancelText="Hủy"
             >
-                <p>Bạn có chắc chắn muốn xóa tài khoản này không?</p>
+                <p>Bạn có chắc chắn muốn hủy hoạt động tài khoản này không?</p>
+            </Modal>
+            {/* MODAL KHÔI PHỤC */}
+            <Modal
+                title="Xác nhận kích hoạt tài khoản"
+                open={restoreModalVisible}
+                onOk={confirmRestore}
+                onCancel={cancelRestore}
+                okButtonProps={{ className: 'bg-green-600 text-white' }}
+                cancelButtonProps={{ className: 'bg-red-500 text-white' }}
+                okText="Kích hoạt"
+                cancelText="Hủy"
+            >
+                <p>Bạn có chắc chắn muốn kích hoạt lại tài khoản này không?</p>
             </Modal>
 
             {/* MODAL XEM CHI TIẾT */}

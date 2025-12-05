@@ -247,15 +247,14 @@ namespace LMSystem.Services.Services
 
                 string[] headers =
                 {
-            "ID", "Khóa học", "Giảng viên", "Danh mục", "Giá",
-            "Số học viên", "Thời lượng", "Xuất bản", "Hoạt động",
-            "Ngày tạo", "Cập nhật"
-        };
+        "STT", "Khóa học", "Giảng viên", "Danh mục", "Giá",
+        "Số học viên", "Thời lượng", "Xuất bản", "Hoạt động",
+        "Ngày tạo", "Cập nhật"
+    };
 
+                // Header
                 for (int i = 0; i < headers.Length; i++)
-                {
                     sheet.Cells[1, i + 1].Value = headers[i];
-                }
 
                 var headerRange = sheet.Cells[1, 1, 1, headers.Length];
                 headerRange.Style.Font.Bold = true;
@@ -263,10 +262,13 @@ namespace LMSystem.Services.Services
                 headerRange.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(0, 102, 204));
                 headerRange.Style.Font.Color.SetColor(Color.White);
 
+                // ⭐ STT bắt đầu từ 1
                 int row = 2;
+                int stt = 1;
+
                 foreach (var c in data)
                 {
-                    sheet.Cells[row, 1].Value = c.CourseId;
+                    sheet.Cells[row, 1].Value = stt;                      // <-- STT
                     sheet.Cells[row, 2].Value = c.Title;
                     sheet.Cells[row, 3].Value = c.TeacherName;
                     sheet.Cells[row, 4].Value = c.Categories;
@@ -277,12 +279,15 @@ namespace LMSystem.Services.Services
                     sheet.Cells[row, 9].Value = c.IsActive ? "Hoạt động" : "Không";
                     sheet.Cells[row, 10].Value = c.Created?.ToString("dd/MM/yyyy");
                     sheet.Cells[row, 11].Value = c.Updated?.ToString("dd/MM/yyyy");
+
                     row++;
+                    stt++;   // ⭐ tăng dần
                 }
 
                 sheet.Cells.AutoFitColumns();
                 return package.GetAsByteArray();
             }
+
         }
 
     }

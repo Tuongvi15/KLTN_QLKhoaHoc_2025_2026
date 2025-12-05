@@ -55,6 +55,12 @@ export const accountApi = createApi({
                 method: "PUT",
             }),
         }),
+        restoreAccount: build.mutation<any, { accountId: string }>({
+            query: ({ accountId }) => ({
+                url: `api/Account/update-account?accountId=${accountId}&accountStatusEnum=Active`,
+                method: "PUT",
+            }),
+        }),
 
         countTotalAccounts: build.query<number, void>({
             query: () => 'api/Account/CountTotalAccount',
@@ -76,4 +82,5 @@ export const {
     useGetAccountDetailQuery,
     useGetPendingTeachersQuery,
     useApproveTeacherMutation,
+    useRestoreAccountMutation,
 } = accountApi;

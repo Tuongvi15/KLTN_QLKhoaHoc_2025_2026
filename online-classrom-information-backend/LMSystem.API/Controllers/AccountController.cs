@@ -10,6 +10,7 @@ using LMSystem.Services.Interfaces;
 using LMSystem.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
@@ -245,16 +246,13 @@ namespace LMSystem.API.Controllers
         {
             try
             {
-                if (ModelState.IsValid)
-                {
+
                     var result = await _accountService.ChangePasswordAsync(model);
                     if (result.Status.Equals("Success"))
                     {
                         return Ok(result);
                     }
                     return BadRequest(result);
-                }
-                return ValidationProblem(ModelState);
             }
             catch { return BadRequest(); }
         }
@@ -375,6 +373,19 @@ namespace LMSystem.API.Controllers
             }
 
             return Ok(account);
+        }
+
+
+        [HttpPut("update-account")]
+        [Authorize]
+        public async Task<IActionResult>  UpdateAccount(string accountId, AccountStatusEnum accountStatusEnum)
+        {
+            var account = await _accountService.UpdateAccount(accountId, accountStatusEnum);
+            if (account.Status.Equals("Success"))
+            {
+                return Ok(account);
+            }
+            return BadRequest(account);
         }
 
         [HttpGet("GetAccountByParentAccountId")]

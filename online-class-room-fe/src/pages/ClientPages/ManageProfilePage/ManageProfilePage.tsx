@@ -292,15 +292,7 @@ const ManageProfilePage = () => {
                                 >
                                     {menuSelected.menutext}
                                 </h1>
-                                <p 
-                                    style={{
-                                        fontSize: '14px',
-                                        color: '#64748b',
-                                        margin: 0,
-                                    }}
-                                >
-                                    Quản lý thông tin cá nhân của bạn
-                                </p>
+                                
                             </div>
 
                             {/* Dynamic Component */}

@@ -17,6 +17,7 @@ import Sider from 'antd/es/layout/Sider';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../../../utils/cn';
+import { useLocation } from "react-router-dom";
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -55,7 +56,7 @@ export default function MySider() {
         getItem('Báo cáo doanh thu', 'courseRevenue', <PieChartOutlined />),
       ]),
       getItem('Quản lý tài khoản', 'sub2', <ManageAccountsOutlinedIcon />, [
-        getItem('Xem tất cả tài khoản', 'accountAll', <StreetviewOutlinedIcon />),
+        getItem('Tất cả tài khoản', 'accountAll', <StreetviewOutlinedIcon />),
         getItem('Duyệt giảng viên', 'approveTeacher', <PersonAddAlt1OutlinedIcon />),
       ]),
       getItem('Chi trả giảng viên', 'subPayout', <WalletOutlined />, [
@@ -68,7 +69,15 @@ export default function MySider() {
       ]),
     ];
   };
+  const location = useLocation();
 
+  useEffect(() => {
+    if (location.pathname === "/admin/getAllAccount") {
+      setCollapsed(true);   // ⭐ Tự động thu nhỏ khi vào trang danh sách account
+    }else if (location.pathname === "/admin/getAllCourse") {
+      setCollapsed(true);   // ⭐ Tự động thu nhỏ khi vào trang danh sách account
+    }
+  }, [location.pathname]);
   // ✅ Bản đồ key → URL
   const navUrl = new Map<string, string>();
   navUrl

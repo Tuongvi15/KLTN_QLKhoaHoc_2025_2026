@@ -9,6 +9,7 @@ import {
   FilterOutlined,
   ReloadOutlined
 } from "@ant-design/icons";
+import { downloadExcel } from "../../../../utils/downloadExcel";
 
 const { MonthPicker } = DatePicker;
 
@@ -28,8 +29,8 @@ export default function AdminCourseRevenuePage() {
   const formatDiscount = (value: number) => `${(value * 100).toFixed(0)}%`;
 
   const columns = [
-    { 
-      title: "Khóa học", 
+    {
+      title: "Khóa học",
       dataIndex: "courseTitle",
       width: 250,
       fixed: 'left' as const,
@@ -48,13 +49,13 @@ export default function AdminCourseRevenuePage() {
       ),
       align: 'center' as const,
     },
-    { 
-      title: "Học viên", 
+    {
+      title: "Học viên",
       dataIndex: "totalStudents",
       align: 'center' as const,
     },
-    { 
-      title: "Đơn hàng", 
+    {
+      title: "Đơn hàng",
       dataIndex: "totalOrders",
       align: 'center' as const,
     },
@@ -74,8 +75,8 @@ export default function AdminCourseRevenuePage() {
       ),
       align: 'right' as const,
     },
-    { 
-      title: "Giảng viên", 
+    {
+      title: "Giảng viên",
       dataIndex: "teacherName",
       width: 150,
     },
@@ -123,6 +124,15 @@ export default function AdminCourseRevenuePage() {
   const resetFilter = () => {
     setFilter({ teacherId: "", month: null, year: null });
     fetchData();
+  };
+  const handleExportExcel = () => {
+    const url =
+      `${import.meta.env.VITE_API_URL}/Reports/ExportCourseRevenue`
+      + `?teacherId=${filter.teacherId || ""}`
+      + `&month=${filter.month || ""}`
+      + `&year=${filter.year || ""}`;
+
+    downloadExcel(url, "CourseRevenueReport.xlsx");
   };
 
   const getFilterLabel = () => {
@@ -190,7 +200,7 @@ export default function AdminCourseRevenuePage() {
               <FilterOutlined />
               <span className="font-medium">Bộ lọc:</span>
             </div>
-            
+
             <Select
               style={{ width: 240 }}
               placeholder="Chọn giảng viên"
@@ -206,20 +216,27 @@ export default function AdminCourseRevenuePage() {
               ))}
             </Select>
 
-            <MonthPicker 
-              onChange={onMonthChange} 
+            <MonthPicker
+              onChange={onMonthChange}
               placeholder="Chọn tháng"
               size="large"
             />
 
             <Button
-  icon={<FilterOutlined />}
-  onClick={applyFilter}
-  size="large"
-  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6"
->
-  Áp dụng
-</Button>
+              icon={<FilterOutlined />}
+              onClick={applyFilter}
+              size="large"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6"
+            >
+              Áp dụng
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6"
+              size="large"
+              onClick={handleExportExcel}
+            >
+              Xuất Excel
+            </Button>
 
 
             <Button
@@ -285,7 +302,7 @@ export default function AdminCourseRevenuePage() {
 
         {/* Teacher Revenue */}
         {teacherRevenueList.length > 0 && (
-          <Card 
+          <Card
             title={
               <span className="text-lg font-semibold">
                 💰 Thu nhập theo giảng viên
@@ -303,7 +320,7 @@ export default function AdminCourseRevenuePage() {
                       </h4>
                       <div className="h-1 w-12 bg-yellow-400 rounded"></div>
                     </div>
-                    
+
                     <Space direction="vertical" size="small" className="w-full">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Doanh thu:</span>
@@ -340,7 +357,7 @@ export default function AdminCourseRevenuePage() {
             columns={columns}
             dataSource={revenueData}
             rowKey="courseId"
-            pagination={{ 
+            pagination={{
               pageSize: 10,
               showSizeChanger: false,
               showTotal: (total) => `Tổng ${total} khóa học`

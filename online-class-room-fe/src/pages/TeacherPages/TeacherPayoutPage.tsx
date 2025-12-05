@@ -121,16 +121,21 @@ export default function TeacherPayoutPage() {
         {
             title: "Trạng thái",
             dataIndex: "status",
-            render: (s: string) => (
-                <Tag
-                    icon={s === "Withdrawn" ? <CheckCircleOutlined /> : <ClockCircleOutlined />}
-                    color={s === "Withdrawn" ? "success" : "processing"}
-                >
-                    {s === "Withdrawn" ? "Đã chi trả" : "Đang xử lý"}
-                </Tag>
-            ),
-            align: 'center' as const,
-        },
+            align: "center" as const,
+            render: (status: string) => {
+                const isPaid = status === "Withdrawn"; // hoặc status === "Paid"
+
+                return (
+                    <Tag
+                        icon={isPaid ? <CheckCircleOutlined /> : <ClockCircleOutlined />}
+                        color={isPaid ? "success" : "processing"}
+                    >
+                        {isPaid ? "Đã chi trả" : "Đang xử lý"}
+                    </Tag>
+                );
+            },
+        }
+        ,
         {
             title: "Thao tác",
             render: (_: any, r: TeacherPayoutItem) => (
@@ -179,14 +184,14 @@ export default function TeacherPayoutPage() {
                             placeholder="Chọn tháng"
                         />
                         <Button
-    type="primary"
-    icon={<ReloadOutlined />}
-    onClick={fetchData}
-    size="large"
-    className="bg-blue-600 hover:bg-blue-700 text-white"
->
-    Làm mới
-</Button>
+                            type="primary"
+                            icon={<ReloadOutlined />}
+                            onClick={fetchData}
+                            size="large"
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                            Làm mới
+                        </Button>
 
                     </Space>
                 </Card>
@@ -333,33 +338,34 @@ export default function TeacherPayoutPage() {
                     )}
                 </Modal>
                 <Modal
-                    title="📘 Lưu ý khi Chi trả nhuận bút"
-                    open={openRuleModal}
-                    onCancel={() => setOpenRuleModal(false)}
-                    footer={null}
-                >
-                    <ul className="list-disc pl-5 space-y-2">
-                        <li>Giảng viên phải liên kết <b>tài khoản ngân hàng</b> trước khi yêu cầu chi trả.</li>
+    title="📘 Lưu ý khi chi trả nhuận bút"
+    open={openRuleModal}
+    onCancel={() => setOpenRuleModal(false)}
+    footer={null}
+>
+    <ul className="list-disc pl-5 space-y-2 leading-relaxed">
+        <li>Giảng viên phải liên kết <b>tài khoản ngân hàng</b> trước khi gửi yêu cầu chi trả.</li>
 
-                        <li>Doanh thu khóa học được chuyển vào trạng thái <b>Pending</b> trong 30 ngày để kiểm soát hoàn tiền và chống gian lận.</li>
+        <li>Doanh thu khóa học sẽ được đưa vào trạng thái <b>Chờ duyệt</b> trong 30 ngày để kiểm soát hoàn tiền và chống gian lận.</li>
 
-                        <li>Sau <b>30 ngày</b>, khoản doanh thu sẽ tự động chuyển sang <b>Available</b> và đủ điều kiện rút.</li>
+        <li>Sau <b>30 ngày</b>, khoản doanh thu sẽ tự động chuyển sang trạng thái <b>Có thể rút</b>.</li>
 
-                        <li>Khi tạo yêu cầu rút tiền, hệ thống sẽ ghi nhận trạng thái <b>Processing</b> (đang xử lý).</li>
+        <li>Khi tạo yêu cầu rút tiền, hệ thống sẽ ghi nhận trạng thái <b>Đang xử lý</b>.</li>
 
-                        <li>Sau khi Admin thực hiện chi trả thành công, yêu cầu sẽ chuyển sang <b>Withdrawn</b> (đã thanh toán).</li>
+        <li>Khi Admin thực hiện chi trả thành công, yêu cầu sẽ chuyển sang trạng thái <b>Đã chi trả</b>.</li>
 
-                        <li>Các khoản thu nhập từ <b>2.000.000đ trở lên</b> trong chu kỳ sẽ bị khấu trừ <b>10% thuế TNCN tại nguồn</b>.</li>
+        <li>Các khoản thu nhập từ <b>2.000.000đ trở lên</b> trong chu kỳ sẽ bị khấu trừ <b>10% thuế TNCN tại nguồn</b>.</li>
 
-                        <li>Số tiền <b>Thực nhận</b> = Tiền Available – Thuế TNCN (nếu có).</li>
+        <li>Số tiền <b>thực nhận</b> = Số dư có thể rút – Thuế TNCN (nếu có).</li>
 
-                        <li>Thông tin ngân hàng không chính xác sẽ khiến yêu cầu bị từ chối hoặc thất bại.</li>
+        <li>Thông tin ngân hàng không chính xác có thể khiến yêu cầu bị từ chối hoặc thất bại.</li>
 
-                        <li>Mỗi yêu cầu chi trả chỉ xử lý cho số dư Available tại thời điểm yêu cầu.</li>
+        <li>Mỗi yêu cầu chi trả chỉ áp dụng cho <b>số dư có thể rút</b> tại thời điểm gửi yêu cầu.</li>
 
-                        <li>Chi trả được thực hiện <b>từ ngày 1 - 5</b> hằng tháng trong giờ hành chính</li>
-                    </ul>
-                </Modal>
+        <li>Chi trả được thực hiện trong <b>ngày 1 – 5</b> hằng tháng, trong giờ hành chính.</li>
+    </ul>
+</Modal>
+
             </div>
 
             <style>{`

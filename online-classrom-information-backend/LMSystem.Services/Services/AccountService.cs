@@ -153,5 +153,10 @@ namespace LMSystem.Services.Services
         {
             return await _repo.CountTotalAccount();
         }
+
+        public async Task<ResponeModel> UpdateAccount(string accountId, AccountStatusEnum accountStatusEnum)
+        {
+            return await _repo.UpdateAccount(accountId, accountStatusEnum);
+        }
     }
 }

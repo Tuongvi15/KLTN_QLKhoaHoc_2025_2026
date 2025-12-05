@@ -1,5 +1,5 @@
 // src/pages/Community/CommunityListPage.tsx
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useGetArticlesQuery } from "../../services/community.services";
 import ArticleCard from "../../components/Community/ArticleCard";
@@ -25,6 +25,30 @@ export default function CommunityListPage() {
     });
 
     const rawPosts = data?.items ?? [];
+    const loadMoreRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        if (!loadMoreRef.current) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    setPage((prev) => prev + 1); // ⬅ auto tăng page
+                }
+            },
+            { threshold: 1 }
+        );
+
+        observer.observe(loadMoreRef.current);
+
+        return () => observer.disconnect();
+    }, []);
+const [allPosts, setAllPosts] = useState<any[]>([]);
+
+useEffect(() => {
+    if (data?.items) {
+        setAllPosts(prev => [...prev, ...data.items]);
+    }
+}, [data]);
 
     // 🔥 FILTER + SEARCH + SORT (FE ONLY)
     const posts = useMemo(() => {
@@ -93,7 +117,7 @@ export default function CommunityListPage() {
 
                         {/* Nút tạo bài viết */}
                         <Link to="/community/write">
-                            <button 
+                            <button
                                 className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white transition-all"
                                 style={{ backgroundColor: '#00497c' }}
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#003d66'}
@@ -135,11 +159,10 @@ export default function CommunityListPage() {
                                         <button
                                             key={id}
                                             onClick={() => setFilter(id)}
-                                            className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors ${
-                                                filter === id
-                                                    ? "text-white font-bold"
-                                                    : "text-gray-700 hover:bg-gray-100"
-                                            }`}
+                                            className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors ${filter === id
+                                                ? "text-white font-bold"
+                                                : "text-gray-700 hover:bg-gray-100"
+                                                }`}
                                             style={filter === id ? { backgroundColor: '#00497c' } : {}}
                                         >
                                             <Icon className="text-lg" />
@@ -195,11 +218,10 @@ export default function CommunityListPage() {
                                 <button
                                     key={id}
                                     onClick={() => setFilter(id)}
-                                    className={`flex items-center gap-2 px-4 py-2 whitespace-nowrap transition-colors text-sm font-bold border-2 ${
-                                        filter === id
-                                            ? "text-white border-transparent"
-                                            : "bg-white text-gray-700 border-gray-900 hover:bg-gray-100"
-                                    }`}
+                                    className={`flex items-center gap-2 px-4 py-2 whitespace-nowrap transition-colors text-sm font-bold border-2 ${filter === id
+                                        ? "text-white border-transparent"
+                                        : "bg-white text-gray-700 border-gray-900 hover:bg-gray-100"
+                                        }`}
                                     style={filter === id ? { backgroundColor: '#00497c' } : {}}
                                 >
                                     <Icon className="text-lg" />
@@ -212,7 +234,7 @@ export default function CommunityListPage() {
                         <div className="mb-6 flex items-center justify-between bg-gray-50 border border-gray-300 p-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 flex items-center justify-center" style={{ backgroundColor: '#00497c' }}>
-                                    {filterOptions.find(f => f.id === filter)?.icon && 
+                                    {filterOptions.find(f => f.id === filter)?.icon &&
                                         (() => {
                                             const Icon = filterOptions.find(f => f.id === filter)!.icon;
                                             return <Icon className="text-white text-xl" />;
@@ -229,7 +251,7 @@ export default function CommunityListPage() {
                                 </div>
                             </div>
                             {searchQuery && (
-                                <button 
+                                <button
                                     onClick={() => setSearchQuery("")}
                                     className="text-xs font-bold hover:underline"
                                     style={{ color: '#00497c' }}
@@ -256,14 +278,14 @@ export default function CommunityListPage() {
                                         {searchQuery ? "Không tìm thấy kết quả" : "Chưa có bài viết"}
                                     </h3>
                                     <p className="text-sm text-gray-600 mb-6">
-                                        {searchQuery 
+                                        {searchQuery
                                             ? "Thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc"
                                             : "Hãy là người đầu tiên chia sẻ kiến thức với cộng đồng!"
                                         }
                                     </p>
 
                                     <Link to="/community/write">
-                                        <button 
+                                        <button
                                             className="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-white transition-colors"
                                             style={{ backgroundColor: '#00497c' }}
                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#003d66'}

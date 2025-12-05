@@ -337,7 +337,8 @@ namespace LMSystem.Repository.Repositories
                     Email = a.Email,
                     Status = a.Status,
                     ProfileImg = a.ProfileImg,
-                    Role = "Teacher"
+                    Role = "Teacher",
+                    CreatedAt = a.CreatedAt
                 })
                 .ToListAsync();
 
@@ -924,6 +925,7 @@ namespace LMSystem.Repository.Repositories
                     a.Status,
                     a.Biography,
                     a.BirthDate,
+                    CreatedAt = a.CreatedAt,
                     a.ProfileImg,
                     Roles = _context.UserRoles.Where(ur => ur.UserId == a.Id)
                                               .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId).Name)
@@ -996,7 +998,8 @@ namespace LMSystem.Repository.Repositories
                     Role = string.Join(", ", a.Roles),
                     Biography = a.Biography,
                     BirthDate = a.BirthDate,
-                    ProfileImg = a.ProfileImg
+                    ProfileImg = a.ProfileImg,
+                    CreatedAt = a.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")
                 })
                 .ToList();
 
@@ -1051,6 +1054,38 @@ namespace LMSystem.Repository.Repositories
                 await _context.SaveChangesAsync();
 
                 return new ResponeModel { Status = "Success", Message = "Account deleted successfully " + existingAccount.Id };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+                return new ResponeModel
+                {
+                    Status = "Error",
+                    Message = "An error occurred while deleting the account"
+                };
+            }
+        }
+
+        public async Task<ResponeModel> UpdateAccount(string accountId, AccountStatusEnum accountStatusEnum)
+        {
+            try
+            {
+                var existingAccount = await _context.Account.FirstOrDefaultAsync(a => a.Id == accountId);
+
+                if (existingAccount == null)
+                {
+                    return new ResponeModel
+                    {
+                        Status = "Error",
+                        Message = "No account were found for the specified account id"
+                    };
+                }
+
+                existingAccount.Status = accountStatusEnum.ToString();
+
+                await _context.SaveChangesAsync();
+
+                return new ResponeModel { Status = "Success", Message = "Account update successfully " + existingAccount.Id };
             }
             catch (Exception ex)
             {
@@ -1138,13 +1173,13 @@ namespace LMSystem.Repository.Repositories
         public class AccountDetailDto
         {
             public string Id { get; set; }
-            public string FullName { get; set; }
-            public string Email { get; set; }
-            public string Role { get; set; }
-            public string PhoneNumber { get; set; }
-            public string Sex { get; set; }
-            public string Biography { get; set; }
-            public string ProfileImg { get; set; }
+            public string? FullName { get; set; }
+            public string? Email { get; set; }
+            public string? Role { get; set; }
+            public string? PhoneNumber { get; set; }
+            public string? Sex { get; set; }
+            public string? Biography { get; set; }
+            public string? ProfileImg { get; set; }
             public DateTime? BirthDate { get; set; }
 
             public List<CourseBasicDto> Courses { get; set; } = new();
