@@ -32,6 +32,7 @@ const LearningCoursePage = () => {
     //
     const courseId = location.pathname.split('/').pop();
     const accountId = useSelector((state: RootState) => state.user.id);
+    const isVideoWatched = useSelector((state: RootState) => state.learningCourse.isVideoWatched);
 
     const registrationId = useSelector((state: RootState) =>
         state.learningCourse.registrationData
@@ -87,11 +88,18 @@ const LearningCoursePage = () => {
     useEffect(() => {
         if (isGetLastStepCompletedSuccess && isGetCourseSuccess) {
             if (lastStepCompletedData.stepId) {
+                // Người đã học → active step đã học
                 dispatch(setLastStepCompleted(lastStepCompletedData.stepId));
                 dispatch(setStepActiveByStepId(lastStepCompletedData.stepId));
                 dispatch(gotToNextStep());
+            } else {
+                // Người chưa học → active step đầu tiên
+                const firstStepId = data.sections[0].steps[0].stepId;
+                dispatch(setLastStepCompleted(firstStepId - 1));
+                dispatch(setStepActiveByStepId(firstStepId));
             }
         }
+
     }, [isGetLastStepCompletedSuccess, isGetCourseSuccess, lastStepCompletedData]);
 
     useEffect(() => {
@@ -151,10 +159,12 @@ const LearningCoursePage = () => {
                                         className="self-end"
                                         onClick={handleGoToNext}
                                         variant="outlined"
+                                        disabled={!isVideoWatched}   // ⬅⬅ bắt buộc phải xem xong video
                                     >
                                         Tiếp tục
                                     </Button>
                                 )}
+
                             </div>
                         </div>
                     )}

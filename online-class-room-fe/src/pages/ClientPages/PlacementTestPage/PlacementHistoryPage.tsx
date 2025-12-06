@@ -38,7 +38,7 @@ const PlacementHistoryPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50 py-10 px-4">
       <div className="text-center mb-10">
-        <h1 className="text-4xl text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-pink-600 mb-2">
+        <h1 className="text-4xl text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-blue-600 mb-2">
           Lịch sử làm bài test
         </h1>
         <p className="text-gray-600 text-lg mt-3">

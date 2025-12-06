@@ -29,6 +29,7 @@ export interface learningCourseSliceData {
     registrationData: CheckRegistrationCourseRespone | null;
     lastStepCompeleted: number | null;
     lastPostionCompleted: number;
+    isVideoWatched: boolean;
 }
 const initialStep: Step = {
     duration: 0,
@@ -81,12 +82,17 @@ const initialState: learningCourseSliceData = {
     registrationData: null,
     lastPostionCompleted: 1,
     lastStepCompeleted: null,
+    isVideoWatched: false,
 };
 
 export const learningCourseSlice = createSlice({
     name: 'learningCourse',
     initialState,
     reducers: {
+        setVideoWatched: (state, action) => {
+            state.isVideoWatched = action.payload;
+        },
+
         setLearingCourse: (state, action: PayloadAction<Course>) => {
             state.learningCourse = action.payload;
             state.stepActive = action.payload.sections[0].steps[0];
@@ -97,7 +103,7 @@ export const learningCourseSlice = createSlice({
         ) => {
             const step =
                 state.learningCourse.sections[action.payload.sectionIndex].steps[
-                    action.payload.stepIndex
+                action.payload.stepIndex
                 ];
             state.stepActive = step;
             state.temp.tempActiveSectionIndex = action.payload.sectionIndex;
@@ -106,6 +112,7 @@ export const learningCourseSlice = createSlice({
                 step.quizId != 1 && step.quizId != null ? LessionType.QUIZ : LessionType.VIDEO;
             state.isShowAnswer = false;
             state.quizAnswer = [];
+            state.isVideoWatched = false;
         },
         setStepActiveByStepId: (state, action: PayloadAction<number>) => {
             state.learningCourse.sections.forEach((section, sectionIndex) => {
@@ -118,6 +125,7 @@ export const learningCourseSlice = createSlice({
                     state.stepActiveType = step.quizId != 1 ? LessionType.QUIZ : LessionType.VIDEO;
                     state.isShowAnswer = false;
                     state.quizAnswer = [];
+                    state.isVideoWatched = false;
                 }
             });
         },
@@ -166,10 +174,11 @@ export const learningCourseSlice = createSlice({
                     step === undefined
                         ? LessionType.DONE
                         : step.quizId != 1
-                          ? LessionType.QUIZ
-                          : LessionType.VIDEO;
+                            ? LessionType.QUIZ
+                            : LessionType.VIDEO;
                 state.isShowAnswer = false;
                 state.quizAnswer = [];
+                state.isVideoWatched = false;
             } catch (e) {
                 console.log(e);
             }
@@ -177,7 +186,7 @@ export const learningCourseSlice = createSlice({
         tryAnswerAgain: (state) => {
             const step =
                 state.learningCourse.sections[state.temp.tempActiveSectionIndex].steps[
-                    state.temp.tempActiveStepIndex
+                state.temp.tempActiveStepIndex
                 ];
             state.stepActive = step;
             state.stepActiveType = step.quizId != 1 ? LessionType.QUIZ : LessionType.VIDEO;
@@ -191,14 +200,10 @@ export const learningCourseSlice = createSlice({
             state.registrationData = action.payload;
         },
         setLastStepCompleted: (state, action: PayloadAction<number>) => {
-            state.learningCourse.sections.forEach((section) => {
-                const index = section.steps.findIndex((step) => step.stepId === action.payload);
-                if (index >= 0) {
-                    state.lastStepCompeleted = action.payload;
-                    state.lastPostionCompleted = section.steps[index].position;
-                }
-            });
+            state.lastStepCompeleted = action.payload;
+            state.lastPostionCompleted = action.payload;  // <-- DÙNG stepId
         },
+
         setNextStepCompletedPos: (state) => {
             state.lastPostionCompleted = state.lastPostionCompleted + 1;
         },
@@ -207,6 +212,7 @@ export const learningCourseSlice = createSlice({
 
 export const {
     setLearingCourse,
+    setVideoWatched,
     setStepActive,
     setStepActiveByStepId,
     setQuestionAnswer,

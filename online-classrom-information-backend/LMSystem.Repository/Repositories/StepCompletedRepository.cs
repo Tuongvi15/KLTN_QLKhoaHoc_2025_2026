@@ -129,22 +129,35 @@ namespace LMSystem.Repository.Repositories
                     .Where(s => s.RegistrationId == registrationId)
                     .Select(s => s.StepId)
                     .FirstOrDefaultAsync();
+
+                // Nếu chưa học bài nào -> stepId = null
                 if (stepId == 0)
-                    return new ResponeModel { Status = "Error", Message = "No step were found for the specified registration id" };
+                {
+                    return new ResponeModel
+                    {
+                        Status = "Success",
+                        Message = "User has not completed any step yet",
+                        DataObject = new { stepId = (int?)null }
+                    };
+                }
+
                 return new ResponeModel
                 {
                     Status = "Success",
                     Message = "Get step id successfully",
                     DataObject = new { stepId }
                 };
-               
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Exception: {ex.Message}");
-                return new ResponeModel { Status = "Error", Message = "An error occurred while get stepId by the specified registration id" };
-
+                return new ResponeModel
+                {
+                    Status = "Error",
+                    Message = "Error getting stepId"
+                };
             }
         }
+
     }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input, Button, Upload, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import CkEditorCustom from "../../components/Community/CkEditorCustom";
@@ -29,8 +29,27 @@ export default function WriteArticlePage() {
             message.error("Upload ảnh bìa thất bại");
         }
     };
+    function getAuth() {
+        try {
+            const json = sessionStorage.getItem("persist:root");
+            if (!json) return null;
+
+            const root = JSON.parse(json);
+            const auth = JSON.parse(root.auth || "{}");
+
+            return auth?.isLogin ? auth : null;
+        } catch {
+            return null;
+        }
+    }
+useEffect(() => {
+    if (!getAuth()) {
+        navigate(`/login?redirect=/community/write`, { replace: true });
+    }
+}, []);
 
     const handleSaveDraft = async () => {
+        if (!getAuth()) return navigate(`/login?redirect=/community/write`);
         if (!title.trim()) return message.warning("Tiêu đề không được để trống");
 
         try {
@@ -48,6 +67,8 @@ export default function WriteArticlePage() {
     };
 
     const handlePublish = async () => {
+            if (!getAuth()) return navigate(`/login?redirect=/community/write`);
+
         if (!title.trim()) return message.warning("Tiêu đề không được để trống");
 
         try {
@@ -83,12 +104,12 @@ export default function WriteArticlePage() {
                     </Button>
 
                     <Button
-    loading={publishing}
-    onClick={handlePublish}
-    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
->
-    Xuất bản
-</Button>
+                        loading={publishing}
+                        onClick={handlePublish}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
+                    >
+                        Xuất bản
+                    </Button>
 
                 </div>
             </div>

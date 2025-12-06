@@ -149,6 +149,7 @@ export interface Step {
     stepDescription: string;
     quiz: any;
     section: any;
+    globalIndex?: number;
 }
 
 export interface AddStepRequest {

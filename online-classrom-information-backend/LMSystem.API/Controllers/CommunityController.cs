@@ -64,7 +64,6 @@ namespace LMSystem.API.Controllers
 
         // list articles (paged)
         [HttpGet("articles")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetArticles([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? q = null)
         {
             var (items, total) = await _repo.GetArticlesAsync(page, pageSize, q);
@@ -118,34 +117,27 @@ namespace LMSystem.API.Controllers
 
         // get article detail
         [HttpGet("article/{id}")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetArticle(int id)
         {
             var a = await _repo.GetArticleByIdAsync(id);
-            if (a == null) return NotFound(new { Status = "Error", Message = "Article not found" });
+            if (a == null)
+                return NotFound(new { Status = "Error", Message = "Article not found" });
 
-            // Email trong token
-            var email = User.FindFirstValue(ClaimTypes.Name);
+            string? email = User.Identity!.IsAuthenticated
+                ? User.FindFirstValue(ClaimTypes.Name)
+                : null;
 
-            if (string.IsNullOrEmpty(email))
+            string? currentUserId = null;
+
+            if (!string.IsNullOrEmpty(email))
             {
-                return Unauthorized(new { Status = "Error", Message = "Cannot get email from token" });
+                var account = await _accountRepo.GetAccountByEmail(email);
+                currentUserId = account?.Id;
             }
-
-            // Lookup trong database
-            var account = await _accountRepo.GetAccountByEmail(email);
-            if (account == null)
-            {
-                return Unauthorized(new { Status = "Error", Message = "Account not found" });
-            }
-
-            var currentUserId = account.Id;   // ← GIÁ TRỊ ĐÚNG
 
             bool isLiked = false;
-            if (!string.IsNullOrEmpty(currentUserId))
-            {
+            if (currentUserId != null)
                 isLiked = a.Likes.Any(l => l.AccountId == currentUserId);
-            }
 
             var dto = new ArticleDetailDto
             {
@@ -167,6 +159,7 @@ namespace LMSystem.API.Controllers
 
             return Ok(new { Status = "Success", Data = dto });
         }
+
 
         // toggle like (Teacher & Student)
         [HttpPost("article/{id}/like")]
@@ -347,7 +340,6 @@ namespace LMSystem.API.Controllers
 
         // get comments
         [HttpGet("article/{id}/comments")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetComments(int id)
         {
             var comments = await _repo.GetCommentsAsync(id);

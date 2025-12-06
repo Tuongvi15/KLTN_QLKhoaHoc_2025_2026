@@ -108,7 +108,7 @@ const ChatBox = () => {
             // Thêm error message
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
-                text: 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau!',
+                text: 'Hiện tại hệ thống đang bảo trì. Vui lòng thử lại sau!',
                 sender: 'bot',
                 timestamp: new Date(),
             };

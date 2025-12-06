@@ -74,7 +74,7 @@ const PlacementTestStartPage = () => {
             };
         });
 
-        const score = (correct / total) * 100;
+        const score = Number(((correct / total) * 100).toFixed(0));
         let level = "1";
         if (score >= 80) level = "3";
         else if (score >= 50) level = "2";
@@ -135,7 +135,7 @@ const PlacementTestStartPage = () => {
                     </div>
                     <Button
                         onClick={handleSubmit}
-                        className="!bg-gradient-to-r !from-purple-600 !to-pink-600 !text-white !font-semibold !rounded-full"
+                        className="!bg-gradient-to-r !from-blue-600 !to-blue-600 !text-white !font-semibold !rounded-full"
                     >
                         Nộp bài
                     </Button>
@@ -149,7 +149,7 @@ const PlacementTestStartPage = () => {
                     <div className="my-6">
                         <Progress
                             percent={Math.round(progress)}
-                            strokeColor={{ from: "#8b5cf6", to: "#ec4899" }}
+                            strokeColor={{ from: "#5c85f6ff", to: "#0f1d72ff" }}
                             showInfo={true}
                         />
                         <p className="text-center text-gray-500 mt-2 text-sm">
@@ -217,7 +217,7 @@ const PlacementTestStartPage = () => {
                         </h2>
 
                         <p className="text-center text-gray-700 mb-4">
-                            Điểm: <b>{latestResult.score}%</b> – Level: <b>{latestResult.level}</b>
+                            Điểm: <b>{latestResult.score}đ</b> – Level: <b>{latestResult.level}</b>
                         </p>
 
                         <h3 className="text-lg font-semibold mb-2">Gợi ý khóa học phù hợp</h3>

@@ -928,8 +928,11 @@ namespace LMSystem.Repository.Repositories
                     CreatedAt = a.CreatedAt,
                     a.ProfileImg,
                     Roles = _context.UserRoles.Where(ur => ur.UserId == a.Id)
-                                              .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId).Name)
-                                              .ToList()
+                                              .Select(ur => _context.Roles
+                    .Where(r => r.Id == ur.RoleId)
+                    .Select(r => r.Name)
+                    .FirstOrDefault() ?? "")
+
                 })
                 .ToListAsync();
 
@@ -937,7 +940,10 @@ namespace LMSystem.Repository.Repositories
 
             if (filterParams.SortBy == "role_asc")
             {
-                sortedAccounts = accountsWithDetails.OrderBy(a => a.Roles).ToList();
+                sortedAccounts = accountsWithDetails
+                    .OrderBy(a => a.Roles.FirstOrDefault())
+                    .ToList();
+
             }
             if (filterParams.SortBy == "role_desc")
             {
@@ -970,7 +976,10 @@ namespace LMSystem.Repository.Repositories
                     rearrangedAccounts.Add(account);
                     handledAccounts.Add(account.Id);
 
-                    var childAccounts = sortedAccounts.Where(a => a.Email == account.ParentEmail).ToList();
+                    var childAccounts = sortedAccounts
+    .Where(a => !string.IsNullOrEmpty(a.ParentEmail) && a.ParentEmail == account.Email)
+    .ToList();
+
                     foreach (var child in childAccounts)
                     {
                         if (!handledAccounts.Contains(child.Id))

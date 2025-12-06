@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Avatar, Input, message } from "antd";
+import { Avatar, Input, message, Modal } from "antd";
 import { useParams, useNavigate } from "react-router-dom";
 import {
     useGetArticleDetailQuery,
@@ -30,11 +30,25 @@ export default function ArticleDetailPage() {
 
     const [comment, setComment] = useState("");
     const [isLiked, setIsLiked] = useState(false);
+    const [showLoginModal, setShowLoginModal] = useState(false);
 
     // Drawer Comment
     const [openDrawer, setOpenDrawer] = useState(false);
 
     const article = articleResp?.data ?? articleResp;
+    function getAuth() {
+        try {
+            const json = sessionStorage.getItem("persist:root");
+            if (!json) return null;
+
+            const root = JSON.parse(json);
+            const auth = JSON.parse(root.auth || "{}");
+
+            return auth?.isLogin ? auth : null;
+        } catch {
+            return null;
+        }
+    }
 
     const formatDate = (dateStr?: string) => {
         if (!dateStr) return "—";
@@ -55,6 +69,11 @@ export default function ArticleDetailPage() {
     const comments = Array.isArray(commentsResp?.items) ? commentsResp.items : [];
 
     const handleLike = async () => {
+        if (!getAuth()) {
+            setShowLoginModal(true);
+            return;
+        }
+
         try {
             await likeArticle(articleId).unwrap();
             setIsLiked(!isLiked);
@@ -65,7 +84,13 @@ export default function ArticleDetailPage() {
         }
     };
 
+
     const handleSendComment = async () => {
+        if (!getAuth()) {
+            setShowLoginModal(true);
+            return;
+        }
+
         if (!comment.trim()) return;
 
         try {
@@ -78,6 +103,7 @@ export default function ArticleDetailPage() {
             message.error("Không thể gửi bình luận");
         }
     };
+
 
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -192,9 +218,8 @@ export default function ArticleDetailPage() {
             {/* Overlay */}
             <div
                 onClick={() => setOpenDrawer(false)}
-                className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[99] transition-opacity duration-300 ${
-                    openDrawer ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-                }`}
+                className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[99] transition-opacity duration-300 ${openDrawer ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+                    }`}
             />
 
             {/* Drawer */}
@@ -255,6 +280,27 @@ export default function ArticleDetailPage() {
                     </div>
                 </div>
             </div>
+
+            <Modal
+                open={showLoginModal}
+                onCancel={() => setShowLoginModal(false)}
+                footer={null}
+                centered
+            >
+                <h2 className="text-xl font-bold mb-2">Bạn cần đăng nhập</h2>
+                <p className="text-gray-600 mb-4">Hãy đăng nhập để thực hiện hành động này.</p>
+
+                <button
+                    className="w-full py-2 font-bold text-white"
+                    style={{ backgroundColor: "#7c3aed" }}
+                    onClick={() => {
+                        navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+                    }}
+                >
+                    Đăng nhập ngay
+                </button>
+            </Modal>
+
         </div>
     );
 }

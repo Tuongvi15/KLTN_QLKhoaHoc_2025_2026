@@ -127,18 +127,6 @@ const NotificationPopover = ({ onMakeIsReadNoti }: NotificationPopoverProps) => 
                     />
                 )}
             </div>
-
-            {/* Footer */}
-            {data && data.length > 0 && (
-                <div className="px-4 py-3 border-t border-gray-200 text-center">
-                    <button 
-                        className="text-sm font-bold text-[#5624d0] hover:text-[#401b9c] transition-colors"
-                        onClick={() => navigate('/notifications')}
-                    >
-                        Xem tất cả thông báo
-                    </button>
-                </div>
-            )}
         </div>
     );
 };
