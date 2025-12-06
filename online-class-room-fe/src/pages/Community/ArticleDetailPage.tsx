@@ -16,6 +16,7 @@ import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SendIcon from "@mui/icons-material/Send";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import ReportPopup from "../../components/Report/ReportPopup";
 
 export default function ArticleDetailPage() {
     const { id } = useParams();
@@ -34,6 +35,9 @@ export default function ArticleDetailPage() {
 
     // Drawer Comment
     const [openDrawer, setOpenDrawer] = useState(false);
+    const [reportOpen, setReportOpen] = useState(false);
+    const [reportType, setReportType] = useState<"Article" | "Comment">("Article");
+    const [reportTargetId, setReportTargetId] = useState<number | null>(null);
 
     const article = articleResp?.data ?? articleResp;
     function getAuth() {
@@ -131,6 +135,21 @@ export default function ArticleDetailPage() {
                     </button>
 
                     <div className="flex items-center gap-2">
+
+                        {/* Nút Báo cáo bài viết */}
+                        <button
+                            className="p-2 hover:bg-red-100 rounded-lg text-red-500"
+                            onClick={() => {
+                                if (!getAuth()) return setShowLoginModal(true);
+
+                                setReportType("Article");
+                                setReportTargetId(articleId);
+                                setReportOpen(true);
+                            }}
+                        >
+                            🚩
+                        </button>
+
                         <button onClick={handleShare} className="p-2 hover:bg-gray-100 rounded-lg">
                             <ShareIcon />
                         </button>
@@ -138,6 +157,7 @@ export default function ArticleDetailPage() {
                             <BookmarkBorderIcon />
                         </button>
                     </div>
+
                 </div>
             </div>
 
@@ -267,19 +287,41 @@ export default function ArticleDetailPage() {
                             <div key={item.commentId} className="p-4 bg-gray-50 rounded-lg">
                                 <div className="flex gap-3">
                                     <Avatar src={item.authorAvatar} />
-                                    <div>
+                                    <div className="flex-1">
                                         <div className="font-semibold">{item.authorName}</div>
                                         <div className="text-xs text-gray-400">
                                             {formatDate(item.createdAt)}
                                         </div>
                                         <p className="text-sm mt-1">{item.content}</p>
+
+                                        {/* Nút báo cáo bình luận */}
+                                        <button
+                                            className="text-red-500 text-xs mt-1 hover:underline"
+                                            onClick={() => {
+                                                if (!getAuth()) return setShowLoginModal(true);
+
+                                                setReportType("Comment");
+                                                setReportTargetId(item.commentId);
+                                                setReportOpen(true);
+                                            }}
+                                        >
+                                            Báo cáo bình luận
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         ))}
+
                     </div>
                 </div>
             </div>
+            <ReportPopup
+                open={reportOpen}
+                onClose={() => setReportOpen(false)}
+                type={reportType}
+                articleId={reportType === "Article" ? reportTargetId : undefined}
+                commentId={reportType === "Comment" ? reportTargetId : undefined}
+            />
 
             <Modal
                 open={showLoginModal}
@@ -292,7 +334,7 @@ export default function ArticleDetailPage() {
 
                 <button
                     className="w-full py-2 font-bold text-white"
-                    style={{ backgroundColor: "#7c3aed" }}
+                    style={{ backgroundColor: "#3a3dedff" }}
                     onClick={() => {
                         navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
                     }}

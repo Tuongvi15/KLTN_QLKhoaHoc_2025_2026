@@ -21,23 +21,4 @@ namespace LMSystem.Repository.Data
         AccountReport,
         Other
     }
-    public class SendRequestModel
-    {
-
-        public string AccountId { get; set; }
-
-        public RequestType Type { get; set; }
-
-        public string? Title { get; set; }
-
-        public string? Description { get; set; }
-    }
-   
-
-    public class ResolveRequestModel
-    {
-        public int ReportId { get; set; }
-        public ReportStatus Status { get; set; }
-        public DateTime newProCessingDay { get; set; }
-    }
 }

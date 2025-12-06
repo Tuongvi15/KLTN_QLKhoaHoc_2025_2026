@@ -15,25 +15,26 @@ namespace LMSystem.Services.Services
     public class ReportProblemService : IReportProblemService
     {
         private readonly IReportProblemRepository _reportProblemRepository;
-        public ReportProblemService(IReportProblemRepository reportProblemRepository) 
+        public ReportProblemService(IReportProblemRepository reportProblemRepository)
         {
-            _reportProblemRepository = reportProblemRepository;            
+            _reportProblemRepository = reportProblemRepository;
         }
-
-        public async Task<PagedList<ReportProblem>> GetAllReportProblem(PaginationParameter paginationParameter)
+        public async Task<ReportDetailDto?> GetReportDetail(int reportId)
         {
-            return await _reportProblemRepository.GetAllReportProblem(paginationParameter);
+            return await _reportProblemRepository.GetReportDetail(reportId);
         }
-
-
         public async Task<ReportProblem> SendRequestAsync(SendRequestModel model)
         {
             return await _reportProblemRepository.SendRequestAsync(model);
         }
-
+        public async Task<PagedList<ReportProblemListDto>> GetAllReportProblem(PaginationParameter paginationParameter)
+        {
+            return await _reportProblemRepository.GetAllReportProblem(paginationParameter);
+        }
         public async Task<ResponeModel> ResolveRequestAsync(ResolveRequestModel model)
         {
             return await _reportProblemRepository.ResolveRequestAsync(model);
         }
+        
     }
 }

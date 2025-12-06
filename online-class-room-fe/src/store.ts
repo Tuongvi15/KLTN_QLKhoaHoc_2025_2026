@@ -37,6 +37,7 @@ import parentSlice from './slices/parentSlice';
 import { ratingCourseApi } from './services/ratingCourse.services';
 import { bankAccountApi } from './services/bankAccount.service';
 import { communityApi } from './services/community.services';
+import { reportProblemApi } from "./services/reportProblem.services";
 
 export const persistConfig = {
     key: 'root',
@@ -81,6 +82,7 @@ const rootReducer = combineReducers({
     [placementTestApi.reducerPath]: placementTestApi.reducer,
     [bankAccountApi.reducerPath]: bankAccountApi.reducer,
     [communityApi.reducerPath]: communityApi.reducer,
+    [reportProblemApi.reducerPath]: reportProblemApi.reducer,
 
 });
 
@@ -109,7 +111,8 @@ export const store = configureStore({
             .concat(orderApi.middleware)
             .concat(ratingCourseApi.middleware)
             .concat(bankAccountApi.middleware)
-            .concat(communityApi.middleware),
+            .concat(communityApi.middleware)
+            .concat(reportProblemApi.middleware),
 
 
 });

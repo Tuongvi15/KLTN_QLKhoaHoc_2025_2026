@@ -67,6 +67,9 @@ export default function MySider() {
       getItem('Quản lý bài test đầu vào', 'sub3', <ExperimentOutlined />, [
         getItem('Bài test đầu vào', 'placementTest', <FileTextOutlined />),
       ]),
+
+      getItem("Quản lý báo cáo", "reportProblem", <FileTextOutlined />),
+
     ];
   };
   const location = useLocation();
@@ -90,6 +93,7 @@ export default function MySider() {
     .set('placementTest', '/admin/placement-tests')
     .set('courseRevenue', '/admin/course-revenue')
     .set('payout', '/admin/payout')
+    .set("reportProblem", "/admin/report-problems")
     .set('approveTeacher', '/admin/approve-teacher');
   ;
 
