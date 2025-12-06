@@ -902,14 +902,14 @@ namespace LMSystem.Repository.Repositories
 
         public async Task<AccountListResult> ViewAccountList(AccountFilterParameters filterParams)
         {
-            var accountsQuery = _context.Users
-               .AsQueryable();
+            var accountsQuery = _context.Users.AsQueryable();
 
             if (!string.IsNullOrEmpty(filterParams.Search))
             {
-                accountsQuery = accountsQuery.Where(a => a.FirstName.Contains(filterParams.Search) ||
-                                                          a.LastName.Contains(filterParams.Search) ||
-                                                          a.Email.Contains(filterParams.Search));
+                accountsQuery = accountsQuery.Where(a =>
+                    a.FirstName.Contains(filterParams.Search) ||
+                    a.LastName.Contains(filterParams.Search) ||
+                    a.Email.Contains(filterParams.Search));
             }
 
             var accountsWithDetails = await accountsQuery
@@ -925,67 +925,47 @@ namespace LMSystem.Repository.Repositories
                     a.Status,
                     a.Biography,
                     a.BirthDate,
-                    CreatedAt = a.CreatedAt,
+                    a.CreatedAt,   // giữ nguyên DateTime?
                     a.ProfileImg,
-                    Roles = _context.UserRoles.Where(ur => ur.UserId == a.Id)
-                                              .Select(ur => _context.Roles
-                    .Where(r => r.Id == ur.RoleId)
-                    .Select(r => r.Name)
-                    .FirstOrDefault() ?? "")
-
+                    Roles = _context.UserRoles
+                        .Where(ur => ur.UserId == a.Id)
+                        .Select(ur => _context.Roles.FirstOrDefault(r => r.Id == ur.RoleId).Name)
+                        .ToList()
                 })
                 .ToListAsync();
 
             var sortedAccounts = accountsWithDetails.ToList();
 
             if (filterParams.SortBy == "role_asc")
-            {
-                sortedAccounts = accountsWithDetails
-                    .OrderBy(a => a.Roles.FirstOrDefault())
-                    .ToList();
-
-            }
-            if (filterParams.SortBy == "role_desc")
-            {
-                sortedAccounts = accountsWithDetails.OrderByDescending(a => a.Roles).ToList();
-            }
+                sortedAccounts = sortedAccounts.OrderBy(a => a.Roles).ToList();
+            else if (filterParams.SortBy == "role_desc")
+                sortedAccounts = sortedAccounts.OrderByDescending(a => a.Roles).ToList();
             else if (filterParams.SortBy == "name_asc")
-            {
-                sortedAccounts = accountsWithDetails.OrderBy(a => a.FirstName).ThenBy(a => a.LastName).ToList();
-            }
+                sortedAccounts = sortedAccounts.OrderBy(a => a.FirstName).ThenBy(a => a.LastName).ToList();
             else if (filterParams.SortBy == "name_desc")
-            {
-                sortedAccounts = accountsWithDetails.OrderByDescending(a => a.FirstName).ThenBy(a => a.LastName).ToList();
-            }
-
+                sortedAccounts = sortedAccounts.OrderByDescending(a => a.FirstName).ThenBy(a => a.LastName).ToList();
             else if (filterParams.SortBy == "email_asc")
-            {
-                sortedAccounts = accountsWithDetails.OrderBy(a => a.Email).ToList();
-            }
+                sortedAccounts = sortedAccounts.OrderBy(a => a.Email).ToList();
             else if (filterParams.SortBy == "email_desc")
-            {
-                sortedAccounts = accountsWithDetails.OrderByDescending(a => a.Email).ToList();
-            }
+                sortedAccounts = sortedAccounts.OrderByDescending(a => a.Email).ToList();
 
             var rearrangedAccounts = new List<dynamic>();
-            var handledAccounts = new HashSet<string>();
+            var handled = new HashSet<string>();
+
             foreach (var account in sortedAccounts)
             {
-                if (!handledAccounts.Contains(account.Id))
+                if (!handled.Contains(account.Id))
                 {
                     rearrangedAccounts.Add(account);
-                    handledAccounts.Add(account.Id);
+                    handled.Add(account.Id);
 
-                    var childAccounts = sortedAccounts
-    .Where(a => !string.IsNullOrEmpty(a.ParentEmail) && a.ParentEmail == account.Email)
-    .ToList();
-
-                    foreach (var child in childAccounts)
+                    var children = sortedAccounts.Where(a => a.Email == account.ParentEmail).ToList();
+                    foreach (var child in children)
                     {
-                        if (!handledAccounts.Contains(child.Id))
+                        if (!handled.Contains(child.Id))
                         {
                             rearrangedAccounts.Add(child);
-                            handledAccounts.Add(child.Id);
+                            handled.Add(child.Id);
                         }
                     }
                 }
@@ -1008,10 +988,15 @@ namespace LMSystem.Repository.Repositories
                     Biography = a.Biography,
                     BirthDate = a.BirthDate,
                     ProfileImg = a.ProfileImg,
-                    CreatedAt = a.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")
+
+                    // ⭐ GIỮ NGUYÊN NULLABLE DATETIME → OK
+                    CreatedAt = (a.CreatedAt is DateTime dt)
+            ? dt.ToLocalTime()
+            : (DateTime?)null
+
+                    // ⛔ ABSOLUTELY NO ToString()
                 })
                 .ToList();
-
 
             return new AccountListResult
             {
@@ -1022,6 +1007,7 @@ namespace LMSystem.Repository.Repositories
                 TotalPages = (int)Math.Ceiling((double)rearrangedAccounts.Count / filterParams.PageSize)
             };
         }
+
 
         private AccountModelGetList MapToAccountModelGetList(dynamic a)
         {
