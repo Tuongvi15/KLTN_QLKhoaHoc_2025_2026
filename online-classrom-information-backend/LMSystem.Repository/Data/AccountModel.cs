@@ -50,6 +50,7 @@ namespace LMSystem.Repository.Data
         public string? Email { get; set; }
         public string? ParentEmail { get; set; }
         public string? Status { get; set; }
+        public string?CvUrl { get; set; }
         public string? Role { get; set; }
 
         [Display(Name = "Date of Birth")]

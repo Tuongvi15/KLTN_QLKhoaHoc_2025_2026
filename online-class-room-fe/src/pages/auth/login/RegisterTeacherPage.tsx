@@ -68,7 +68,7 @@ function RegisterTeacherPage() {
     const handleOnSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (!cvUrl) {
+        if (!formData.cvUrl) {
             notification.error({
                 message: "Thiếu CV",
                 description: "Vui lòng upload CV PDF trước khi đăng ký.",
@@ -163,7 +163,7 @@ function RegisterTeacherPage() {
                         <div className="ml-1 mt-[10%]">
                             <h1 className="text-3xl">Đăng ký</h1>
                             <p className="text-base text-grayLine mt-2">
-                                Chào mừng đến với hệ thống!  
+                                Chào mừng đến với hệ thống!
                                 Vui lòng điền thông tin bên dưới để trở thành giáo viên.
                             </p>
                         </div>
@@ -222,13 +222,15 @@ function RegisterTeacherPage() {
                                 showPreview={false}
                                 onUploadFileSuccess={(url) => {
                                     setCvUrl(url);
-                                    setFormData({ ...formData, cvUrl: url }); // ⭐ UPDATE FORM
+                                    setFormData(prev => ({ ...prev, cvUrl: url }));
+
                                 }}
                                 onUploadFileError={(err) => console.log(err)}
                             />
-                            {!cvUrl && (
+                            {!formData.cvUrl && (
                                 <p className="text-red-500 text-sm">Vui lòng upload CV PDF</p>
                             )}
+
                         </div>
 
                         {/* PASSWORD */}

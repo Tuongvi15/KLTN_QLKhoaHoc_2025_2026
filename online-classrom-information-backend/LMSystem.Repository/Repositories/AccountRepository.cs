@@ -338,7 +338,8 @@ namespace LMSystem.Repository.Repositories
                     Status = a.Status,
                     ProfileImg = a.ProfileImg,
                     Role = "Teacher",
-                    CreatedAt = a.CreatedAt
+                    CreatedAt = a.CreatedAt,
+                    CvUrl = a.CvUrl,
                 })
                 .ToListAsync();
 
