@@ -7,6 +7,7 @@ import { PagingParam } from '../../../../types/TableParam';
 import { useAccountAll } from '../../../../hooks/useAccountAll';
 import { useEffect, useState } from 'react';
 import { useDeleteAccountMutation, useGetAccountDetailQuery, useRestoreAccountMutation } from '../../../../services/account.services';
+import dayjs from "dayjs";
 
 type GetAllAccountProps = {
     pagination: { current: number; total: number };
@@ -104,7 +105,9 @@ const columns = ({
             title: 'Ngày tạo',
             dataIndex: 'createdAt',
             width: '8%',
+            render: (createdAt) => dayjs(createdAt).format("DD-MM-YYYY HH:mm:ss"),
         },
+
         {
             title: <div className="font-semibold">Vai trò</div>,
             dataIndex: 'role',
@@ -468,7 +471,7 @@ const GetAllAccount = () => {
                 open={restoreModalVisible}
                 onOk={confirmRestore}
                 onCancel={cancelRestore}
-                okButtonProps={{ className: 'bg-green-600 text-white' }}
+                okButtonProps={{ className: 'bg-blue-700 text-white' }}
                 cancelButtonProps={{ className: 'bg-red-500 text-white' }}
                 okText="Kích hoạt"
                 cancelText="Hủy"

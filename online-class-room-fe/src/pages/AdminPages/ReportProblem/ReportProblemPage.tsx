@@ -5,6 +5,7 @@ import ReportProblemModal from "../../../components/ReportProblemModal/ReportPro
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
 dayjs.extend(utc);
 
@@ -30,7 +31,8 @@ export default function ReportProblemPage() {
             default: return status;
         }
     };
-
+    dayjs.extend(utc);
+    dayjs.extend(timezone);
     const columns = [
         {
             title: "STT",
@@ -56,8 +58,11 @@ export default function ReportProblemPage() {
             title: "Ngày tạo",
             dataIndex: "createDate",
             render: (date: string | null) =>
-                date ? dayjs.utc(date).format("DD/MM/YYYY HH:mm") : "—",
+                date
+                    ? dayjs(date).format("DD/MM/YYYY HH:mm")
+                    : "—"
         },
+
 
         {
             title: "Trạng thái",
@@ -75,15 +80,16 @@ export default function ReportProblemPage() {
 
         {
             title: "Hành động",
-            render: (_: any, row: any) =>
-                row.reportStatus === "Pending" ? (
+            render: (_: any, row: any) => (
+                <>
+                    {/* Luôn có nút xem chi tiết */}
                     <Button type="link" onClick={() => setSelectedId(row.reportId)}>
-                        Xử lý
+                        Xem chi tiết
                     </Button>
-                ) : (
-                    <span style={{ color: "gray" }}>—</span>
-                ),
-        },
+                </>
+            )
+        }
+        ,
     ];
 
     return (

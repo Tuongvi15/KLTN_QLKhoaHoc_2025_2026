@@ -309,6 +309,14 @@ const GetAllCourse = () => {
         if (selectedTeacherId && c.accountId !== selectedTeacherId)
             return false;
 
+        if (dateRange && (dateRange[0] || dateRange[1])) {
+            const created = new Date(c.createAt);
+            const from = dateRange[0] ? new Date(dateRange[0]) : null;
+            const to = dateRange[1] ? new Date(dateRange[1] + "T23:59:59") : null;
+
+            if (from && created < from) return false;
+            if (to && created > to) return false;
+        }
         return true;
     });
 

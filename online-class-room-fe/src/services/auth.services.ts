@@ -32,6 +32,7 @@ export interface RegisterUserRequest {
     birthDate: string;
     accountPassword: string;
     confirmAccountPassword: string;
+    cvUrl: string;
 }
 
 export interface RegisterAdminRequest {
@@ -58,6 +59,7 @@ export interface RegisterTeacherRequest {
     birthDate: string;
     accountPassword: string;
     confirmAccountPassword: string;
+    cvUrl: string;
 }
 
 

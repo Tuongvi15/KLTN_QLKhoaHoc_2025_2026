@@ -17,6 +17,7 @@ namespace LMSystem.Repository.Data
         [Required(ErrorMessage = "Email is required!"), EmailAddress(ErrorMessage = "Please enter valid email!")]
         public required string AccountEmail { get; set; }
         public required DateTime BirthDate { get; set; }
+        public string? CvUrl { get; set; }
 
         [Required(ErrorMessage = "Password is required!")]
         [Display(Name = "Password")]

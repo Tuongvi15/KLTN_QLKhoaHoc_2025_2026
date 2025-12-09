@@ -15,9 +15,13 @@ import AppsOutlinedIcon from '@mui/icons-material/AppsOutlined';
 import { Menu, MenuProps } from 'antd';
 import Sider from 'antd/es/layout/Sider';
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '../../../utils/cn';
 import { useLocation } from "react-router-dom";
+import SearchIcon from '@mui/icons-material/Search';
+import SchoolIcon from '@mui/icons-material/School';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import ExploreIcon from '@mui/icons-material/Explore';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -77,7 +81,7 @@ export default function MySider() {
   useEffect(() => {
     if (location.pathname === "/admin/getAllAccount") {
       setCollapsed(true);   // ⭐ Tự động thu nhỏ khi vào trang danh sách account
-    }else if (location.pathname === "/admin/getAllCourse") {
+    } else if (location.pathname === "/admin/getAllCourse") {
       setCollapsed(true);   // ⭐ Tự động thu nhỏ khi vào trang danh sách account
     }
   }, [location.pathname]);
@@ -113,18 +117,13 @@ export default function MySider() {
     >
 
       {/* 🔹 Logo */}
-      <div className="demo-logo-vertical border-r-[1px] border-gray-200">
-        <img
-          src="https://firebasestorage.googleapis.com/v0/b/estudyhub-a1699.appspot.com/o/logo%2Flogo-black-tail.png?alt=media&token=e65f65a8-94a6-4504-a370-730b122ba42e"
-          alt="logo"
-          className={cn('mx-auto max-w-[199px] py-2', { hidden: collapsed })}
-        />
-        <img
-          src="https://firebasestorage.googleapis.com/v0/b/estudyhub-a1699.appspot.com/o/logo%2Fe-black.png?alt=media&token=a0a401b9-6d20-4597-833c-962457c543ac"
-          alt="logo"
-          className={cn('mx-auto max-w-[20px] py-2', { hidden: !collapsed })}
-        />
-      </div>
+      {/* Logo */}
+      <Link to={'/'} className="flex items-center">
+        <div className="flex items-center">
+          <SchoolIcon sx={{ fontSize: 30, color: '#00497cff' }} />
+          <span className="ml-1 text-2xl font-bold text-[#1c1d1f] hidden sm:inline">eStudyHub</span>
+        </div>
+      </Link>
 
       {/* 🔹 Menu chính */}
       <Menu

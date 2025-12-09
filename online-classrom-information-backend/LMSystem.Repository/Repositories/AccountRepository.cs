@@ -538,6 +538,7 @@ namespace LMSystem.Repository.Repositories
                         Email = model.AccountEmail,
                         PhoneNumber = model.AccountPhone,
                         EmailConfirmed = true,
+                        CvUrl = model.CvUrl
                     };
                     var result = await userManager.CreateAsync(user, model.AccountPassword);
                     string errorMessage = null;

@@ -11,6 +11,7 @@ import {
 } from '../../../utils/Validation';
 import { GoogleAuthProvider, getAuth, signInWithPopup } from 'firebase/auth';
 import { app } from '../../../firebase/firebase';
+import UploadFileCustom, { UploadFileType } from '../../../components/UploadFile/UploadFileCustom';
 
 const initFromData: RegisterUserRequest = {
     accountEmail: '',
@@ -20,6 +21,7 @@ const initFromData: RegisterUserRequest = {
     lastName: '',
     firstName: '',
     accountPhone: 'null',
+    cvUrl: ''   // ⭐ THÊM DÒNG NÀY
 };
 
 interface validationProps {
@@ -41,17 +43,22 @@ function RegisterTeacherPage() {
     const [confirmPasswordValidation, setConfirmPasswordValidation] = useState(initialValidation);
     const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
+
     const [
         registerUser,
         { isLoading: isRegisterLoading, isSuccess: isRegisterSuccess, isError: isRegisterError },
     ] = useRegisterTeacherMutation();
 
+    const [cvUrl, setCvUrl] = useState<string>("");
+
+    // ERROR
     useEffect(() => {
         if (isRegisterError) {
             setErrorMessage('Email đã có người sử dụng');
         }
     }, [isRegisterError]);
 
+    // SUCCESS → redirect
     useEffect(() => {
         if (isRegisterSuccess) {
             navigate('/login');
@@ -60,48 +67,52 @@ function RegisterTeacherPage() {
 
     const handleOnSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        if (!cvUrl) {
+            notification.error({
+                message: "Thiếu CV",
+                description: "Vui lòng upload CV PDF trước khi đăng ký.",
+            });
+            return;
+        }
+
         try {
-            // const result = await registerUser(formData).unwrap();
-            await registerUser(formData).unwrap();
-            // Display success notification
+            const payload = {
+                ...formData,
+                cvUrl: cvUrl, // ⭐ GỬI CV VỀ BACKEND
+            };
+
+            await registerUser(payload).unwrap();
+
             notification.success({
                 message: 'Đăng kí thành công!',
-                description:
-                    'Bạn đã đăng kí thành công. Hãy kiểm tra email đăng kí của bạn để xác thực tài khoản!',
+                description: 'Hãy kiểm tra email của bạn để xác thực tài khoản!',
                 duration: 5,
             });
-            // Use setTimeout to delay navigation, allowing the user to read the notification
-            // setTimeout(() => {
-            //     navigate('/login');
-            // }, 2500);
+
         } catch (error) {
-            let message = 'Đăng kí thất bại! Hãy thử lại lần nữa.';
-            if (error instanceof Error) {
-                message = error.message;
-            }
-            // Display the error message to the user
             notification.error({
                 message: 'Đăng kí thất bại',
-                description: message,
+                description: 'Vui lòng thử lại.',
             });
         }
     };
 
     const handleOnFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { isError, message } = checkEmptyValidation(e.target.value);
-        setEmptyValidation({ isError: isError, errorMessage: message });
+        setEmptyValidation({ isError, errorMessage: message });
         setFormData({ ...formData, firstName: e.target.value });
     };
 
     const handleOnLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { isError, message } = checkEmptyValidation(e.target.value);
-        setEmptyValidation({ isError: isError, errorMessage: message });
+        setEmptyValidation({ isError, errorMessage: message });
         setFormData({ ...formData, lastName: e.target.value });
     };
 
     const handleOnEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { isError, message } = checkEmailValidaion(e.target.value);
-        setEmailValidation({ isError: isError, errorMessage: message });
+        setEmailValidation({ isError, errorMessage: message });
         setFormData({ ...formData, accountEmail: e.target.value });
     };
 
@@ -110,7 +121,7 @@ function RegisterTeacherPage() {
             e.target.value,
             formData.confirmAccountPassword,
         );
-        setPasswordValidation({ isError: isError, errorMessage: message });
+        setPasswordValidation({ isError, errorMessage: message });
         setFormData({ ...formData, accountPassword: e.target.value });
     };
 
@@ -119,7 +130,7 @@ function RegisterTeacherPage() {
             formData.accountPassword,
             e.target.value,
         );
-        setConfirmPasswordValidation({ isError: isError, errorMessage: message });
+        setConfirmPasswordValidation({ isError, errorMessage: message });
         setFormData({ ...formData, confirmAccountPassword: e.target.value });
     };
 
@@ -128,9 +139,8 @@ function RegisterTeacherPage() {
             const auth = await getAuth(app);
             const provider = new GoogleAuthProvider();
             const userData = await signInWithPopup(auth, provider);
-            console.log(userData);
             const { displayName, email, photoURL } = userData.user;
-            // Lưu thông tin người dùng vào localStorage
+
             localStorage.setItem(
                 'userLogin',
                 JSON.stringify({ name: displayName, email, avatar: photoURL }),
@@ -149,14 +159,16 @@ function RegisterTeacherPage() {
                     onSubmit={handleOnSubmit}
                     className="mt-2 flex flex-col items-center justify-center space-y-5"
                 >
-                    <section className="w-[80%] space-y-5 ">
-                        <div className=" ml-1 mt-[10%] ">
+                    <section className="w-[80%] space-y-5">
+                        <div className="ml-1 mt-[10%]">
                             <h1 className="text-3xl">Đăng ký</h1>
-                            <p className="sm:max-xl:text-md mt-2 text-base text-grayLine">
-                                Mừng đến với hệ thống!
-                                Vui lòng điền thông tin bên dưới để trở thành giáo viên
+                            <p className="text-base text-grayLine mt-2">
+                                Chào mừng đến với hệ thống!  
+                                Vui lòng điền thông tin bên dưới để trở thành giáo viên.
                             </p>
                         </div>
+
+                        {/* FIRST NAME */}
                         <div>
                             <Input
                                 required
@@ -168,10 +180,10 @@ function RegisterTeacherPage() {
                                 placeholder="Nhập họ của bạn"
                                 status={emptyValidation.isError ? 'error' : undefined}
                             />
-                            <p className="ml-2 mt-1 text-sm text-red-500">
-                                {emptyValidation.errorMessage}
-                            </p>
+                            <p className="text-red-500 text-sm">{emptyValidation.errorMessage}</p>
                         </div>
+
+                        {/* LAST NAME */}
                         <div>
                             <Input
                                 required
@@ -183,10 +195,10 @@ function RegisterTeacherPage() {
                                 placeholder="Nhập tên của bạn"
                                 status={emptyValidation.isError ? 'error' : undefined}
                             />
-                            <p className="ml-2 mt-1 text-sm text-red-500">
-                                {emptyValidation.errorMessage}
-                            </p>
+                            <p className="text-red-500 text-sm">{emptyValidation.errorMessage}</p>
                         </div>
+
+                        {/* EMAIL */}
                         <div>
                             <Input
                                 onChange={handleOnEmailChange}
@@ -197,10 +209,29 @@ function RegisterTeacherPage() {
                                 placeholder="Nhập địa chỉ Email"
                                 status={emailValidation.isError ? 'error' : undefined}
                             />
-                            <p className="ml-2 mt-1 text-sm text-red-500">
-                                {emailValidation.errorMessage}
-                            </p>
+                            <p className="text-red-500 text-sm">{emailValidation.errorMessage}</p>
                         </div>
+
+                        {/* CV UPLOAD */}
+                        <div>
+                            <label className="font-medium">Upload CV (PDF)</label>
+                            <UploadFileCustom
+                                storePath="teacher-cv"
+                                fileName={`cv-${Date.now()}.pdf`}
+                                fileType={UploadFileType.PDF}
+                                showPreview={false}
+                                onUploadFileSuccess={(url) => {
+                                    setCvUrl(url);
+                                    setFormData({ ...formData, cvUrl: url }); // ⭐ UPDATE FORM
+                                }}
+                                onUploadFileError={(err) => console.log(err)}
+                            />
+                            {!cvUrl && (
+                                <p className="text-red-500 text-sm">Vui lòng upload CV PDF</p>
+                            )}
+                        </div>
+
+                        {/* PASSWORD */}
                         <div>
                             <Input.Password
                                 onChange={handleOnPasswordChange}
@@ -213,10 +244,10 @@ function RegisterTeacherPage() {
                                     visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
                                 }
                             />
-                            <p className="ml-2 mt-1 text-sm text-red-500">
-                                {passwordValidation.errorMessage}
-                            </p>
+                            <p className="text-red-500 text-sm">{passwordValidation.errorMessage}</p>
                         </div>
+
+                        {/* CONFIRM PASSWORD */}
                         <div>
                             <Input.Password
                                 onChange={handleOnConfirmPasswordChange}
@@ -229,53 +260,61 @@ function RegisterTeacherPage() {
                                     visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
                                 }
                             />
-                            <p className="ml-2 mt-1 text-sm text-red-500">
-                                {confirmPasswordValidation.errorMessage}
-                            </p>
+                            <p className="text-red-500 text-sm">{confirmPasswordValidation.errorMessage}</p>
                         </div>
                     </section>
-                    <p className="ml-2 text-sm text-red-500">{errorMessage}</p>
+
+                    {/* ERROR MESSAGE */}
+                    <p className="text-red-500 text-sm">{errorMessage}</p>
+
+                    {/* SUBMIT BUTTON */}
                     <Button
                         disabled={
+                            !cvUrl ||
                             emailValidation.isError ||
                             passwordValidation.isError ||
                             confirmPasswordValidation.isError ||
-                            emailParentValidation.isError ||
                             formData.accountEmail.length === 0 ||
                             formData.accountPassword.length === 0 ||
-                            formData.confirmAccountPassword.length === 0 
+                            formData.confirmAccountPassword.length === 0
                         }
                         htmlType="submit"
                         loading={isRegisterLoading}
                         type="default"
-                        className="text-md  h-11 w-[70%] bg-greenHome font-bold"
+                        className="h-11 w-[70%] bg-greenHome font-bold"
                     >
                         Đăng ký
                     </Button>
-                    <div>Hay</div>
+
+                    <div>Hoặc</div>
+
+                    {/* GOOGLE LOGIN */}
                     <Button
                         type="default"
-                        className=" flex h-11 w-[70%] items-center justify-center space-x-2 text-lg"
+                        className="flex h-11 w-[70%] items-center justify-center space-x-2 text-lg"
                         onClick={handleLoginWithGoogle}
                     >
                         <GoogleOutlined style={{ fontSize: '24px', color: 'red' }} />
                         <span className="text-black">Google</span>
                     </Button>
+
                     <div>
-                        Đã có tài khoản?{' '}
+                        Đã có tài khoản?{" "}
                         <Link to={'/login'} className="text-red-500">
                             Đăng nhập ngay.
                         </Link>
                     </div>
                 </form>
             </div>
+
+            {/* RIGHT PANEL */}
             <div className="hidden sm:block sm:w-[70%]">
                 <img
                     src="https://firebasestorage.googleapis.com/v0/b/estudyhub-a1699.appspot.com/o/logo%2Flogo-black-tail.png?alt=media&token=e65f65a8-94a6-4504-a370-730b122ba42e"
                     alt="logo"
                     className="absolute right-1 top-2 w-[100px]"
                 />
-                <MyCarouselLogin></MyCarouselLogin>
+                <MyCarouselLogin />
             </div>
         </div>
     );

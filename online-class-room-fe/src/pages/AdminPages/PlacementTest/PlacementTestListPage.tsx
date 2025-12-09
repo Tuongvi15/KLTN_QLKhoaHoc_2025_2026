@@ -7,6 +7,10 @@ import {
 import { PlacementTest } from "../../../types/PlacementTest.type";
 import AddPlacementTestPage from "./AddPlacementTestPage";
 import { useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
 
 const PlacementTestListPage = () => {
   const navigate = useNavigate();
@@ -19,6 +23,8 @@ const PlacementTestListPage = () => {
     refetchOnMountOrArgChange: true,
   });
   const [deleteTest] = useDeletePlacementTestMutation();
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
 
   const [selectedTest, setSelectedTest] = useState<PlacementTest | null>(null);
 
@@ -65,6 +71,20 @@ const PlacementTestListPage = () => {
           <Tag color="default">Chưa hoạt động</Tag>
         ),
     },
+    {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      width: 150,
+      render: (date: string) => {
+        if (!date) return "—";
+
+        return dayjs
+          .utc(date)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("DD/MM/YYYY HH:mm");
+      },
+    },
+
     {
       title: "Hành động",
       render: (_: unknown, record: PlacementTest) => (

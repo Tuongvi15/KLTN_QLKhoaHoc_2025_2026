@@ -16,6 +16,7 @@ import { firebaseStorage } from '../../firebase/firebase';
 export enum UploadFileType {
     IMAGE,
     VIDEO,
+    PDF,
 }
 
 export enum UploadStyle {
@@ -38,6 +39,8 @@ interface UploadFileProps {
 
 const ImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
 const VideoExtensions = ['mp4', 'avi', 'mov', 'webm', 'mkv'];
+const PdfExtensions = ['pdf'];
+
 const UploadFileCustom = ({
     storePath,
     onUploadFileSuccess,
@@ -51,7 +54,10 @@ const UploadFileCustom = ({
     uploadStyle = UploadStyle.LARGE,
 }: UploadFileProps) => {
     const [Preview, setPreview] = useState<string | undefined>(undefined);
-    const allowedExtensions = fileType === UploadFileType.IMAGE ? ImageExtensions : VideoExtensions;
+const allowedExtensions =
+    fileType === UploadFileType.IMAGE ? ImageExtensions :
+    fileType === UploadFileType.VIDEO ? VideoExtensions :
+    PdfExtensions;
     const errorMessageTypeFit =
         UploadFileType.IMAGE === fileType
             ? 'Vui lòng chỉ chọn file ảnh!'

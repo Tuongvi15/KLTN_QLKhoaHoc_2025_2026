@@ -21,6 +21,7 @@ const PlacementTestStartPage = () => {
     const [timeLeft, setTimeLeft] = useState(TEST_DURATION);
     const [showResultPopup, setShowResultPopup] = useState(false);
     const [latestResult, setLatestResult] = useState<any>(null);
+    const [isTimeUp, setIsTimeUp] = useState(false);
 
     const navigate = useNavigate();
     useEffect(() => {
@@ -30,12 +31,17 @@ const PlacementTestStartPage = () => {
     // Countdown timer
     useEffect(() => {
         if (timeLeft <= 0) {
-            handleSubmit();
+            if (!isTimeUp) {
+                setIsTimeUp(true);
+                handleSubmit();   // chạy 1 lần duy nhất
+            }
             return;
         }
-        const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+
+        const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
         return () => clearInterval(timer);
-    }, [timeLeft]);
+    }, [timeLeft, isTimeUp]);
+
 
     const formattedTime = useMemo(() => {
         const min = Math.floor(timeLeft / 60)
@@ -134,6 +140,7 @@ const PlacementTestStartPage = () => {
                         {formattedTime}
                     </div>
                     <Button
+                        disabled={isTimeUp}
                         onClick={handleSubmit}
                         className="!bg-gradient-to-r !from-blue-600 !to-blue-600 !text-white !font-semibold !rounded-full"
                     >
@@ -177,6 +184,7 @@ const PlacementTestStartPage = () => {
                                     className="shadow-lg rounded-xl mb-6 border border-gray-200 hover:shadow-xl transition-all"
                                 >
                                     <Radio.Group
+                                        disabled={isTimeUp}
                                         onChange={(e) =>
                                             handleAnswerChange(q.questionId, e.target.value)
                                         }

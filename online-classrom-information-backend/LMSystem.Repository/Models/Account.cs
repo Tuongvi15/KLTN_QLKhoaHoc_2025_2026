@@ -16,6 +16,7 @@ public partial class Account : IdentityUser
     public DateTime? BirthDate { get; set; }
 
     public string? ProfileImg { get; set; }
+    public string? CvUrl { get; set; }
 
     public string? Sex { get; set; }
     public string? ParentEmail { get; set; }
