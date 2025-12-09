@@ -20,6 +20,7 @@ const initFromData: RegisterUserRequest = {
     lastName: '',
     firstName: '',
     accountPhone: 'null',
+    cvUrl: ''
 };
 
 interface validationProps {
