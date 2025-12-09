@@ -54,10 +54,10 @@ const UploadFileCustom = ({
     uploadStyle = UploadStyle.LARGE,
 }: UploadFileProps) => {
     const [Preview, setPreview] = useState<string | undefined>(undefined);
-const allowedExtensions =
-    fileType === UploadFileType.IMAGE ? ImageExtensions :
-    fileType === UploadFileType.VIDEO ? VideoExtensions :
-    PdfExtensions;
+    const allowedExtensions =
+        fileType === UploadFileType.IMAGE ? ImageExtensions :
+            fileType === UploadFileType.VIDEO ? VideoExtensions :
+                PdfExtensions;
     const errorMessageTypeFit =
         UploadFileType.IMAGE === fileType
             ? 'Vui lòng chỉ chọn file ảnh!'
@@ -117,20 +117,34 @@ const allowedExtensions =
     };
 
     const handleOnSelectedFileChange = (info: UploadChangeParam<UploadFile<any>>) => {
-        if (isImageFile) {
-            const reader = new FileReader();
-            const file = info.fileList.pop()?.originFileObj;
-            if (file) {
-                reader.readAsDataURL(file);
-                reader.onload = () => {
-                    setPreview(reader.result as string);
-                };
-                setSelectedFile(file);
-            }
-        } else {
+        const file = info.fileList.pop()?.originFileObj;
+        if (!file) return;
+
+        const extension = file.name.split('.').pop()?.toLowerCase();
+        const isAllowed = allowedExtensions.includes(extension || "");
+
+        if (!isAllowed) {
             message.error(errorMessageTypeFit);
+            return;
         }
+
+        // ⭐ Cho phép PDF – không cần preview ảnh/video
+        if (fileType === UploadFileType.PDF) {
+            setPreview(undefined);
+            setSelectedFile(file);
+            return;
+        }
+
+        // ⭐ Ảnh hoặc video: xử lý preview
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            setPreview(reader.result as string);
+        };
+
+        setSelectedFile(file);
     };
+
 
     const handleOnInputFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         var extentionFile = e.target.value.slice(((e.target.value.lastIndexOf('.') - 1) >>> 0) + 2);
