@@ -19,7 +19,7 @@ namespace LMSystem.Services.Services
         {
             var message = new EmailMessage
             {
-                From = "eHubSystem <onboarding@resend.dev>",
+                From = "eHubSystem <onboarding@estudyhub.id.vn>",
                 To = req.To,
                 Subject = req.Subject,
                 HtmlBody = req.Content
@@ -32,7 +32,7 @@ namespace LMSystem.Services.Services
         {
             var message = new EmailMessage
             {
-                From = "eHubSystem <onboarding@resend.dev>",
+                From = "eHubSystem <onboarding@estudyhub.id.vn>",
                 To = req.To,
                 Subject = req.Subject,
                 HtmlBody = req.Content
