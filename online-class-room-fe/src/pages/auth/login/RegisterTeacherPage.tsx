@@ -11,7 +11,7 @@ import {
 } from '../../../utils/Validation';
 import { GoogleAuthProvider, getAuth, signInWithPopup } from 'firebase/auth';
 import { app } from '../../../firebase/firebase';
-import UploadFileCustom, { UploadFileType } from '../../../components/UploadFile/UploadFileCustom';
+import UploadFileCustom, { UploadFileType, UploadStyle } from '../../../components/UploadFile/UploadFileCustom';
 
 const initFromData: RegisterUserRequest = {
     accountEmail: '',
@@ -220,13 +220,21 @@ function RegisterTeacherPage() {
                                 fileName={`cv-${Date.now()}.pdf`}
                                 fileType={UploadFileType.PDF}
                                 showPreview={false}
+                                uploadStyle={UploadStyle.SMALL}   // ⭐ UI nhỏ đẹp
+                                buttonText="Tải lên"
                                 onUploadFileSuccess={(url) => {
                                     setCvUrl(url);
-                                    setFormData(prev => ({ ...prev, cvUrl: url }));
-
+                                    setFormData({ ...formData, cvUrl: url });
                                 }}
                                 onUploadFileError={(err) => console.log(err)}
                             />
+
+                            {cvUrl && (
+                                <p className="text-green-600 text-sm mt-1">
+                                    📄 CV đã tải lên thành công
+                                </p>
+                            )}
+
                             {!formData.cvUrl && (
                                 <p className="text-red-500 text-sm">Vui lòng upload CV PDF</p>
                             )}

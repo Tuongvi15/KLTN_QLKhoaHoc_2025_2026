@@ -59,15 +59,15 @@ const UploadFileCustom = ({
         fileType === UploadFileType.IMAGE
             ? ImageExtensions
             : fileType === UploadFileType.VIDEO
-            ? VideoExtensions
-            : PdfExtensions;
+                ? VideoExtensions
+                : PdfExtensions;
 
     const errorMessageTypeFit =
         fileType === UploadFileType.IMAGE
             ? "Vui lòng chỉ chọn file ảnh!"
             : fileType === UploadFileType.VIDEO
-            ? "Vui lòng chỉ chọn file video!"
-            : "Vui lòng chỉ chọn file PDF!";
+                ? "Vui lòng chỉ chọn file video!"
+                : "Vui lòng chỉ chọn file PDF!";
 
     const filePath = (storePath.endsWith('/') ? storePath : storePath + '/') + fileName;
     const storageRef = ref(firebaseStorage, filePath);
@@ -275,54 +275,56 @@ const UploadFileCustom = ({
 
             {/* ================= SMALL MODE ================= */}
             {uploadStyle === UploadStyle.SMALL && (
-                <div>
-                    {percent === 0 && (
-                        <div className="flex">
-                            <label
-                                htmlFor="upload"
-                                className="flex h-[48px] w-full cursor-pointer items-center border px-4 font-medium bg-[#f7f9fa]"
-                            >
-                                {tempSelectedFile ? `File: ${tempSelectedFile.name}` : "Chưa chọn file nào"}
-                            </label>
+                <div className="w-full">
+                    {/* INPUT chọn file */}
+                    <div className="flex items-center gap-2">
+                        <label
+                            htmlFor="upload"
+                            className="flex-1 h-[45px] px-4 flex items-center border border-gray-300 rounded-md bg-gray-50 cursor-pointer hover:bg-gray-100"
+                        >
+                            {!selectedFile && "Chưa chọn file nào"}
+                            {selectedFile && (
+                                <span className="truncate max-w-[250px]">
+                                    {selectedFile.name}
+                                </span>
+                            )}
+                        </label>
 
-                            <input
-                                id="upload"
-                                type="file"
-                                className="hidden"
-                                onChange={handleOnInputFileChange}
-                            />
+                        <input
+                            id="upload"
+                            type="file"
+                            className="hidden"
+                            onChange={handleOnInputFileChange}
+                        />
 
-                            <LoadingButton
-                                loading={isLoading || uploadLoading}
-                                onClick={uploadFile}
-                                disabled={!selectedFile}
-                                variant="outlined"
-                            >
-                                {buttonText}
-                            </LoadingButton>
+                        <LoadingButton
+                            loading={isLoading || uploadLoading}
+                            onClick={uploadFile}
+                            disabled={!selectedFile}
+                            variant="contained"
+                            className="!h-[45px] !rounded-md"
+                        >
+                            {buttonText}
+                        </LoadingButton>
+                    </div>
+
+                    {/* HIỂN THỊ SAU KHI UPLOAD */}
+                    {percent > 0 && percent < 100 && (
+                        <div className="mt-2">
+                            <Progress percent={percent} />
                         </div>
                     )}
 
-                    {percent > 0 && (
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b">
-                                    <th>Tên File</th>
-                                    <th>Kích thước</th>
-                                    <th>Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>{tempSelectedFile?.name}</td>
-                                    <td>{convertFileSize(tempSelectedFile?.size)}</td>
-                                    <td><Progress percent={percent} /></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    {percent === 100 && (
+                        <p className="text-green-600 mt-2 flex items-center gap-2">
+                            <span>📄 {selectedFile?.name}</span>
+                            <span className="text-green-500">●</span>
+                            <span>Upload thành công</span>
+                        </p>
                     )}
                 </div>
             )}
+
         </div>
     );
 };
