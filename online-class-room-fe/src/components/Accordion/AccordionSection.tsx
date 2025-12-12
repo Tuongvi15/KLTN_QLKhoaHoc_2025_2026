@@ -40,7 +40,8 @@ const AccordionSection = ({ sections, lastPosition }: AccordionSectionProps) => 
 
                     <AccordionDetails className="!bg-white !p-0">
                         {section.steps.map((step, stepIndex) => {
-                            const unlocked = step.stepId <= lastPosition;
+                            const unlocked = true;  // mở toàn bộ bài học — giống Udemy
+
 
                             return (
                                 <div

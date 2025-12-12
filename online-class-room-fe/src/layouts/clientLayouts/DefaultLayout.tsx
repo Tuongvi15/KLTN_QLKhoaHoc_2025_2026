@@ -9,6 +9,7 @@ export interface DefaultLayoutProps {
     children: React.ReactNode;
     requireRole?: RoleType;
     whenRoleUnMatchNavTo?: string;
+    hideLayout?: boolean;
 }
 
 const DefaultLayout = ({ children, requireRole, whenRoleUnMatchNavTo }: DefaultLayoutProps) => {
@@ -23,22 +24,25 @@ const DefaultLayout = ({ children, requireRole, whenRoleUnMatchNavTo }: DefaultL
 
     // ✅ Ẩn Header/Footer nếu là trang làm bài test
     const isPlacementTestPage = location.pathname.startsWith('/placement-test/start');
-
+    const isLearningPage = location.pathname.startsWith('/learn/');
     return (
         <div className="min-h-screen flex flex-col">
-            {!isPlacementTestPage && <Header />}
+            {/* Header */}
+            {!isPlacementTestPage && !isLearningPage && <Header />}
 
-            {/* Nội dung chính */}
-            <main className={`${isPlacementTestPage ? '' : 'mt-4 py-4 flex-1'}`}>
+            {/* Main */}
+            <main className={`${isPlacementTestPage || isLearningPage ? '' : 'mt-4 py-4 flex-1'}`}>
                 {children}
             </main>
 
-            {!isPlacementTestPage && <Footer />}
+            {/* Footer */}
+            {!isPlacementTestPage && !isLearningPage && <Footer />}
 
-            {/* Chat assistant (hidden on placement-test pages) */}
-            {!isPlacementTestPage && <ChatBox />}
+            {/* Chat */}
+            {!isPlacementTestPage && !isLearningPage && <ChatBox />}
         </div>
     );
+
 };
 
 export default DefaultLayout;

@@ -106,7 +106,7 @@ export default function CreateCourseModal({ open, onClose }: CreateCourseModalPr
         if (current === 0) {
             if (!addCourseState.title?.trim()) return message.warning("Vui lòng nhập tiêu đề!");
             if (!addCourseState.courseCategories?.length)
-                return message.warning("Chọn ít nhất 1 category!");
+                return message.warning("Chọn ít nhất 1 thể loại!");
             if (!selectedLevels.length) return message.warning("Chọn cấp độ phù hợp!");
         }
         if (current === 1) {

@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../slices/authSlice';
 import { RootState } from '../../store';
 import { RoleType } from '../../slices/authSlice';
+import SchoolIcon from '@mui/icons-material/School';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -128,23 +129,14 @@ const TeacherLayout = ({
               cursor: 'pointer',
             }}
           >
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 10,
-                background: '#3b82f6',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: 12,
-              }}
-            >
-              <BookOutlined style={{ fontSize: 20, color: 'white' }} />
-            </div>
-            <Text strong style={{ fontSize: 18, color: '#0f172a', letterSpacing: '-0.5px' }}>
-              Estudy Platform
-            </Text>
+            {/* 🔹 Logo */}
+            {/* Logo */}
+            <Link to={'/'} className="flex items-center">
+              <div className="flex items-center">
+                <SchoolIcon sx={{ fontSize: 30, color: '#00497cff' }} />
+                <span className="ml-1 text-2xl font-bold text-[#1c1d1f] hidden sm:inline">eStudyHub</span>
+              </div>
+            </Link>
           </div>
         </Link>
 

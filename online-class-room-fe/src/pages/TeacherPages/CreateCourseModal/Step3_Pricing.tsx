@@ -49,6 +49,12 @@ export default function Step3_Pricing() {
                                 onBlur={handleValidatePrice}
                                 addonAfter="₫"
                             />
+                            {price === 0 && (
+                                <Text type="warning" style={{ fontSize: 13 }}>
+                                    ⚠️ Giá khóa học chưa được thiết lập
+                                </Text>
+                            )}
+
                         </Space>
                     </Card>
 

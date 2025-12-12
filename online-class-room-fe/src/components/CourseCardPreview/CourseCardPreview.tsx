@@ -62,9 +62,11 @@ const CourseCardPreview = ({ course }: Props) => {
         }
     }, [isAddOrderSuccess]);
 
+    // Refetch lại mỗi khi user quay lại trang chi tiết khóa học
     useEffect(() => {
         refetch();
-    }, [accountId]);
+    }, [location.pathname]);
+
 
     // PRICE CALCULATION -----------------------------------------------------
     const getSalePrice = () => {

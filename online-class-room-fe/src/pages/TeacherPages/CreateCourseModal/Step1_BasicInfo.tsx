@@ -171,9 +171,14 @@ export default function Step1_BasicInfo({
                                 type="primary"
                                 icon={<PlusOutlined />}
                                 onClick={handleAddCategory}
+                                style={{
+                                    backgroundColor: '#413fc0ff',   // tím
+                                    borderColor: '#284cc5ff'
+                                }}
                             >
                                 Thêm
                             </Button>
+
                         </Space.Compact>
                     </div>
                 </Space>

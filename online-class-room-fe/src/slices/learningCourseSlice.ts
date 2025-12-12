@@ -31,6 +31,7 @@ export interface learningCourseSliceData {
     lastPostionCompleted: number;
     isVideoWatched: boolean;
 }
+
 const initialStep: Step = {
     duration: 0,
     position: 0,
@@ -43,6 +44,7 @@ const initialStep: Step = {
     title: '',
     videoUrl: '',
 };
+
 const initialCourse: Course = {
     accountId: '',
     courseIsActive: false,
@@ -85,6 +87,13 @@ const initialState: learningCourseSliceData = {
     isVideoWatched: false,
 };
 
+// ⭐ HÀM PHÂN LOẠI BÀI HỌC ĐÚNG CHUẨN
+const detectLessonType = (step: Step): LessionType => {
+    if (step.videoUrl && step.videoUrl.trim() !== '') return LessionType.VIDEO;
+    if (step.quiz && step.quiz.trim() !== '') return LessionType.QUIZ;
+    return LessionType.VIDEO; // fallback
+};
+
 export const learningCourseSlice = createSlice({
     name: 'learningCourse',
     initialState,
@@ -95,40 +104,50 @@ export const learningCourseSlice = createSlice({
 
         setLearingCourse: (state, action: PayloadAction<Course>) => {
             state.learningCourse = action.payload;
-            state.stepActive = action.payload.sections[0].steps[0];
+            const first = action.payload.sections[0].steps[0];
+            state.stepActive = first;
+            state.stepActiveType = detectLessonType(first);
         },
+
         setStepActive: (
             state,
             action: PayloadAction<{ sectionIndex: number; stepIndex: number }>,
         ) => {
             const step =
                 state.learningCourse.sections[action.payload.sectionIndex].steps[
-                action.payload.stepIndex
+                    action.payload.stepIndex
                 ];
+
             state.stepActive = step;
             state.temp.tempActiveSectionIndex = action.payload.sectionIndex;
             state.temp.tempActiveStepIndex = action.payload.stepIndex;
-            state.stepActiveType =
-                step.quizId != 1 && step.quizId != null ? LessionType.QUIZ : LessionType.VIDEO;
+
+            state.stepActiveType = detectLessonType(step);
+
             state.isShowAnswer = false;
             state.quizAnswer = [];
             state.isVideoWatched = false;
         },
+
         setStepActiveByStepId: (state, action: PayloadAction<number>) => {
             state.learningCourse.sections.forEach((section, sectionIndex) => {
                 const index = section.steps.findIndex((step) => step.stepId === action.payload);
                 if (index >= 0) {
                     const step = section.steps[index];
+
                     state.stepActive = step;
                     state.temp.tempActiveSectionIndex = sectionIndex;
                     state.temp.tempActiveStepIndex = index;
-                    state.stepActiveType = step.quizId != 1 ? LessionType.QUIZ : LessionType.VIDEO;
+
+                    state.stepActiveType = detectLessonType(step);
+
                     state.isShowAnswer = false;
                     state.quizAnswer = [];
                     state.isVideoWatched = false;
                 }
             });
         },
+
         setQuestionAnswer: (state, action: PayloadAction<QuestionData>) => {
             const index = state.quizAnswer.findIndex(
                 (q) => q.questionId === action.payload.questionId,
@@ -139,26 +158,30 @@ export const learningCourseSlice = createSlice({
         },
 
         setQuestionList: (state, action: PayloadAction<Question[]>) => {
-            state.quizAnswer = action.payload.map((q) => {
-                return {
-                    correctAnswer: q.correctAnwser,
-                    questionId: q.questionId,
-                    userSelectedAnswer: -1,
-                };
-            });
+            state.quizAnswer = action.payload.map((q) => ({
+                correctAnswer: q.correctAnwser,
+                questionId: q.questionId,
+                userSelectedAnswer: -1,
+            }));
         },
+
         setShowAnswer: (state, action: PayloadAction<boolean>) => {
             state.isShowAnswer = action.payload;
         },
+
         gotToNextStep: (state) => {
             try {
                 const stepIndex = state.temp.tempActiveStepIndex;
                 const sectionIndex = state.temp.tempActiveSectionIndex;
+
                 let step;
+
                 if (stepIndex < state.learningCourse.sections[sectionIndex].steps.length - 1) {
-                    step = state.learningCourse.sections[sectionIndex].steps[stepIndex + 1];
+                    step =
+                        state.learningCourse.sections[sectionIndex].steps[
+                            stepIndex + 1
+                        ];
                     state.stepActive = step;
-                    state.temp.tempActiveSectionIndex = sectionIndex;
                     state.temp.tempActiveStepIndex = stepIndex + 1;
                 } else {
                     if (sectionIndex + 1 < state.learningCourse.sections.length) {
@@ -170,12 +193,8 @@ export const learningCourseSlice = createSlice({
                         state.isDone = true;
                     }
                 }
-                state.stepActiveType =
-                    step === undefined
-                        ? LessionType.DONE
-                        : step.quizId != 1
-                            ? LessionType.QUIZ
-                            : LessionType.VIDEO;
+
+                if (step) state.stepActiveType = detectLessonType(step);
                 state.isShowAnswer = false;
                 state.quizAnswer = [];
                 state.isVideoWatched = false;
@@ -183,25 +202,30 @@ export const learningCourseSlice = createSlice({
                 console.log(e);
             }
         },
+
         tryAnswerAgain: (state) => {
             const step =
                 state.learningCourse.sections[state.temp.tempActiveSectionIndex].steps[
-                state.temp.tempActiveStepIndex
+                    state.temp.tempActiveStepIndex
                 ];
+
             state.stepActive = step;
-            state.stepActiveType = step.quizId != 1 ? LessionType.QUIZ : LessionType.VIDEO;
+            state.stepActiveType = detectLessonType(step);
+
             state.isShowAnswer = false;
-            state.quizAnswer = state.quizAnswer.map((value) => ({
-                ...value,
+            state.quizAnswer = state.quizAnswer.map((v) => ({
+                ...v,
                 userSelectedAnswer: -1,
             }));
         },
+
         setRegistrationData: (state, action: PayloadAction<CheckRegistrationCourseRespone>) => {
             state.registrationData = action.payload;
         },
+
         setLastStepCompleted: (state, action: PayloadAction<number>) => {
             state.lastStepCompeleted = action.payload;
-            state.lastPostionCompleted = action.payload;  // <-- DÙNG stepId
+            state.lastPostionCompleted = action.payload;
         },
 
         setNextStepCompletedPos: (state) => {
