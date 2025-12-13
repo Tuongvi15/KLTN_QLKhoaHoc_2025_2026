@@ -17,8 +17,6 @@ import {
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import QuizIcon from '@mui/icons-material/Quiz';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 
 import { RootState } from '../../../store';
@@ -36,27 +34,29 @@ const LearningCoursePage = () => {
 
     const courseId = location.pathname.split('/').pop();
     const accountId = useSelector((state: RootState) => state.user.id);
-    const { stepActive, stepActiveType } = useSelector(
-        (state: RootState) => state.learningCourse,
-    );
-    const isVideoWatched = useSelector((state: RootState) => state.learningCourse.isVideoWatched);
-    const lastPosCompleted = useSelector((state: RootState) => state.learningCourse.lastPostionCompleted);
-    const registrationId = useSelector((state: RootState) =>
-        state.learningCourse.registrationData?.registrationId ?? -1
-    );
 
-    // API: lấy course
+    const {
+        stepActive,
+        stepActiveType,
+        isVideoWatched,
+        lastPostionCompleted,
+        registrationData,
+    } = useSelector((state: RootState) => state.learningCourse);
+
+    const registrationId = registrationData?.registrationId ?? -1;
+
+    // =============================
+    // API
+    // =============================
     const { data, isLoading, isSuccess: isGetCourseSuccess } =
         useGetCourseIDQuery(courseId ?? '');
 
-    // API: lấy registration
     const { isSuccess: isGetCheckSuccess, data: checkData } =
         useCheckRegistrationCourseQuery({
             accountId: accountId ?? '',
             courseId: courseId ? parseInt(courseId) : -1,
         });
 
-    // API: lấy step cuối đã hoàn thành
     const { isSuccess: isGetLastStepCompletedSuccess, data: lastStepCompletedData } =
         useGetLastStepCompletedQuery(registrationId);
 
@@ -67,13 +67,14 @@ const LearningCoursePage = () => {
     // Load registration
     // =============================
     useEffect(() => {
-        if (isGetCheckSuccess) {
-            if (!checkData?.registrationId) {
-                navigate('/*');
-                return;
-            }
-            dispatch(setRegistrationData(checkData));
+        if (!isGetCheckSuccess) return;
+
+        if (!checkData?.registrationId) {
+            navigate('/*');
+            return;
         }
+
+        dispatch(setRegistrationData(checkData));
     }, [isGetCheckSuccess]);
 
     // =============================
@@ -85,9 +86,8 @@ const LearningCoursePage = () => {
         }
     }, [isGetCourseSuccess]);
 
-
     // =============================
-    // Load vị trí học cuối
+    // Load last completed step
     // =============================
     useEffect(() => {
         if (
@@ -99,7 +99,7 @@ const LearningCoursePage = () => {
 
         const allSteps = data.sections.flatMap(s => s.steps);
 
-        // 🔹 Chưa học lần nào
+        // chưa học lần nào
         if (!lastStepCompletedData?.stepId) {
             const firstStepId = allSteps[0].stepId;
             dispatch(setLastStepCompleted(firstStepId));
@@ -110,24 +110,17 @@ const LearningCoursePage = () => {
         const lastStepId = lastStepCompletedData.stepId;
         dispatch(setLastStepCompleted(lastStepId));
 
-        // 🔹 Tìm index của step đã hoàn thành
-        const lastIndex = allSteps.findIndex(
-            (s) => s.stepId === lastStepId
-        );
+        const lastIndex = allSteps.findIndex(s => s.stepId === lastStepId);
 
-        // 🔹 Nếu còn bài tiếp theo → học bài kế
         if (lastIndex >= 0 && lastIndex < allSteps.length - 1) {
-            const nextStepId = allSteps[lastIndex + 1].stepId;
-            dispatch(setStepActiveByStepId(nextStepId));
+            dispatch(setStepActiveByStepId(allSteps[lastIndex + 1].stepId));
         } else {
-            // 🔹 Nếu đã là bài cuối → đứng tại bài cuối
             dispatch(setStepActiveByStepId(lastStepId));
         }
     }, [isGetCourseSuccess, isGetLastStepCompletedSuccess]);
 
-
     // =============================
-    // Sau khi update "Hoàn thành bài"
+    // After update step completed
     // =============================
     useEffect(() => {
         if (isUpdateLastStepSuccess) {
@@ -137,36 +130,28 @@ const LearningCoursePage = () => {
     }, [isUpdateLastStepSuccess]);
 
     // =============================
-    // Xử lý nút "Hoàn thành và tiếp tục"
+    // Actions
     // =============================
     const handleGoToNext = () => {
         updateLastStepCompleted({
             registrationId,
-            stepId: stepActive.stepId
+            stepId: stepActive.stepId,
         });
     };
 
     // =============================
-    // Tính tiến độ %
+    // Progress (SOURCE OF TRUTH = API)
     // =============================
-    const totalSteps = data?.sections?.reduce(
-        (acc, section) => acc + section.steps.length,
-        0
-    ) ?? 0;
+    const learningProgress = registrationData?.learningProgress ?? 0;
 
-    const completedSteps = data?.sections?.reduce((count, section) => {
-        return (
-            count +
-            section.steps.filter(
-                (step) => step.stepId <= lastPosCompleted
-            ).length
-        );
-    }, 0) ?? 0;
+    const totalSteps =
+        data?.sections?.reduce(
+            (acc, section) => acc + section.steps.length,
+            0
+        ) ?? 0;
 
-    const progressPercent =
-        totalSteps > 0
-            ? Math.round((completedSteps / totalSteps) * 100)
-            : 0;
+    const progressPercent = Math.round(learningProgress * 100);
+    const completedSteps = Math.round(learningProgress * totalSteps);
 
     // =============================
     // RENDER
@@ -179,7 +164,6 @@ const LearningCoursePage = () => {
                 <div className="px-6 py-3">
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-4">
-
                             <Button
                                 startIcon={<ArrowBackIcon />}
                                 variant="text"
@@ -217,13 +201,11 @@ const LearningCoursePage = () => {
                 </div>
             </div>
 
-            {/* ===== MAIN CONTENT ===== */}
+            {/* ===== MAIN ===== */}
             <div className="flex h-[calc(100vh-70px)]">
 
-                {/* LEFT CONTENT */}
+                {/* LEFT */}
                 <div className="flex-1 overflow-y-auto p-6">
-
-                    {/* Video / Quiz */}
                     <div className="bg-black rounded-xl overflow-hidden shadow-lg mb-6">
                         {isLoading && (
                             <div className="aspect-video flex items-center justify-center">
@@ -250,39 +232,27 @@ const LearningCoursePage = () => {
                         )}
                     </div>
 
-                    {/* BOTTOM ACTION BAR */}
                     {stepActiveType === LessionType.VIDEO && (
                         <div className="flex justify-between items-center bg-white rounded-xl shadow p-4">
                             <div className="text-sm text-[#666]">
-                                {isVideoWatched ? (
-                                    <span className="flex items-center gap-2 text-green-600">
-                                        <CheckCircleIcon sx={{ fontSize: 18 }} />
-                                        Bạn đã hoàn thành bài học này
-                                    </span>
-                                ) : (
-                                    'Vui lòng xem hết video để tiếp tục'
-                                )}
+                                {isVideoWatched
+                                    ? 'Bạn đã hoàn thành bài học này'
+                                    : 'Vui lòng xem hết video để tiếp tục'}
                             </div>
 
                             <Button
                                 onClick={handleGoToNext}
                                 variant="contained"
                                 disabled={!isVideoWatched}
-                                sx={{
-                                    bgcolor: '#f05123',
-                                    px: 4,
-                                    py: 1.2,
-                                    fontSize: '15px',
-                                }}
+                                sx={{ bgcolor: '#f05123', px: 4 }}
                             >
                                 Hoàn thành và tiếp tục →
                             </Button>
                         </div>
                     )}
-
                 </div>
 
-                {/* RIGHT SIDEBAR */}
+                {/* RIGHT */}
                 {data && stepActive && (
                     <div className="hidden lg:block w-[380px] bg-white border-l overflow-y-auto shadow-lg">
                         <div className="sticky top-0 bg-white border-b px-5 py-4">
@@ -296,13 +266,12 @@ const LearningCoursePage = () => {
 
                         <div className="px-3 py-4">
                             <AccordionSection
-                                lastPosition={lastPosCompleted + 1}
+                                lastPosition={lastPostionCompleted + 1}
                                 sections={data.sections}
                             />
                         </div>
                     </div>
                 )}
-
             </div>
         </div>
     );

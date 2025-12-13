@@ -23,41 +23,23 @@ namespace LMSystem.Repository.Repositories
         {
             try
             {
-                // =============================
-                // Check registration
-                // =============================
                 var registration = await _context.RegistrationCourses
                     .FirstOrDefaultAsync(rc => rc.RegistrationId == registrationId);
                 if (registration == null)
                     return new ResponeModel { Status = "Error", Message = "Registration not found" };
 
-                // =============================
-                // Check step
-                // =============================
                 var step = await _context.Steps
                     .FirstOrDefaultAsync(s => s.StepId == stepId);
                 if (step == null)
                     return new ResponeModel { Status = "Error", Message = "Step not found" };
 
-                // =============================
-                // Tổng số step của course
-                // =============================
                 var totalSteps = await _context.Steps
                     .CountAsync(s => s.Section.CourseId == registration.CourseId);
 
-                // =============================
-                // Kiểm tra step đã hoàn thành chưa
-                // =============================
+                // ✅ CHỈ LẤY THEO RegistrationId
                 var stepCompleted = await _context.StepCompleteds
-                    .FirstOrDefaultAsync(sc =>
-                        sc.RegistrationId == registrationId &&
-                        sc.StepId == stepId);
+                    .FirstOrDefaultAsync(sc => sc.RegistrationId == registrationId);
 
-                bool isNewStepCompleted = stepCompleted == null;
-
-                // =============================
-                // Add / Update StepCompleted
-                // =============================
                 if (stepCompleted == null)
                 {
                     stepCompleted = new StepCompleted
@@ -70,6 +52,8 @@ namespace LMSystem.Repository.Repositories
                 }
                 else
                 {
+                    // ✅ chỉ update step cuối
+                    stepCompleted.StepId = stepId;
                     stepCompleted.DateCompleted = DateTime.UtcNow;
                     _context.StepCompleteds.Update(stepCompleted);
                 }
@@ -77,27 +61,18 @@ namespace LMSystem.Repository.Repositories
                 await _context.SaveChangesAsync();
 
                 // =============================
-                // Tính lại learning progress
+                // Progress = số step đã hoàn thành / tổng step
+                // (dựa trên BE logic bạn đã chốt)
                 // =============================
                 var completedStepsCount = await _context.StepCompleteds
                     .CountAsync(sc => sc.RegistrationId == registrationId);
-
-                if (isNewStepCompleted)
-                {
-                    completedStepsCount = Math.Min(completedStepsCount, totalSteps);
-                }
 
                 var learningProgress = totalSteps > 0
                     ? Math.Round((double)completedStepsCount / totalSteps, 4)
                     : 0;
 
-                var isCompleted = completedStepsCount >= totalSteps;
-
-                // =============================
-                // Update RegistrationCourse
-                // =============================
                 registration.LearningProgress = learningProgress;
-                registration.IsCompleted = isCompleted;
+                registration.IsCompleted = learningProgress >= 1;
 
                 _context.RegistrationCourses.Update(registration);
                 await _context.SaveChangesAsync();
@@ -119,6 +94,7 @@ namespace LMSystem.Repository.Repositories
                 };
             }
         }
+
 
 
         public async Task<ResponeModel> GetStepIdByRegistrationId(int registrationId)
