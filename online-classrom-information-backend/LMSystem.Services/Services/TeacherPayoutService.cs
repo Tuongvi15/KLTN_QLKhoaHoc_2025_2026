@@ -79,23 +79,15 @@ public class TeacherPayoutService : ITeacherPayoutService
             {
                 var orderPrice = (decimal)(o.TotalPrice ?? (o.Course?.Price ?? 0));
                 var teacherShare = orderPrice * TeacherShare;
+
                 totalGross += teacherShare;
+                available += teacherShare; // ✅ available ngay
                 totalOrders++;
-                if (o.Course != null) distinctCourseIds.Add(o.Course.CourseId);
 
-                // available check: PaymentDate + PendingDays <= now => available; otherwise pending
-                var payDate = DateTime.SpecifyKind(o.PaymentDate.Value, DateTimeKind.Utc);
-
-                if ((DateTime.UtcNow - payDate).TotalDays >= PendingDays)
-                {
-                    available += teacherShare;
-                }
-                else
-                {
-                    pending += teacherShare;
-                }
-
+                if (o.Course != null)
+                    distinctCourseIds.Add(o.Course.CourseId);
             }
+
 
             // tax only on available
             decimal tax = available >= 2000000m ? Math.Round(available * TaxRate, 2) : 0m;
@@ -108,7 +100,7 @@ public class TeacherPayoutService : ITeacherPayoutService
             {
                 TeacherId = tId,
                 TotalGross = totalGross,
-                PendingAmount = pending,
+                PendingAmount = 0m,              // ✅ luôn = 0
                 AvailableAmount = available,
                 TaxAmount = tax,
                 NetAmount = net,
@@ -118,9 +110,10 @@ public class TeacherPayoutService : ITeacherPayoutService
                 BankAccountNumber = bank?.AccountNumber ?? string.Empty,
                 BankAccountHolder = bank?.AccountHolderName ?? string.Empty,
                 BankBranch = bank?.Branch ?? string.Empty,
-                Status = "Pending", // we keep Pending initially; later admin can mark Withdrawn when paying
+                Status = "Pending",
                 CreatedAt = DateTime.UtcNow
             };
+
 
             await _payoutRepo.CreateAsync(payout);
         }

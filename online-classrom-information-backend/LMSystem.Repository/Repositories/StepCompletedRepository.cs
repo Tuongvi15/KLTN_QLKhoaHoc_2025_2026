@@ -86,15 +86,6 @@ namespace LMSystem.Repository.Repositories
                     .Select(step => step.Position)
                     .FirstOrDefault();
                 //check if the position of the step is less than the position of the step in the stepCompleted table
-                if (positionOfStep < positionOfStepInStepCompleted)
-                {
-                    return new ResponeModel
-                    {
-                        Status = "Error",
-                        Message = "The position of the step is less than the position of the step in the stepCompleted table",
-                        DataObject = new { positionOfStep, positionOfStepInStepCompleted }
-                    };
-                }
 
                 //update the stepCompleted table
                 stepCompleted.StepId = stepId;

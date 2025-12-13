@@ -14,7 +14,7 @@ namespace LMSystem.Repository.Interfaces
     {
         public Task<IEnumerable<Order>> GetOrdersByAccountIdAsync(string accountId);
         public Task<ResponeModel> CountTotalOrder();
-        Task<List<TeacherRevenueReportDto>> GetTeacherRevenueReport(string teacherId, DateTime? fromDate, DateTime? toDate);
+        Task<List<TeacherRevenueReportDto>> GetTeacherRevenueReport(string? teacherId, DateTime? fromDate, DateTime? toDate);
         public Task<ResponeModel> CountTotalOrdersByStatus(string status);
         public Task<ResponeModel> CountTotalOrdersByStatusUpToDate(string status, DateTime to);
         public Task<ResponeModel> CountOrderByStatusGroupByMonth(string status, int year);

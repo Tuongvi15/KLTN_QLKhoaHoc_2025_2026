@@ -57,26 +57,29 @@ namespace LMSystem.Repository.Repositories
             }
         }
         public async Task<List<TeacherRevenueReportDto>> GetTeacherRevenueReport(
-    string teacherId, DateTime? fromDate, DateTime? toDate)
+    string? teacherId,
+    DateTime? fromDate,
+    DateTime? toDate)
         {
             var query =
-      from order in _context.Orders
-      join reg in _context.RegistrationCourses
-          on new { order.AccountId, order.CourseId }
-          equals new { reg.AccountId, reg.CourseId }
-      join course in _context.Courses
-          on order.CourseId equals course.CourseId
-      join user in _context.Account
-          on order.AccountId equals user.Id
-      where course.AccountId == teacherId
-      select new { order, reg, course, user };
+                from order in _context.Orders
+                join reg in _context.RegistrationCourses
+                    on new { order.AccountId, order.CourseId }
+                    equals new { reg.AccountId, reg.CourseId }
+                join course in _context.Courses
+                    on order.CourseId equals course.CourseId
+                join user in _context.Account
+                    on order.AccountId equals user.Id
+                select new { order, reg, course, user };
 
+            if (!string.IsNullOrEmpty(teacherId))
+                query = query.Where(x => x.course.AccountId == teacherId);
 
             if (fromDate.HasValue)
                 query = query.Where(x => x.order.PaymentDate >= fromDate.Value.Date);
 
             if (toDate.HasValue)
-                query = query.Where(x => x.order.PaymentDate <= toDate.Value.Date.AddDays(1));
+                query = query.Where(x => x.order.PaymentDate < toDate.Value.Date.AddDays(1));
 
             return await query
                 .Select(x => new TeacherRevenueReportDto
@@ -90,14 +93,23 @@ namespace LMSystem.Repository.Repositories
                     CourseTitle = x.course.Title,
                     CourseId = x.course.CourseId,
                     OriginalPrice = (decimal)x.course.Price,
-                    Discount = (decimal)x.course.SalesCampaign,
+
+                    // % giảm cho học viên (hiển thị)
+                    Discount = (decimal)(x.course.SalesCampaign * 100),
+
+                    // Khách đã trả
                     PaidAmount = (decimal)x.order.TotalPrice,
+
                     PaymentMethod = x.order.PaymentMethod,
                     PaymentStatus = x.order.Status,
-                    RevenueReceived = (decimal)(x.order.TotalPrice * (1 - x.course.SalesCampaign))
+
+                    // ✅ DOANH THU THỰC NHẬN = Thanh toán - 30%
+                    RevenueReceived = ((decimal)(x.order.TotalPrice ?? 0)) * 0.7m,
                 })
                 .ToListAsync();
         }
+
+
 
         public async Task<ResponeModel> CountTotalOrdersByStatus(string status)
         {

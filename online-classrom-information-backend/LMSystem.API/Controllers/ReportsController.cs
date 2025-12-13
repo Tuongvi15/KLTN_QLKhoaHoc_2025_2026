@@ -60,7 +60,7 @@ namespace LMSystem.API.Controllers
         // ============================================================
         [HttpGet("ExportTeacherRevenueExcel")]
         public async Task<IActionResult> ExportTeacherRevenueExcel(
-            string teacherId,
+            string? teacherId,
             DateTime? fromDate,
             DateTime? toDate)
         {
