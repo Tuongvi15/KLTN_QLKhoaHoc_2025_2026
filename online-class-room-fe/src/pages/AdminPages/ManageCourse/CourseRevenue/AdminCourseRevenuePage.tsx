@@ -127,7 +127,7 @@ export default function AdminCourseRevenuePage() {
   };
   const handleExportExcel = () => {
     const url =
-      `${import.meta.env.VITE_API_URL}/Reports/ExportTeacherCoursesExcel`
+      `${import.meta.env.VITE_API_URL}/Reports/ExportTeacherRevenueExcel`
       + `?teacherId=${filter.teacherId || ""}`
       + `&month=${filter.month || ""}`
       + `&year=${filter.year || ""}`;

@@ -35,21 +35,27 @@ public class TeacherPayoutService : ITeacherPayoutService
     // Generate payout entries per teacher for a month
     public async Task GeneratePayoutForMonthAsync(int month, int year)
     {
-        // get all teachers (account service). We assume it returns basic dto with Id, FirstName, LastName, CreatedAt
+        // get all teachers
         var teachers = await _accountService.GetAllTeachers();
 
-        // For speed, load orders in that month with Completed status
-        var monthStart = DateTime.SpecifyKind(new DateTime(year, month, 1), DateTimeKind.Utc);
-        var monthEnd = DateTime.SpecifyKind(monthStart.AddMonths(1).AddTicks(-1), DateTimeKind.Utc);
+        var monthStart = DateTime.SpecifyKind(
+            new DateTime(year, month, 1),
+            DateTimeKind.Utc);
 
+        var monthEnd = DateTime.SpecifyKind(
+            monthStart.AddMonths(1).AddTicks(-1),
+            DateTimeKind.Utc);
 
+        // load completed orders in month
         var ordersInMonth = await _db.Orders
             .Include(o => o.Course)
-            .Where(o => o.Status == "Completed"
-                        && o.PaymentDate >= monthStart && o.PaymentDate <= monthEnd)
+            .Where(o =>
+                o.Status == "Completed" &&
+                o.PaymentDate >= monthStart &&
+                o.PaymentDate <= monthEnd)
             .ToListAsync();
 
-        // group orders by teacher
+        // group by teacher
         var ordersByTeacher = ordersInMonth
             .GroupBy(o => o.Course.AccountId)
             .ToDictionary(g => g.Key, g => g.ToList());
@@ -57,23 +63,20 @@ public class TeacherPayoutService : ITeacherPayoutService
         foreach (var teacher in teachers)
         {
             var tId = teacher.Id;
-            if (!ordersByTeacher.ContainsKey(tId))
-            {
-                // no orders - skip (no payout)
-                continue;
-            }
 
-            // avoid duplicate payout entries for same teacher/month
-            if (await _payoutRepo.ExistsForTeacherMonthAsync(tId, month, year)) continue;
+            if (!ordersByTeacher.ContainsKey(tId))
+                continue;
+
+            // tránh tạo trùng payout
+            if (await _payoutRepo.ExistsForTeacherMonthAsync(tId, month, year))
+                continue;
 
             var orders = ordersByTeacher[tId];
 
-            // compute gross teacher share (sum of price * teacherShare OR order.TotalPrice * teacherShare if available)
-            decimal totalGross = 0;
-            decimal pending = 0;
-            decimal available = 0;
+            decimal totalGross = 0m;
+            decimal available = 0m;
+            decimal pending = 0m;
             int totalOrders = 0;
-            var distinctCourseIds = new HashSet<int>();
 
             foreach (var o in orders)
             {
@@ -81,27 +84,26 @@ public class TeacherPayoutService : ITeacherPayoutService
                 var teacherShare = orderPrice * TeacherShare;
 
                 totalGross += teacherShare;
-                available += teacherShare; // ✅ available ngay
+                available += teacherShare;   // ✅ tạo là available luôn
                 totalOrders++;
-
-                if (o.Course != null)
-                    distinctCourseIds.Add(o.Course.CourseId);
             }
 
+            // tax on available
+            decimal tax = available >= 2000000m
+                ? Math.Round(available * TaxRate, 2)
+                : 0m;
 
-            // tax only on available
-            decimal tax = available >= 2000000m ? Math.Round(available * TaxRate, 2) : 0m;
             decimal net = available - tax;
 
-            // get primary bank
+            // get bank info
             var bank = await _bankRepo.GetPrimaryByAccountIdAsync(tId);
 
             var payout = new TeacherPayout
             {
                 TeacherId = tId,
                 TotalGross = totalGross,
-                PendingAmount = 0m,              // ✅ luôn = 0
-                AvailableAmount = available,
+                PendingAmount = 0m,           // ✅ luôn = 0
+                AvailableAmount = available,  // ✅ có giá trị ngay
                 TaxAmount = tax,
                 NetAmount = net,
                 Month = month,
@@ -114,10 +116,10 @@ public class TeacherPayoutService : ITeacherPayoutService
                 CreatedAt = DateTime.UtcNow
             };
 
-
             await _payoutRepo.CreateAsync(payout);
         }
     }
+
 
     // Returns list for admin table
     public async Task<List<PayoutListItemDto>> GetPayoutListAsync(int month, int year)
