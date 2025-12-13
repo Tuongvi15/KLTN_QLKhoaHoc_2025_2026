@@ -81,27 +81,50 @@ const LearningCoursePage = () => {
     // =============================
     useEffect(() => {
         if (isGetCourseSuccess && data) {
-            dispatch(setLearingCourse(data)); // load course → set bài đầu
+            dispatch(setLearingCourse(data));
         }
     }, [isGetCourseSuccess]);
+
 
     // =============================
     // Load vị trí học cuối
     // =============================
     useEffect(() => {
-        if (!isGetLastStepCompletedSuccess || !isGetCourseSuccess) return;
+        if (
+            !isGetCourseSuccess ||
+            !data ||
+            !isGetLastStepCompletedSuccess
+        )
+            return;
 
-        // Nếu đã có stepId từng học
-        if (lastStepCompletedData?.stepId) {
-            dispatch(setLastStepCompleted(lastStepCompletedData.stepId));
-            dispatch(setStepActiveByStepId(lastStepCompletedData.stepId));
-        } else {
-            // Nếu chưa học → mở bài đầu tiên
-            const firstStepId = data.sections[0].steps[0].stepId;
-            dispatch(setLastStepCompleted(firstStepId - 1));
+        const allSteps = data.sections.flatMap(s => s.steps);
+
+        // 🔹 Chưa học lần nào
+        if (!lastStepCompletedData?.stepId) {
+            const firstStepId = allSteps[0].stepId;
+            dispatch(setLastStepCompleted(firstStepId));
             dispatch(setStepActiveByStepId(firstStepId));
+            return;
         }
-    }, [isGetLastStepCompletedSuccess, isGetCourseSuccess, lastStepCompletedData]);
+
+        const lastStepId = lastStepCompletedData.stepId;
+        dispatch(setLastStepCompleted(lastStepId));
+
+        // 🔹 Tìm index của step đã hoàn thành
+        const lastIndex = allSteps.findIndex(
+            (s) => s.stepId === lastStepId
+        );
+
+        // 🔹 Nếu còn bài tiếp theo → học bài kế
+        if (lastIndex >= 0 && lastIndex < allSteps.length - 1) {
+            const nextStepId = allSteps[lastIndex + 1].stepId;
+            dispatch(setStepActiveByStepId(nextStepId));
+        } else {
+            // 🔹 Nếu đã là bài cuối → đứng tại bài cuối
+            dispatch(setStepActiveByStepId(lastStepId));
+        }
+    }, [isGetCourseSuccess, isGetLastStepCompletedSuccess]);
+
 
     // =============================
     // Sau khi update "Hoàn thành bài"
