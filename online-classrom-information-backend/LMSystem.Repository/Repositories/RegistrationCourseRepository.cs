@@ -332,6 +332,57 @@ namespace LMSystem.Repository.Repositories
             }
         }
 
+        public async Task<ResponeModel> GetLearningState(int registrationId)
+        {
+            var registration = await _context.RegistrationCourses
+                .FirstOrDefaultAsync(r => r.RegistrationId == registrationId);
 
+            if (registration == null)
+                return new ResponeModel { Status = "Error", Message = "Registration not found" };
+
+            var completedStepIds = await _context.StepCompleteds
+                .Where(sc => sc.RegistrationId == registrationId)
+                .Select(sc => sc.StepId)
+                .ToListAsync();
+
+            var allSteps = await _context.Steps
+                .Where(s => s.Section.CourseId == registration.CourseId)
+                .OrderBy(s => s.StepId).ThenBy(x => x.Position)
+                .Select(s => s.StepId)
+                .ToListAsync();
+
+            int currentStepId = allSteps.FirstOrDefault(s => !completedStepIds.Contains(s));
+            if (currentStepId == 0 && allSteps.Any())
+                currentStepId = allSteps.Last(); // học xong
+
+            var dto = new LearningStateDto
+            {
+                RegistrationId = registration.RegistrationId,
+                CourseId = registration.CourseId,
+                LearningProgress = registration.LearningProgress ?? 0,
+                IsCompleted = registration.IsCompleted ?? false,
+                CompletedStepIds = completedStepIds,
+                CurrentStepId = currentStepId
+            };
+
+            return new ResponeModel
+            {
+                Status = "Success",
+                Message = "Get learning state successfully",
+                DataObject = dto
+            };
+        }
+
+
+        public class LearningStateDto
+        {
+            public int RegistrationId { get; set; }
+            public int CourseId { get; set; }
+            public double LearningProgress { get; set; }
+            public bool IsCompleted { get; set; }
+
+            public List<int> CompletedStepIds { get; set; } = new();
+            public int CurrentStepId { get; set; }
+        }
     }
 }

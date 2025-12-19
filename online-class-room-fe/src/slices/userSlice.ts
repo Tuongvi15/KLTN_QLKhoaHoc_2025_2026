@@ -5,8 +5,8 @@ export interface UserInfo {
     id: string;
     firstName: string;
     lastName: string;
-    phoneNumber: string;
-    birthDate: string;
+    phoneNumber?: string;
+    birthDate?: string | null;
     biography: string;
     profileImg: string;
     sex: string;

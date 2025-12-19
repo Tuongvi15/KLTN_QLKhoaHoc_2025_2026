@@ -4,4 +4,5 @@ export enum ManageProfileMenu {
     SECURITY,
     LEARNING_COURSES,
     PAYMENT_HISTORY,
+    CERTIFICATES, // 🎓 Chứng chỉ
 }

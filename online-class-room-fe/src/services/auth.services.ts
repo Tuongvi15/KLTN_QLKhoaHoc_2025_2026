@@ -9,8 +9,8 @@ export interface UserInfoRequest {
     id: string;
     firstName: string;
     lastName: string;
-    phoneNumber: string;
-    birthDate: string;
+    phoneNumber?: string;
+    birthDate?: string;
     biography: string;
     profileImg: string;
     sex: string;

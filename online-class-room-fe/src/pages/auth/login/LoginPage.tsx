@@ -191,15 +191,6 @@ function LoginPage() {
                     >
                         Đăng nhập
                     </Button>
-                    <div className="text-sm font-medium text-gray-500">hoặc</div>
-                    <Button
-                        type="default"
-                        className="flex h-12 w-[70%] items-center justify-center space-x-2 text-base font-medium"
-                        onClick={handleLoginWithGoogle}
-                    >
-                        <GoogleOutlined style={{ fontSize: '24px', color: '#DB4437' }} />
-                        <span className="text-gray-700">Đăng nhập với Google</span>
-                    </Button>
                     <div className="text-sm font-normal text-gray-600">
                         Chưa có tài khoản?{' '}
                         <Link to={'/register'} className="font-semibold text-red-500 hover:text-red-600 transition-colors">

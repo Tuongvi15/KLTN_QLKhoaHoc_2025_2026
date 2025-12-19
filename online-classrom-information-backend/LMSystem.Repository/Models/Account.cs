@@ -27,7 +27,7 @@ public partial class Account : IdentityUser
     public string? RefreshToken { get; set; }
 
     public DateTime? RefreshTokenExpiryTime { get; set; }
-
+    public virtual ICollection<CertificateAccount> CertificateAccounts { get; set; } = new List<CertificateAccount>();
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     public virtual ICollection<BankAccount> BankAccounts { get; set; } = new List<BankAccount>();
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

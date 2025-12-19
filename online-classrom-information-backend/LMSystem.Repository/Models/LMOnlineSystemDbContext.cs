@@ -60,6 +60,8 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
     public virtual DbSet<ArticlePost> ArticlePosts { get; set; }
     public virtual DbSet<ArticleComment> ArticleComments { get; set; }
     public virtual DbSet<ArticleLike> ArticleLikes { get; set; }
+    public virtual DbSet<CertificateAccount> CertificateAccounts { get; set; }
+    public virtual DbSet<CertificateTemplate> CertificateTemplates { get; set; }
 
 
     //    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -87,6 +89,81 @@ public partial class LMOnlineSystemDbContext : IdentityDbContext<Account>
                 .IsFixedLength();
             entity.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
         });
+
+        modelBuilder.Entity<CertificateTemplate>(entity =>
+        {
+            entity.HasKey(e => e.TemplateId)
+                .HasName("PK_CertificateTemplate");
+
+            entity.ToTable("CertificateTemplates");
+
+            entity.Property(e => e.HtmlContent)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.BackgroundUrl)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
+
+            // Template có thể gán cho 1 Course hoặc là default (CourseId = null)
+            entity.HasOne(e => e.Course)
+                .WithMany(c => c.CertificateTemplates)
+                .HasForeignKey(e => e.CourseId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<CertificateAccount>(entity =>
+        {
+            entity.HasKey(e => e.CertificateId)
+                .HasName("PK_CertificateAccount");
+
+            entity.ToTable("CertificateAccounts");
+
+            entity.Property(e => e.AccountId)
+                .IsRequired()
+                .HasMaxLength(450);
+
+            entity.Property(e => e.CertificateCode)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.Property(e => e.StudentName)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            entity.Property(e => e.CourseTitle)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            entity.Property(e => e.IssuedAt).HasColumnType("timestamp with time zone");
+
+            // 1 Account - nhiều Certificate
+            entity.HasOne(e => e.Account)
+                .WithMany(a => a.CertificateAccounts)
+                .HasForeignKey(e => e.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 1 Course - nhiều Certificate
+            entity.HasOne(e => e.Course)
+                .WithMany(c => c.CertificateAccounts)
+                .HasForeignKey(e => e.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Unique: mỗi học viên chỉ có 1 chứng chỉ / khóa
+            entity.HasIndex(e => new { e.AccountId, e.CourseId })
+                .IsUnique()
+                .HasDatabaseName("UX_Certificate_Account_Course");
+
+            // Unique certificate code
+            entity.HasIndex(e => e.CertificateCode)
+                .IsUnique()
+                .HasDatabaseName("UX_Certificate_Code");
+        });
+
+
 
         modelBuilder.Entity<TeacherPayout>(entity =>
         {

@@ -38,7 +38,11 @@ public partial class Course
 
     public string? LinkCertificated {  get; set; }
     public virtual Account? Account { get; set; }
+    public bool CertificateEnabled { get; set; } = true;
+    public int? DefaultTemplateId { get; set; }
 
+    public virtual ICollection<CertificateTemplate>? CertificateTemplates { get; set; }
+    public virtual ICollection<CertificateAccount>? CertificateAccounts { get; set; }
     public virtual ICollection<CourseCategory> CourseCategories { get; set; } = new List<CourseCategory>();
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

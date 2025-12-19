@@ -1,59 +1,77 @@
-import { useDispatch, useSelector } from 'react-redux';
-import { useGetQuizDetailQuery } from '../../../services/quiz.services';
+import { Button } from '@mui/material';
+import { Skeleton } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
+
 import { RootState } from '../../../store';
 import { QuestionUI } from '../../../components';
-import { Button } from '@mui/material';
+import { useGetQuizDetailQuery } from '../../../services/quiz.services';
 import {
-    gotToNextStep,
-    setNextStepCompletedPos,
-    setQuestionList,
-    setShowAnswer,
-    tryAnswerAgain,
-} from '../../../slices/learningCourseSlice';
-import { useUpdateLastStepCompletedMutation } from '../../../services/registrationCourse.services';
-import { useEffect } from 'react';
-import { Skeleton } from 'antd';
+    useUpdateLastStepCompletedMutation,
+    useGetLearningStateQuery,
+} from '../../../services/registrationCourse.services';
+
+interface QuestionAnswer {
+    questionId: number;
+    correctAnswer: number;
+    userSelectedAnswer: number;
+}
 
 const LearningQuiz = () => {
-    const dispatch = useDispatch();
-    const { isShowAnswer, stepActive, quizAnswer, registrationData } = useSelector(
+    const { stepActive, registrationData } = useSelector(
         (state: RootState) => state.learningCourse,
     );
 
-    // ✅ FIX: gọi quiz đúng – KHÔNG check quizId === 1
     const { data: quizData, isLoading } = useGetQuizDetailQuery(
         stepActive.quizId ?? -1,
     );
 
-    const [updateLastStepCompleted, { isSuccess }] =
+    const [updateLastStepCompleted] =
         useUpdateLastStepCompletedMutation();
 
-    // ✅ FIX: chỉ init quizAnswer 1 LẦN
+    // 👉 dùng để refetch learning state (BE quyết định step tiếp theo)
+    const { refetch: refetchLearningState } =
+        useGetLearningStateQuery(registrationData?.registrationId ?? -1, {
+            skip: !registrationData?.registrationId,
+        });
+
+    // ===== LOCAL STATE =====
+    const [answers, setAnswers] = useState<QuestionAnswer[]>([]);
+    const [isShowAnswer, setIsShowAnswer] = useState(false);
+
+    // ===== init answers khi load quiz =====
     useEffect(() => {
-        if (quizData?.questions?.length && quizAnswer.length === 0) {
-            dispatch(setQuestionList(quizData.questions));
+        if (quizData?.questions?.length) {
+            setAnswers(
+                quizData.questions.map((q: any) => ({
+                    questionId: q.questionId,
+                    correctAnswer: q.correctAnwser,
+                    userSelectedAnswer: -1,
+                })),
+            );
+            setIsShowAnswer(false);
         }
     }, [quizData]);
 
-    useEffect(() => {
-        if (isSuccess) {
-            dispatch(setNextStepCompletedPos());
-            dispatch(gotToNextStep());
-        }
-    }, [isSuccess]);
+    const correctRate = useMemo(() => {
+        if (answers.length === 0) return 0;
+        const correct = answers.filter(
+            a => a.correctAnswer === a.userSelectedAnswer,
+        ).length;
+        return correct / answers.length;
+    }, [answers]);
 
-    const correctRate =
-        quizAnswer.length === 0
-            ? 0
-            : quizAnswer.filter(
-                  (q) => q.correctAnswer === q.userSelectedAnswer,
-              ).length / quizAnswer.length;
+    // ===== SUBMIT QUIZ (CHUẨN KIẾN TRÚC MỚI) =====
+    const handleSubmit = async () => {
+        if (!registrationData) return;
 
-    const handleGoToNext = () => {
-        updateLastStepCompleted({
-            registrationId: registrationData!.registrationId,
+        await updateLastStepCompleted({
+            registrationId: registrationData.registrationId,
             stepId: stepActive.stepId,
-        });
+        }).unwrap();
+
+        // ✅ BE là source of truth
+        await refetchLearningState();
     };
 
     return (
@@ -64,12 +82,26 @@ const LearningQuiz = () => {
                 {quizData?.title}
             </p>
 
-            {quizData?.questions.map((question, index) => (
+            {quizData?.questions.map((question: any, index: number) => (
                 <QuestionUI
                     key={question.questionId}
                     position={index + 1}
                     question={question}
                     seperator="|"
+                    isShowAnswer={isShowAnswer}
+                    selectedAnswer={
+                        answers.find(a => a.questionId === question.questionId)
+                            ?.userSelectedAnswer
+                    }
+                    onAnswer={(questionId: number, answer: number) => {
+                        setAnswers(prev =>
+                            prev.map(a =>
+                                a.questionId === questionId
+                                    ? { ...a, userSelectedAnswer: answer }
+                                    : a,
+                            ),
+                        );
+                    }}
                 />
             ))}
 
@@ -78,12 +110,10 @@ const LearningQuiz = () => {
                     className="self-end"
                     variant="outlined"
                     disabled={
-                        quizAnswer.length === 0 ||
-                        quizAnswer.some(
-                            (a) => a.userSelectedAnswer === -1,
-                        )
+                        answers.length === 0 ||
+                        answers.some(a => a.userSelectedAnswer === -1)
                     }
-                    onClick={() => dispatch(setShowAnswer(true))}
+                    onClick={() => setIsShowAnswer(true)}
                 >
                     Kiểm tra
                 </Button>
@@ -97,7 +127,15 @@ const LearningQuiz = () => {
                     <Button
                         variant="outlined"
                         color="error"
-                        onClick={() => dispatch(tryAnswerAgain())}
+                        onClick={() => {
+                            setAnswers(prev =>
+                                prev.map(a => ({
+                                    ...a,
+                                    userSelectedAnswer: -1,
+                                })),
+                            );
+                            setIsShowAnswer(false);
+                        }}
                     >
                         Thử lại
                     </Button>
@@ -109,7 +147,7 @@ const LearningQuiz = () => {
                     className="self-end"
                     variant="outlined"
                     color="success"
-                    onClick={handleGoToNext}
+                    onClick={handleSubmit}
                 >
                     Tiếp tục
                 </Button>

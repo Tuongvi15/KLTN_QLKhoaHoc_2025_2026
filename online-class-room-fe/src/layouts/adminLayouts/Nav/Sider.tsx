@@ -118,12 +118,10 @@ export default function MySider() {
 
       {/* 🔹 Logo */}
       {/* Logo */}
-      <Link to={'/'} className="flex items-center">
-        <div className="flex items-center">
-          <SchoolIcon sx={{ fontSize: 30, color: '#00497cff' }} />
-          <span className="ml-1 text-2xl font-bold text-[#1c1d1f] hidden sm:inline">eStudyHub</span>
-        </div>
+      <Link to="/" className="flex justify-center items-center">
+        <SchoolIcon sx={{ fontSize: 30, color: '#00497cff' }} />
       </Link>
+
 
       {/* 🔹 Menu chính */}
       <Menu

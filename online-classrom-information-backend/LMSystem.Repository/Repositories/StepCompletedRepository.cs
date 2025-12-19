@@ -21,79 +21,63 @@ namespace LMSystem.Repository.Repositories
 
         public async Task<ResponeModel> AddOrUpdateStepCompleted(int registrationId, int stepId)
         {
-            try
+            var registration = await _context.RegistrationCourses
+                .FirstOrDefaultAsync(r => r.RegistrationId == registrationId);
+
+            if (registration == null)
+                return new ResponeModel { Status = "Error", Message = "Registration not found" };
+
+            var step = await _context.Steps
+                .Include(s => s.Section)
+                .FirstOrDefaultAsync(s => s.StepId == stepId);
+
+            if (step == null)
+                return new ResponeModel { Status = "Error", Message = "Step not found" };
+
+            // ✅ KHÔNG overwrite – mỗi step là 1 record
+            bool existed = await _context.StepCompleteds.AnyAsync(sc =>
+                sc.RegistrationId == registrationId && sc.StepId == stepId);
+
+            if (!existed)
             {
-                var registration = await _context.RegistrationCourses
-                    .FirstOrDefaultAsync(rc => rc.RegistrationId == registrationId);
-                if (registration == null)
-                    return new ResponeModel { Status = "Error", Message = "Registration not found" };
-
-                var step = await _context.Steps
-                    .FirstOrDefaultAsync(s => s.StepId == stepId);
-                if (step == null)
-                    return new ResponeModel { Status = "Error", Message = "Step not found" };
-
-                var totalSteps = await _context.Steps
-                    .CountAsync(s => s.Section.CourseId == registration.CourseId);
-
-                // ✅ CHỈ LẤY THEO RegistrationId
-                var stepCompleted = await _context.StepCompleteds
-                    .FirstOrDefaultAsync(sc => sc.RegistrationId == registrationId);
-
-                if (stepCompleted == null)
+                _context.StepCompleteds.Add(new StepCompleted
                 {
-                    stepCompleted = new StepCompleted
-                    {
-                        RegistrationId = registrationId,
-                        StepId = stepId,
-                        DateCompleted = DateTime.UtcNow
-                    };
-                    _context.StepCompleteds.Add(stepCompleted);
-                }
-                else
-                {
-                    // ✅ chỉ update step cuối
-                    stepCompleted.StepId = stepId;
-                    stepCompleted.DateCompleted = DateTime.UtcNow;
-                    _context.StepCompleteds.Update(stepCompleted);
-                }
+                    RegistrationId = registrationId,
+                    StepId = stepId,
+                    DateCompleted = DateTime.UtcNow
+                });
 
                 await _context.SaveChangesAsync();
-
-                // =============================
-                // Progress = số step đã hoàn thành / tổng step
-                // (dựa trên BE logic bạn đã chốt)
-                // =============================
-                var completedStepsCount = await _context.StepCompleteds
-                    .CountAsync(sc => sc.RegistrationId == registrationId);
-
-                var learningProgress = totalSteps > 0
-                    ? Math.Round((double)completedStepsCount / totalSteps, 4)
-                    : 0;
-
-                registration.LearningProgress = learningProgress;
-                registration.IsCompleted = learningProgress >= 1;
-
-                _context.RegistrationCourses.Update(registration);
-                await _context.SaveChangesAsync();
-
-                return new ResponeModel
-                {
-                    Status = "Success",
-                    Message = "Step completed successfully",
-                    DataObject = registration
-                };
             }
-            catch (Exception ex)
+
+            // =============================
+            // TÍNH PROGRESS
+            // =============================
+            var totalSteps = await _context.Steps
+                .CountAsync(s => s.Section.CourseId == registration.CourseId);
+
+            var completedSteps = await _context.StepCompleteds
+                .Where(sc => sc.RegistrationId == registrationId)
+                .Select(sc => sc.StepId)
+                .Distinct()
+                .CountAsync();
+
+            registration.LearningProgress =
+                totalSteps == 0 ? 0 : Math.Round((double)completedSteps / totalSteps, 4);
+
+            registration.IsCompleted = completedSteps == totalSteps;
+
+            _context.RegistrationCourses.Update(registration);
+            await _context.SaveChangesAsync();
+
+            return new ResponeModel
             {
-                Console.WriteLine($"Exception: {ex.Message}");
-                return new ResponeModel
-                {
-                    Status = "Error",
-                    Message = "An error occurred while updating step completion"
-                };
-            }
+                Status = "Success",
+                Message = "Step completed successfully",
+                DataObject = registration
+            };
         }
+
 
 
 

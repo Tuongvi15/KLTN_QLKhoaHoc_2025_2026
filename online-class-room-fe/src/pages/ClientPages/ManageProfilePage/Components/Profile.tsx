@@ -48,12 +48,16 @@ const Profile = () => {
     const onSubmit = (data: UserInfo) => {
         const userData = {
             ...data,
-            birthDate: formData.birthDate,
             id: formData.id,
             profileImg: formData.profileImg,
+            birthDate: formData.birthDate
+                ? dayjs(formData.birthDate).format("YYYY-MM-DD")
+                : null,
         };
+
         updateUserMutate(userData);
     };
+
 
     return (
         <div className="max-w-5xl mx-auto">
@@ -243,7 +247,7 @@ const Profile = () => {
                             <span>💡 Thông tin của bạn sẽ được bảo mật và an toàn</span>
                         </div>
                         <div className="flex gap-3">
-                            
+
                             <LoadingButton
                                 loading={isLoading}
                                 variant="contained"

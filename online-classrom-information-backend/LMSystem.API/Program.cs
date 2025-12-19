@@ -13,6 +13,10 @@ using Google.Apis.Auth.OAuth2;
 using LMSystem.Library;
 using LMSystem.Repository.Library;
 using OfficeOpenXml;
+using DinkToPdf.Contracts;
+using DinkToPdf;
+using LMSystem.Services.Interfaces;
+using LMSystem.Services.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 ExcelPackage.License.SetNonCommercialPersonal("estudy");
@@ -139,6 +143,12 @@ options.AddPolicy("app-cors",
         .AllowAnyMethod();
     });
 });
+
+builder.Services.AddSingleton<IConverter>(
+    new SynchronizedConverter(new PdfTools())
+);
+
+builder.Services.AddScoped<ICertificateRenderService, CertificateRenderService>();
 
 // Add Authentication and JwtBearer
 builder.Services

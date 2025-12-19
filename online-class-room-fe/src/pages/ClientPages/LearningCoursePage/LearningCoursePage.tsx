@@ -1,20 +1,16 @@
 import { AccordionSection, Video } from '../../../components';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useGetCourseIDQuery } from '../../../services';
 import { Skeleton, Typography, Progress } from 'antd';
 import { Button } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     LessionType,
-    gotToNextStep,
-    setLastStepCompleted,
     setLearingCourse,
-    setNextStepCompletedPos,
     setRegistrationData,
     setStepActiveByStepId,
 } from '../../../slices/learningCourseSlice';
-
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
@@ -22,196 +18,169 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { RootState } from '../../../store';
 import {
     useCheckRegistrationCourseQuery,
-    useGetLastStepCompletedQuery,
-    useUpdateLastStepCompletedMutation,
+    useGetLearningStateQuery,
 } from '../../../services/registrationCourse.services';
 import LearningQuiz from './LearningQuiz';
+import { useLazyGetCertificateByAccountAndCourseQuery } from '../../../services/account.services';
+import { Dialog, DialogContent, DialogTitle } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import { useState } from 'react';
 
 const LearningCoursePage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const location = useLocation();
+    const hasFetchedCertificate = useRef(false);
 
     const courseId = location.pathname.split('/').pop();
     const accountId = useSelector((state: RootState) => state.user.id);
+    const [getCertificate] = useLazyGetCertificateByAccountAndCourseQuery();
 
     const {
         stepActive,
         stepActiveType,
         isVideoWatched,
-        lastPostionCompleted,
         registrationData,
     } = useSelector((state: RootState) => state.learningCourse);
-
-    const registrationId = registrationData?.registrationId ?? -1;
 
     // =============================
     // API
     // =============================
-    const { data, isLoading, isSuccess: isGetCourseSuccess } =
+    const { data: course, isLoading } =
         useGetCourseIDQuery(courseId ?? '');
 
-    const { isSuccess: isGetCheckSuccess, data: checkData } =
+    const { data: checkData, isSuccess: isCheckOk } =
         useCheckRegistrationCourseQuery({
             accountId: accountId ?? '',
             courseId: courseId ? parseInt(courseId) : -1,
         });
 
-    const { isSuccess: isGetLastStepCompletedSuccess, data: lastStepCompletedData } =
-        useGetLastStepCompletedQuery(registrationId);
+    const { data: learningState } =
+        useGetLearningStateQuery(checkData?.registrationId ?? -1, {
+            skip: !checkData?.registrationId,
+        });
+    const handleGetCertificate = async () => {
+        if (!registrationData?.accountId || !registrationData?.courseId) return;
 
-    const [updateLastStepCompleted, { isSuccess: isUpdateLastStepSuccess }] =
-        useUpdateLastStepCompletedMutation();
+        try {
+            const html = await getCertificate({
+                accountId: accountId,
+                courseId: Number(registrationData.courseId),
+            }).unwrap();
+
+            setCertificateHtml(html);
+            setOpenCertificate(true);
+        } catch (e) {
+            console.error('Không lấy được certificate', e);
+        }
+    };
+
+    const [openCertificate, setOpenCertificate] = useState(false);
+    const [certificateHtml, setCertificateHtml] = useState<string>('');
+
+
+
+
+
 
     // =============================
     // Load registration
     // =============================
     useEffect(() => {
-        if (!isGetCheckSuccess) return;
-
+        if (!isCheckOk) return;
         if (!checkData?.registrationId) {
-            navigate('/*');
+            navigate('/');
             return;
         }
-
         dispatch(setRegistrationData(checkData));
-    }, [isGetCheckSuccess]);
+    }, [isCheckOk]);
 
     // =============================
     // Load course
     // =============================
     useEffect(() => {
-        if (isGetCourseSuccess && data) {
-            dispatch(setLearingCourse(data));
+        if (course) {
+            dispatch(setLearingCourse(course));
         }
-    }, [isGetCourseSuccess]);
+    }, [course]);
 
     // =============================
-    // Load last completed step
+    // Set active step (BE SOURCE OF TRUTH)
     // =============================
     useEffect(() => {
-        if (
-            !isGetCourseSuccess ||
-            !data ||
-            !isGetLastStepCompletedSuccess
-        )
-            return;
-
-        const allSteps = data.sections.flatMap(s => s.steps);
-
-        // chưa học lần nào
-        if (!lastStepCompletedData?.stepId) {
-            const firstStepId = allSteps[0].stepId;
-            dispatch(setLastStepCompleted(firstStepId));
-            dispatch(setStepActiveByStepId(firstStepId));
-            return;
-        }
-
-        const lastStepId = lastStepCompletedData.stepId;
-        dispatch(setLastStepCompleted(lastStepId));
-
-        const lastIndex = allSteps.findIndex(s => s.stepId === lastStepId);
-
-        if (lastIndex >= 0 && lastIndex < allSteps.length - 1) {
-            dispatch(setStepActiveByStepId(allSteps[lastIndex + 1].stepId));
-        } else {
-            dispatch(setStepActiveByStepId(lastStepId));
-        }
-    }, [isGetCourseSuccess, isGetLastStepCompletedSuccess]);
+        if (!learningState) return;
+        dispatch(setStepActiveByStepId(learningState.currentStepId));
+    }, [learningState]);
 
     // =============================
-    // After update step completed
+    // Progress
     // =============================
-    useEffect(() => {
-        if (isUpdateLastStepSuccess) {
-            dispatch(setNextStepCompletedPos());
-            dispatch(gotToNextStep());
-        }
-    }, [isUpdateLastStepSuccess]);
-
-    // =============================
-    // Actions
-    // =============================
-    const handleGoToNext = () => {
-        updateLastStepCompleted({
-            registrationId,
-            stepId: stepActive.stepId,
-        });
-    };
-
-    // =============================
-    // Progress (SOURCE OF TRUTH = API)
-    // =============================
-    const learningProgress = registrationData?.learningProgress ?? 0;
-
+    const learningProgress = learningState?.learningProgress ?? 0;
     const totalSteps =
-        data?.sections?.reduce(
+        course?.sections.reduce(
             (acc, section) => acc + section.steps.length,
-            0
+            0,
         ) ?? 0;
 
     const progressPercent = Math.round(learningProgress * 100);
     const completedSteps = Math.round(learningProgress * totalSteps);
-
+    useEffect(() => {
+        if (
+            progressPercent === 100 &&
+            registrationData?.registrationId &&
+            !hasFetchedCertificate.current
+        ) {
+            hasFetchedCertificate.current = true;
+            handleGetCertificate();
+        }
+    }, [progressPercent, registrationData]);
     // =============================
     // RENDER
     // =============================
     return (
         <div className="bg-[#f0f0f0] min-h-screen">
-
             {/* ===== HEADER ===== */}
             <div className="sticky top-0 z-50 bg-white shadow-sm">
-                <div className="px-6 py-3">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-4">
-                            <Button
-                                startIcon={<ArrowBackIcon />}
-                                variant="text"
-                                onClick={() => navigate(`/courses/${courseId}`)}
-                            >
-                                Quay lại
-                            </Button>
+                <div className="px-6 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Button
+                            startIcon={<ArrowBackIcon />}
+                            variant="text"
+                            onClick={() => navigate(`/courses/${courseId}`)}
+                        >
+                            Quay lại
+                        </Button>
 
-                            {data && (
-                                <div className="flex items-center gap-2">
-                                    <MenuBookIcon sx={{ fontSize: 20, color: '#666' }} />
-                                    <span className="text-sm font-medium">
-                                        {data.title}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <div className="text-sm text-[#666]">
-                                Tiến độ:{' '}
-                                <strong className="text-[#f05123]">
-                                    {progressPercent}%
-                                </strong>
+                        {course && (
+                            <div className="flex items-center gap-2">
+                                <MenuBookIcon sx={{ fontSize: 20, color: '#666' }} />
+                                <span className="text-sm font-medium">
+                                    {course.title}
+                                </span>
                             </div>
+                        )}
+                    </div>
 
-                            <Progress
-                                percent={progressPercent}
-                                strokeColor="#f05123"
-                                showInfo={false}
-                                style={{ width: 120 }}
-                            />
-                        </div>
+                    <div className="flex items-center gap-4">
+                        <strong className="text-[#f05123]">
+                            {progressPercent}%
+                        </strong>
+                        <Progress
+                            percent={progressPercent}
+                            strokeColor="#f05123"
+                            showInfo={false}
+                            style={{ width: 120 }}
+                        />
                     </div>
                 </div>
             </div>
 
             {/* ===== MAIN ===== */}
             <div className="flex h-[calc(100vh-70px)]">
-
                 {/* LEFT */}
                 <div className="flex-1 overflow-y-auto p-6">
                     <div className="bg-black rounded-xl overflow-hidden shadow-lg mb-6">
-                        {isLoading && (
-                            <div className="aspect-video flex items-center justify-center">
-                                <Skeleton active />
-                            </div>
-                        )}
+                        {isLoading && <Skeleton active />}
 
                         {!isLoading && stepActiveType === LessionType.VIDEO && (
                             <div className="relative">
@@ -231,48 +200,58 @@ const LearningCoursePage = () => {
                             </div>
                         )}
                     </div>
-
-                    {stepActiveType === LessionType.VIDEO && (
-                        <div className="flex justify-between items-center bg-white rounded-xl shadow p-4">
-                            <div className="text-sm text-[#666]">
-                                {isVideoWatched
-                                    ? 'Bạn đã hoàn thành bài học này'
-                                    : 'Vui lòng xem hết video để tiếp tục'}
-                            </div>
-
-                            <Button
-                                onClick={handleGoToNext}
-                                variant="contained"
-                                disabled={!isVideoWatched}
-                                sx={{ bgcolor: '#f05123', px: 4 }}
-                            >
-                                Hoàn thành và tiếp tục →
-                            </Button>
-                        </div>
-                    )}
                 </div>
 
                 {/* RIGHT */}
-                {data && stepActive && (
-                    <div className="hidden lg:block w-[380px] bg-white border-l overflow-y-auto shadow-lg">
+                {course && learningState && (
+                    <div className="hidden lg:block w-[380px] bg-white border-l overflow-y-auto">
                         <div className="sticky top-0 bg-white border-b px-5 py-4">
                             <Typography.Title level={5} className="!m-0">
                                 Nội dung khóa học
                             </Typography.Title>
-                            <Typography.Text className="text-xs text-[#666] mt-1 block">
+                            <Typography.Text className="text-xs text-[#666]">
                                 {completedSteps} / {totalSteps} bài học
                             </Typography.Text>
                         </div>
 
                         <div className="px-3 py-4">
                             <AccordionSection
-                                lastPosition={lastPostionCompleted + 1}
-                                sections={data.sections}
+                                sections={course.sections}
+                                completedStepIds={learningState.completedStepIds}
+                                currentStepId={learningState.currentStepId}
                             />
                         </div>
                     </div>
                 )}
             </div>
+            {/* ===== CERTIFICATE MODAL ===== */}
+            <Dialog
+                open={openCertificate}
+                onClose={() => setOpenCertificate(false)}
+                maxWidth="xl"
+                fullWidth
+            >
+                <DialogTitle className="flex items-center justify-between">
+                    🎉 Chứng chỉ hoàn thành khóa học
+                    <Button
+                        onClick={() => setOpenCertificate(false)}
+                        variant="text"
+                    >
+                        <CloseIcon />
+                    </Button>
+                </DialogTitle>
+
+                <DialogContent dividers>
+                    <div
+                        style={{
+                            width: '100%',
+                            minHeight: '600px',
+                        }}
+                        dangerouslySetInnerHTML={{ __html: certificateHtml }}
+                    />
+                </DialogContent>
+            </Dialog>
+
         </div>
     );
 };

@@ -3,17 +3,19 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import {
     CheckRegistrationCourseRequest,
     CheckRegistrationCourseRespone,
+    LearningState,
     RegistrationCourse,
 } from '../types/RegistrationCourse.type';
 import {
     AddOrUpdateStepCompletedRespone,
     GetStepIdByRegistrationIdRespone,
 } from '../types/StepCompleted.type';
+import { LearningStateDto } from '../slices/learningCourseSlice';
 
 export const registrationCourseApi = createApi({
     reducerPath: 'registrationCourseApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'https://qlkhtt-backend-production.up.railway.app/',
+    baseUrl: 'https://qlkhtt-backend-production.up.railway.app/',
         prepareHeaders: (headers) => {
             // Thêm logic để lấy accessToken từ localStorage và đặt vào header Authorization
             const user = localStorage.getItem('user');
@@ -77,11 +79,20 @@ export const registrationCourseApi = createApi({
                 };
             },
         }),
+
+        // service
+        getLearningState: build.query<LearningStateDto, number>({
+            query: (registrationId) =>
+                `api/RegistrationCourse/learning-state/${registrationId}`,
+            transformResponse: (response: any) => response.dataObject,
+        }),
     }),
 });
+
 export const {
     useGetRegisterCourseByAccountIdQuery,
     useCheckRegistrationCourseQuery,
     useGetLastStepCompletedQuery,
     useUpdateLastStepCompletedMutation,
+    useGetLearningStateQuery,
 } = registrationCourseApi;

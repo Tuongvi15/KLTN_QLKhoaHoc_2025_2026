@@ -79,7 +79,7 @@ const ChatBox = () => {
             }
 
             // Gọi API
-            const response = await fetch('http://localhost:8000/chat', {
+            const response = await fetch('https://qlkhtt-chatbox-production.up.railway.app/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

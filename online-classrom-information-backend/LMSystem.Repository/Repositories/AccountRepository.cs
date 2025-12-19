@@ -687,11 +687,16 @@ namespace LMSystem.Repository.Repositories
                 return new ResponeModel
                 {
                     Status = "Error",
-                    Message = "Cannot find your account!"
+                    Message = "User not found!"
                 };
             }
 
-            var result = await userManager.ChangePasswordAsync(account, model.CurrentPassword, model.NewPassword);
+            var result = await userManager.ChangePasswordAsync(
+                account,
+                model.CurrentPassword,
+                model.NewPassword
+            );
+
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
@@ -708,6 +713,7 @@ namespace LMSystem.Repository.Repositories
                 Message = "Password changed successfully!"
             };
         }
+
 
 
         public async Task<ResponeModel> SignUpAdminStaffAsync(SignUpModel model, RoleModel role)

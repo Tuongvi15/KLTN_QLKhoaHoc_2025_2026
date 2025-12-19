@@ -273,19 +273,19 @@ namespace LMSystem.API.Controllers
         }
         [HttpPut("UpdateProfile")]
         [Authorize]
-        public async Task<IActionResult> UpdateProfile(UpdateProfileModel updateProfileModel, string accountId)
+        public async Task<IActionResult> UpdateProfile(
+    [FromBody] UpdateProfileModel updateProfileModel,
+    [FromQuery] string accountId
+)
         {
-            var account = await _accountService.GetAccountById(accountId);
-
             var response = await _accountService.UpdateAccountProfile(updateProfileModel, accountId);
 
             if (response.Status == "Error")
-            {
                 return Conflict(response);
-            }
 
             return Ok(response);
         }
+
 
         [HttpGet("ConfirmEmail")]
         public async Task<IActionResult> ConfirmEmail(string tokenReset, string memberEmail)

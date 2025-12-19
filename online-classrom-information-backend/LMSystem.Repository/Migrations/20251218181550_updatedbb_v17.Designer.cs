@@ -3,6 +3,7 @@ using System;
 using LMSystem.Repository.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LMSystem.Repository.Migrations
 {
     [DbContext(typeof(LMOnlineSystemDbContext))]
-    partial class LMOnlineSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251218181550_updatedbb_v17")]
+    partial class updatedbb_v17
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -433,6 +436,9 @@ namespace LMSystem.Repository.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<int>("TemplateId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("VerifyUrl")
                         .HasColumnType("text");
 
@@ -444,6 +450,8 @@ namespace LMSystem.Repository.Migrations
                         .HasDatabaseName("UX_Certificate_Code");
 
                     b.HasIndex("CourseId");
+
+                    b.HasIndex("TemplateId");
 
                     b.HasIndex("AccountId", "CourseId")
                         .IsUnique()
@@ -1444,9 +1452,17 @@ namespace LMSystem.Repository.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("LMSystem.Repository.Models.CertificateTemplate", "Template")
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Account");
 
                     b.Navigation("Course");
+
+                    b.Navigation("Template");
                 });
 
             modelBuilder.Entity("LMSystem.Repository.Models.CertificateTemplate", b =>

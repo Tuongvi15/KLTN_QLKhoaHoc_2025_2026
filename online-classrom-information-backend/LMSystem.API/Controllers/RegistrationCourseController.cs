@@ -84,5 +84,13 @@ namespace LMSystem.API.Controllers
             }
             return Ok(courses);
         }
+
+        [HttpGet("learning-state/{registrationId}")]
+        [Authorize]
+        public async Task<IActionResult> GetLearningState(int registrationId)
+        {
+            var result = await _registrationCourseService.GetLearningState(registrationId);
+            return Ok(result);
+        }
     }
 }

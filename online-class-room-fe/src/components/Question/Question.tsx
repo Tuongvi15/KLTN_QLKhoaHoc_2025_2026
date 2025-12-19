@@ -2,9 +2,6 @@ import { Radio, Typography } from 'antd';
 import { Question } from '../../types/Question.type';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store';
-import { setQuestionAnswer } from '../../slices/learningCourseSlice';
 
 const answerPrefix = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
@@ -12,21 +9,20 @@ export interface QuestionProps {
     question: Question;
     seperator: string;
     position: number;
+    isShowAnswer?: boolean;
+    selectedAnswer?: number;
+    onAnswer?: (questionId: number, answer: number) => void;
 }
 
-const QuestionUI = ({ question, seperator, position }: QuestionProps) => {
+const QuestionUI = ({
+    question,
+    seperator,
+    position,
+    isShowAnswer,
+    selectedAnswer,
+    onAnswer,
+}: QuestionProps) => {
     const { anwser, correctAnwser, questionTitle, questionId } = question;
-
-    const dispatch = useDispatch();
-    const isShowAnswer = useSelector(
-        (state: RootState) => state.learningCourse.isShowAnswer,
-    );
-
-    const questionData = useSelector((state: RootState) =>
-        state.learningCourse.quizAnswer.find(
-            (q) => q.questionId === questionId,
-        ),
-    );
 
     return (
         <div className="flex flex-col gap-8">
@@ -36,16 +32,10 @@ const QuestionUI = ({ question, seperator, position }: QuestionProps) => {
 
             <Radio.Group
                 className="grid grid-cols-2 gap-8 px-4"
-                value={questionData?.userSelectedAnswer}
-                onChange={(e) => {
-                    dispatch(
-                        setQuestionAnswer({
-                            questionId,
-                            correctAnswer: correctAnwser,
-                            userSelectedAnswer: e.target.value,
-                        }),
-                    );
-                }}
+                value={selectedAnswer}
+                onChange={(e) =>
+                    onAnswer?.(questionId, e.target.value)
+                }
             >
                 {anwser
                     .split(seperator)
@@ -68,13 +58,13 @@ const QuestionUI = ({ question, seperator, position }: QuestionProps) => {
                             </div>
 
                             {isShowAnswer &&
-                                questionData?.correctAnswer === index && (
+                                correctAnwser === index && (
                                     <CheckCircleIcon className="text-[#52c41a]" />
                                 )}
 
                             {isShowAnswer &&
-                                questionData?.userSelectedAnswer === index &&
-                                questionData?.correctAnswer !== index && (
+                                selectedAnswer === index &&
+                                correctAnwser !== index && (
                                     <CancelIcon className="text-[#ff4d4f]" />
                                 )}
                         </label>

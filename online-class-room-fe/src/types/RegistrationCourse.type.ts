@@ -23,3 +23,13 @@ export interface RegistrationCourse {
     courseDescription: string;
     courseImg: string;
 }
+
+// types
+export interface LearningState {
+    registrationId: number;
+    courseId: number;
+    learningProgress: number;
+    isCompleted: boolean;
+    completedStepIds: number[];
+    currentStepId: number;
+}

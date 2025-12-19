@@ -47,6 +47,7 @@
     "firebase": "^10.7.2",
     "formik": "^2.4.5",
     "framer-motion": "^10.18.0",
+    "html2pdf.js": "^0.12.1",
     "jwt-decode": "^4.0.0",
     "lottie-react": "^2.4.0",
     "lucide-react": "^0.546.0",

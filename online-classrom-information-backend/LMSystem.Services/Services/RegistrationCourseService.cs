@@ -45,5 +45,10 @@ namespace LMSystem.Services.Services
         {
             return await _registrationCourseRepository.GetUncompletedLearningCourseByParentAccountId(accountId);
         }
+
+        public async Task<ResponeModel> GetLearningState(int registrationId)
+        {
+            return await _registrationCourseRepository.GetLearningState(registrationId);
+        }
     }
 }

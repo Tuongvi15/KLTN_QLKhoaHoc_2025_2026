@@ -22,6 +22,8 @@ import { RootState, persistor } from '../../../store';
 import PaymentHistory from './Components/PaymentHistory';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { useLocation } from 'react-router-dom';
+import MyCertificatesPage from '../../ClientPages/MyCertificates/MyCertificatesPage';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 
 interface Menu {
     type: ManageProfileMenu;
@@ -37,7 +39,7 @@ const ManageProfilePage = () => {
     const location = useLocation();
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
-    
+
     const menuList: Menu[] = [
         {
             type: ManageProfileMenu.PROFILE,
@@ -69,10 +71,16 @@ const ManageProfilePage = () => {
             menutext: 'Lịch sử thanh toán',
             component: <PaymentHistory />,
         },
+        {
+            type: ManageProfileMenu.CERTIFICATES,
+            MenuIcon: WorkspacePremiumIcon,
+            menutext: 'Chứng chỉ',
+            component: <MyCertificatesPage />,
+        },
     ];
 
     const [menuSelected, setMenuSeleted] = useState(menuList[0]);
-    
+
     useEffect(() => {
         if (tab === 'learning-courses') {
             const found = menuList.find(m => m.type === ManageProfileMenu.LEARNING_COURSES);
@@ -110,6 +118,7 @@ const ManageProfilePage = () => {
     const onMenuSelectEvent = (menu: Menu) => {
         setMenuSeleted(menu);
     };
+    const user = useSelector((state: RootState) => state.user);
 
     const [loginGoogle, setLoginGoogle] = useState(false);
     const [userAvatar, setUserAvatar] = useState('');
@@ -126,8 +135,8 @@ const ManageProfilePage = () => {
     }, []);
 
     return (
-        <div 
-            style={{ 
+        <div
+            style={{
                 background: 'linear-gradient(to bottom, #f8fafc, #ffffff)',
                 minHeight: '100vh',
                 padding: '32px 16px',
@@ -145,7 +154,7 @@ const ManageProfilePage = () => {
                 >
                     <div className="flex flex-col md:flex-row" style={{ minHeight: '80vh' }}>
                         {/* Sidebar */}
-                        <div 
+                        <div
                             style={{
                                 width: '100%',
                                 maxWidth: '280px',
@@ -157,40 +166,19 @@ const ManageProfilePage = () => {
                         >
                             {/* User Profile */}
                             <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                                {loginGoogle ? (
-                                    <MuiAvatar
-                                        src={userAvatar}
-                                        alt={userNameGoogle}
-                                        style={{
-                                            width: '96px',
-                                            height: '96px',
-                                            margin: '0 auto 16px',
-                                            border: '4px solid white',
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                                        }}
-                                    />
-                                ) : (
-                                    <div 
-                                        style={{
-                                            width: '96px',
-                                            height: '96px',
-                                            margin: '0 auto 16px',
-                                            borderRadius: '50%',
-                                            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '36px',
-                                            color: 'white',
-                                            fontWeight: 600,
-                                            border: '4px solid white',
-                                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-                                        }}
-                                    >
-                                        {userFullName.charAt(0).toUpperCase()}
-                                    </div>
-                                )}
-                                <h2 
+                                <MuiAvatar
+                                    src={user.profileImg || undefined}
+                                    alt={user.firstName}
+                                    sx={{
+                                        width: 96,
+                                        height: 96,
+                                        margin: '0 auto 16px',
+                                        border: '4px solid white',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                                    }}
+                                />
+
+                                <h2
                                     style={{
                                         fontSize: '18px',
                                         fontWeight: 600,
@@ -201,7 +189,7 @@ const ManageProfilePage = () => {
                                 >
                                     {loginGoogle ? userNameGoogle : userFullName}
                                 </h2>
-                                <p 
+                                <p
                                     style={{
                                         fontSize: '13px',
                                         color: '#64748b',
@@ -271,7 +259,7 @@ const ManageProfilePage = () => {
                         </div>
 
                         {/* Content Area */}
-                        <div 
+                        <div
                             style={{
                                 flex: 1,
                                 padding: '32px',
@@ -281,7 +269,7 @@ const ManageProfilePage = () => {
                         >
                             {/* Content Header */}
                             <div style={{ marginBottom: '32px' }}>
-                                <h1 
+                                <h1
                                     style={{
                                         fontSize: '24px',
                                         fontWeight: 600,
@@ -292,7 +280,7 @@ const ManageProfilePage = () => {
                                 >
                                     {menuSelected.menutext}
                                 </h1>
-                                
+
                             </div>
 
                             {/* Dynamic Component */}

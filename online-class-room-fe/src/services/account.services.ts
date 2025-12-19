@@ -5,7 +5,7 @@ import { PagingParam } from '../types/TableParam';
 export const accountApi = createApi({
     reducerPath: 'accountApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'https://qlkhtt-backend-production.up.railway.app/',
+    baseUrl: 'https://qlkhtt-backend-production.up.railway.app/',
         prepareHeaders: (headers) => {
             const user = localStorage.getItem('user');
 
@@ -70,6 +70,24 @@ export const accountApi = createApi({
                 return data;
             },
         }),
+
+        getMyCertificates: build.query<any[], void>({
+            query: () => `api/Certificate/my`,
+            transformResponse: (res: any) => res.dataObject,
+        }),
+        // =========================
+        // 🎓 GET CERTIFICATE (HTML)
+        // =========================
+        getCertificateByAccountAndCourse: build.query<
+            string,
+            { accountId: string; courseId: number }
+        >({
+            query: ({ accountId, courseId }) => ({
+                url: `api/Certificate/view-html/account/${accountId}/course/${courseId}`,
+                responseHandler: (response) => response.text(),
+            }),
+        }),
+
     }),
 });
 
@@ -83,4 +101,6 @@ export const {
     useGetPendingTeachersQuery,
     useApproveTeacherMutation,
     useRestoreAccountMutation,
+    useLazyGetCertificateByAccountAndCourseQuery,
+    useGetMyCertificatesQuery,
 } = accountApi;

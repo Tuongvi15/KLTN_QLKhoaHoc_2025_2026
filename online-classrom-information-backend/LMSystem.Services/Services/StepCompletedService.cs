@@ -1,30 +1,45 @@
 ﻿using LMSystem.Repository.Data;
 using LMSystem.Repository.Interfaces;
+using LMSystem.Repository.Models;
 using LMSystem.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace LMSystem.Services.Services
+public class StepCompletedService : IStepCompletedService
 {
-    public class StepCompletedService : IStepCompletedService
+    private readonly IStepCompletedRepository _stepCompletedRepository;
+    private readonly ICertificateService _certificateService;
+
+    public StepCompletedService(
+        IStepCompletedRepository stepCompletedRepository,
+        ICertificateService certificateService)
     {
-        private readonly IStepCompletedRepository _stepCompletedRepository;
-        public StepCompletedService(IStepCompletedRepository stepCompletedRepository)
+        _stepCompletedRepository = stepCompletedRepository;
+        _certificateService = certificateService;
+    }
+
+    public async Task<ResponeModel> AddOrUpdateStepCompleted(int registrationId, int stepId)
+    {
+        var result = await _stepCompletedRepository.AddOrUpdateStepCompleted(registrationId, stepId);
+
+        if (result.Status != "Success")
+            return result;
+
+        var registration = result.DataObject as RegistrationCourse;
+        if (registration == null)
+            return result;
+
+        if (registration.IsCompleted == true)
         {
-            _stepCompletedRepository = stepCompletedRepository;
+            await _certificateService.IssueCertificateAsync(
+                registration.AccountId,
+                registration.CourseId
+            );
         }
 
-        public async Task<ResponeModel> AddOrUpdateStepCompleted(int registrationId, int stepId)
-        {
-            return await _stepCompletedRepository.AddOrUpdateStepCompleted(registrationId, stepId);
-        }
+        return result;
+    }
 
-        public async Task<ResponeModel> GetStepIdByRegistrationId(int registrationId)
-        {
-            return await _stepCompletedRepository.GetStepIdByRegistrationId(registrationId);
-        }
+    public async Task<ResponeModel> GetStepIdByRegistrationId(int registrationId)
+    {
+        return await _stepCompletedRepository.GetStepIdByRegistrationId(registrationId);
     }
 }
